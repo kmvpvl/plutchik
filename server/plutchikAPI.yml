@@ -14,13 +14,13 @@ components:
       properties:
         api:
           type: string
-          pattern: ^(\d+\.)?(\d+\.)?(\*|\d+)$
+          pattern: ^(\d+\.)?(\d+\.)?(\d+)$
         data:
           type: string
-          pattern: ^(\d+\.)?(\d+\.)?(\*|\d+)$
+          pattern: ^(\d+\.)?(\d+\.)?(\d+)$
         ai:
           type: string
-          pattern: ^(\d+\.)?(\d+\.)?(\*|\d+)$
+          pattern: ^(\d+\.)?(\d+\.)?(\d+)$
     user:
       type: object
       properties:
