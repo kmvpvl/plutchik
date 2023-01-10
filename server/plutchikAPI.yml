@@ -149,7 +149,7 @@ components:
         type: string
         format: uuid
     cid: 
-      name: uid
+      name: cid
       in: path
       required: true
       description: Uniq content id
