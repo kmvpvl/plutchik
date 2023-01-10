@@ -1,0 +1,293 @@
+openapi: '3.0.2'
+info:
+  title: Plutchik API
+  version: '1.0'
+servers:
+  - url: https://470282aa-075b-43ac-8f84-0dd31c013821.mock.pstmn.io
+  - url: https://5dfbb146-c21e-4b30-b009-2b34abadefb3.mock.pstmn.io
+    description: Server description
+
+components:
+  schemas:
+    version:
+      type: object
+      properties:
+        api:
+          type: string
+          pattern: ^(\d+\.)?(\d+\.)?(\*|\d+)$
+        data:
+          type: string
+          pattern: ^(\d+\.)?(\d+\.)?(\*|\d+)$
+        ai:
+          type: string
+          pattern: ^(\d+\.)?(\d+\.)?(\*|\d+)$
+    user:
+      type: object
+      properties:
+        uid:
+          type: string
+          description: Uniq user's id at Plutchik
+          format: uuid
+          nullable: true
+        organizationid:
+          type: string
+          description: Uniq organization id at Plutchik
+        useridinorganization:
+          type: string
+          description: Uniq user's id at organization
+        birthdate:
+          type: string
+          format: date
+          description: Birthdate of user
+          nullable: true
+        nativelanguage:
+          type: string
+          description: User's nativa language
+          nullable: true
+        secondlanguages:
+          description: All second or foreign languages of user
+          type: array
+          items:
+            type: string
+          nullable: true
+        location:
+          description: Location of user (city, country of coord location) 
+          type: string
+          nullable: true
+        gender:
+          description: User's gender (any trad gender or combination)
+          type: string
+          nullable: true
+        maritalstatus:
+          type: string
+          description: Marital status of user as one wants using
+          nullable: true
+        features:
+          type: string
+          nullable: true
+        blocked:
+          description: Is user banned?
+          type: boolean
+          nullable: false
+    contentitem:
+      type: object
+      properties:
+        cid:
+          description: Uniq id of content item
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          description: Type of content
+          type: string
+          enum: [text, audio, video, mem]
+          nullable: false
+        htmlcontent:
+          description: Content of item, can be HTML
+          type: string
+          nullable: true
+        href:
+          description: Reference to external content
+          type: string
+          nullable: true
+        blocked:
+          description: Is content blocked?
+          type: boolean
+          nullable: false
+  responses:
+    NotFound:
+      description: 'Not found'
+      content:
+        application/json:
+          schema: {}
+    NotAuthorized:
+      description: 'Not authorized'
+      content:
+        application/json:
+          schema: {}
+  parameters:
+    organizationid:
+      name: organizationid
+      in: header
+      required: true
+      description: Uniq organization id
+      schema: 
+        type: string
+        format: uuid
+    organizationkey:
+      name: organizationkey
+      in: header
+      required: true
+      description: Secret organization key
+      schema: 
+        type: string
+        format: uuid
+    sessiontoken:
+      name: sessiontoken
+      in: header
+      required: true
+      description: Session token
+      schema:
+        type: string
+        format: uuid
+    userinfo:
+      name: userinfo
+      in: query
+      schema:
+        $ref: "#/components/schemas/user"
+    contentinfo:
+      name: contentinfo
+      in: query
+      schema:
+        $ref: "#/components/schemas/contentitem"
+    uid: 
+      name: uid
+      in: path
+      required: true
+      description: Uniq user id
+      schema:
+        type: string
+        format: uuid
+    cid: 
+      name: uid
+      in: path
+      required: true
+      description: Uniq content id
+      schema:
+        type: string
+        format: uuid
+paths:
+  /version:
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/version"
+  /getsessiontoken:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/organizationid"
+        - $ref: "#/components/parameters/organizationkey"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /adduser:
+    description: Add new user to Plutchik
+    post:
+      tags:
+        - user
+        - new content
+      parameters:
+        - $ref: "#/components/parameters/userinfo"
+        - $ref: "#/components/parameters/sessiontoken"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /userinfo{uid}:
+    description: Reveal user information
+    get:
+      tags:
+        - user
+        - read
+      parameters:
+        - $ref: "#/components/parameters/uid"
+        - $ref: "#/components/parameters/sessiontoken"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /unblockuser/{uid}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/uid"
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /blockuser/{uid}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/uid"
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /addcontent:
+    description: Add new content item
+    post:
+      parameters:
+        - $ref: "#/components/parameters/contentinfo"
+        - $ref: "#/components/parameters/sessiontoken"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contentitem"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /getcontent/{cid}:
+    description: Reveal content 
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/cid"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contentitem"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /blockcontent/{cid}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/cid"
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /unblockcontent/{cid}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/cid"
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+security:
+  - userSecurity: []
+  - teamSecurity: []
+  - organizationSecurity: []
