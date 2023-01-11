@@ -21,6 +21,10 @@ components:
         ai:
           type: string
           pattern: ^(\d+\.)?(\d+\.)?(\d+)$
+      example:
+        api: 1.0.0
+        data: 1.0.0.
+        ai: 0.0.1
     user:
       type: object
       properties:
@@ -69,6 +73,18 @@ components:
           description: Is user banned?
           type: boolean
           nullable: false
+      example:
+        uid: urn:uuid:39c2c23c-5fa4-402b-4034-8b8f6cce36ff
+        organizationid: urn:uuid:39c2c23c-5fa4-402b-4034-8b8f6cce36fe
+        useridinorganization: 00000080880675
+        birthdate: 1995-11-03
+        nativelanguage: Polska
+        secondlanguages: [english, german]
+        location: Warsaw
+        gender: female
+        maritalstatus: single
+        features: hobby, cats
+        blocked: false
     contentitem:
       type: object
       properties:
@@ -179,6 +195,8 @@ paths:
               schema:
                 type: string
                 format: uuid
+                example:
+                  urn:uuid:39c2c23c-5fa4-402b-4034-8b8f6cce36fd
         '401':
           $ref: '#/components/responses/NotAuthorized'
   /adduser:
