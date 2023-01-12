@@ -31,7 +31,9 @@ components:
           nullable: true
         organizationid:
           type: string
+          format: uuid
           description: Uniq organization id at Plutchik
+          nullable: false
         useridinorganization:
           type: string
           description: Uniq user's id at organization
@@ -94,6 +96,76 @@ components:
           description: Is content blocked?
           type: boolean
           nullable: false
+        expiredate:
+          type: string
+          format: date-time
+        validfrom:
+          type: string
+          format: date-time
+        created:
+          type: string
+          format: date-time
+        changed:
+          type: string
+          format: date-time
+    assessment:
+      type: object
+      properties:
+        eid:
+          type: string
+          format: uuid
+        uid:
+          type: string
+          format: uuid
+        cid:
+          type: string
+          format: uuid
+        vector:
+          type: object
+          properties:
+            joy:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            trust:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            fear:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            surprise:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            disgust:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            sadness:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            anger:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            anticipation:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+        created:
+          type: string
+          format: date-time
   responses:
     NotFound:
       description: 'Not found'
@@ -140,6 +212,11 @@ components:
       in: query
       schema:
         $ref: "#/components/schemas/contentitem"
+    assessmentinfo:
+      name: assessmentinfo
+      in: query
+      schema:
+        $ref: "#/components/schemas/assessment"
     uid: 
       name: uid
       in: path
@@ -153,6 +230,14 @@ components:
       in: path
       required: true
       description: Uniq content id
+      schema:
+        type: string
+        format: uuid
+    eid: 
+      name: eid
+      in: path
+      required: true
+      description: Uniq assessment id
       schema:
         type: string
         format: uuid
@@ -270,8 +355,23 @@ paths:
                 $ref: "#/components/schemas/contentitem"
         '401':
           $ref: '#/components/responses/NotAuthorized'
+  /getcontent/user/{uid}:
+    description: Feed content to user
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/uid"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contentitem"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
   /getcontent/{cid}:
-    description: Reveal content 
+    description: Reveal content by id
     get:
       parameters:
         - $ref: "#/components/parameters/sessiontoken"
@@ -283,6 +383,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/contentitem"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /suggestcontenttomatchwith/{cid}/user/{uid}:
+    description: Marks content to promote for all users about to match with user
+    get:
+      parameters:
+        - $ref: "#/components/parameters/sessiontoken"
+        - $ref: "#/components/parameters/cid"
+        - $ref: "#/components/parameters/uid"
+      responses:
+        '200':
+          description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
   /blockcontent/{cid}:
@@ -305,7 +417,18 @@ paths:
           description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
-security:
-  - userSecurity: []
-  - teamSecurity: []
-  - organizationSecurity: []
+  /addassessment:
+    description: Add new assessment
+    post:
+      parameters:
+        - $ref: "#/components/parameters/assessmentinfo"
+        - $ref: "#/components/parameters/sessiontoken"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/assessment"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
