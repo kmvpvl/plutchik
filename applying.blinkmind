@@ -1,0 +1,770 @@
+{
+  "rootTopicKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
+  "editorRootTopicKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
+  "focusKey": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+  "extData": {
+    "TOPIC_REFERENCE": {
+      "reference": {}
+    }
+  },
+  "topics": [
+    {
+      "key": "0630615f-87e2-4474-b682-6734f778d49c",
+      "parentKey": "6a4127fd-f6ca-4727-8083-1281abaec7be",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "user ID in Application"
+        }
+      ]
+    },
+    {
+      "key": "5ebf4380-a14c-4318-ba98-5bc85f1752a7",
+      "parentKey": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Location"
+        }
+      ]
+    },
+    {
+      "key": "2814ff55-098e-4641-86e9-6603203d4f96",
+      "parentKey": "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+      "subKeys": [
+        "a37b1984-5aa4-44d2-a877-968d748ad31a",
+        "950df0ee-beaf-43e7-b371-3beeef4c251e",
+        "ea38ccbe-1fe8-45f8-836e-878332bbaf71",
+        "e33e2195-3081-4db4-b2b2-8fdbd15af9f7"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "type of content"
+        }
+      ]
+    },
+    {
+      "key": "273cb76a-3f33-4d9c-9fc4-cb0afa8611fa",
+      "parentKey": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "marital status"
+        }
+      ]
+    },
+    {
+      "key": "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+      "parentKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
+      "subKeys": [
+        "0398fc0c-6f72-4d0e-83db-1e1672612d89",
+        "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+        "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+        "f25d542c-b942-4de0-b564-142700358b35",
+        "d72b83e0-822c-49d6-ae84-39f9ada39584"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "API for dating services"
+        }
+      ]
+    },
+    {
+      "key": "9b1a8fbe-f699-47ae-846f-bc2e6c3f9ef4",
+      "parentKey": "0398fc0c-6f72-4d0e-83db-1e1672612d89",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "adding, lock, unlock and block users"
+        }
+      ]
+    },
+    {
+      "key": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "parentKey": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+      "subKeys": [
+        "041756a7-7047-4017-afed-5e40a6491ea6",
+        "afe2521d-6554-447d-a72b-c451702cd9bc",
+        "08c65dce-e75b-4ddd-bae0-b92ab461cb9b",
+        "c3baa154-9005-4b71-a29e-aa42fce0b7a2",
+        "7bf27467-ba5e-4549-a4aa-1f52e1361e53",
+        "74f0a014-8127-4dc0-a380-cf89d02e1e0c",
+        "222676c4-e0c6-4f7e-a9f2-78cd792099fa",
+        "4c02f83e-d5ee-4982-8225-e738dbd5749a"
+      ],
+      "collapse": true,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "8dimention values"
+        }
+      ]
+    },
+    {
+      "key": "47eabf7d-efe2-4455-8bb9-69226c04203e",
+      "parentKey": null,
+      "subKeys": [
+        "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+        "5975281c-2072-43da-9e5c-3c7ecd6523e3",
+        "fb6d7700-8fe0-4bc0-9b4b-3222700ae27f"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Plutchik applying"
+        }
+      ]
+    },
+    {
+      "key": "195aea40-b0bb-4057-b670-f9324751b7e7",
+      "parentKey": "be05ca81-4eba-47c4-987b-8bd33878fed9",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "foreign languages"
+        }
+      ]
+    },
+    {
+      "key": "a37b1984-5aa4-44d2-a877-968d748ad31a",
+      "parentKey": "2814ff55-098e-4641-86e9-6603203d4f96",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "text"
+        }
+      ]
+    },
+    {
+      "key": "41f59c58-0f1f-4e33-bfd0-a404e15525d6",
+      "parentKey": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Age"
+        }
+      ]
+    },
+    {
+      "key": "6a4127fd-f6ca-4727-8083-1281abaec7be",
+      "parentKey": "0398fc0c-6f72-4d0e-83db-1e1672612d89",
+      "subKeys": [
+        "ebdf5d8d-b0df-4149-ba1d-f9ea5264b9e7",
+        "0630615f-87e2-4474-b682-6734f778d49c",
+        "e9c757fb-95a1-47d5-9700-c68a68e3e2e3"
+      ],
+      "collapse": true,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "User identification"
+        }
+      ]
+    },
+    {
+      "key": "7709a254-5e49-492b-9899-388adce180ba",
+      "parentKey": "d72b83e0-822c-49d6-ae84-39f9ada39584",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "add content by external application"
+        }
+      ]
+    },
+    {
+      "key": "27ffd6c6-6e86-47a3-a361-4f7f2ae6addf",
+      "parentKey": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "date time"
+        }
+      ]
+    },
+    {
+      "key": "f6788590-0650-482c-9700-65a56c16912e",
+      "parentKey": "d72b83e0-822c-49d6-ae84-39f9ada39584",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Uniq id of content"
+        }
+      ]
+    },
+    {
+      "key": "be05ca81-4eba-47c4-987b-8bd33878fed9",
+      "parentKey": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "subKeys": [
+        "40fd596a-4e84-4ba4-b9c1-c470e307ec9a",
+        "195aea40-b0bb-4057-b670-f9324751b7e7"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "language"
+        }
+      ]
+    },
+    {
+      "key": "7bf27467-ba5e-4549-a4aa-1f52e1361e53",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "surprise"
+        }
+      ]
+    },
+    {
+      "key": "ebdf5d8d-b0df-4149-ba1d-f9ea5264b9e7",
+      "parentKey": "6a4127fd-f6ca-4727-8083-1281abaec7be",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Application ID"
+        }
+      ]
+    },
+    {
+      "key": "950df0ee-beaf-43e7-b371-3beeef4c251e",
+      "parentKey": "2814ff55-098e-4641-86e9-6603203d4f96",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "memes"
+        }
+      ]
+    },
+    {
+      "key": "28166805-b690-427c-9e07-240e60f8dab2",
+      "parentKey": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Gender"
+        }
+      ]
+    },
+    {
+      "key": "08c65dce-e75b-4ddd-bae0-b92ab461cb9b",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "fear"
+        }
+      ]
+    },
+    {
+      "key": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+      "parentKey": "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+      "subKeys": [
+        "875c3388-097d-4497-8a39-cdfd2123dded",
+        "39d67173-be04-438c-b0ae-30538e281434",
+        "c9ee0abe-ed7f-479a-89e2-b2037387500a",
+        "27ffd6c6-6e86-47a3-a361-4f7f2ae6addf"
+      ],
+      "collapse": true,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "collecting questionaire data"
+        }
+      ]
+    },
+    {
+      "key": "222676c4-e0c6-4f7e-a9f2-78cd792099fa",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "anger"
+        }
+      ]
+    },
+    {
+      "key": "e33e2195-3081-4db4-b2b2-8fdbd15af9f7",
+      "parentKey": "2814ff55-098e-4641-86e9-6603203d4f96",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "video"
+        }
+      ]
+    },
+    {
+      "key": "5975281c-2072-43da-9e5c-3c7ecd6523e3",
+      "parentKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Dating application"
+        }
+      ]
+    },
+    {
+      "key": "4c02f83e-d5ee-4982-8225-e738dbd5749a",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "anticipation"
+        }
+      ]
+    },
+    {
+      "key": "39d67173-be04-438c-b0ae-30538e281434",
+      "parentKey": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "uniq id of content"
+        }
+      ]
+    },
+    {
+      "key": "62b029e5-ca88-4eba-83f2-823758cce8d5",
+      "parentKey": "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "former content"
+        }
+      ]
+    },
+    {
+      "key": "041756a7-7047-4017-afed-5e40a6491ea6",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "joy"
+        }
+      ]
+    },
+    {
+      "key": "d02fc55e-b0cc-4dc9-b1a7-2fe36f151833",
+      "parentKey": "3c23672b-7638-4b94-b1e4-9dc457c4e03d",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "directly from another user"
+        }
+      ]
+    },
+    {
+      "key": "8d52fd5a-167f-47b7-b940-401cec7272d0",
+      "parentKey": "d72b83e0-822c-49d6-ae84-39f9ada39584",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "check content"
+        }
+      ]
+    },
+    {
+      "key": "c9ee0abe-ed7f-479a-89e2-b2037387500a",
+      "parentKey": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "application id and user id"
+        }
+      ]
+    },
+    {
+      "key": "1d4423b3-065c-4bc0-acd1-f0d7bb4bf067",
+      "parentKey": "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "content"
+        }
+      ]
+    },
+    {
+      "key": "3c23672b-7638-4b94-b1e4-9dc457c4e03d",
+      "parentKey": "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+      "subKeys": [
+        "d101dcec-1c70-4763-b409-6b77d8f61fc0",
+        "d02fc55e-b0cc-4dc9-b1a7-2fe36f151833"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "for user"
+        }
+      ]
+    },
+    {
+      "key": "0398fc0c-6f72-4d0e-83db-1e1672612d89",
+      "parentKey": "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+      "subKeys": [
+        "6a4127fd-f6ca-4727-8083-1281abaec7be",
+        "9b1a8fbe-f699-47ae-846f-bc2e6c3f9ef4"
+      ],
+      "collapse": true,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "user management"
+        }
+      ]
+    },
+    {
+      "key": "f25d542c-b942-4de0-b564-142700358b35",
+      "parentKey": "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "user matching"
+        }
+      ]
+    },
+    {
+      "key": "d101dcec-1c70-4763-b409-6b77d8f61fc0",
+      "parentKey": "3c23672b-7638-4b94-b1e4-9dc457c4e03d",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "by chance"
+        }
+      ]
+    },
+    {
+      "key": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "parentKey": "6a4127fd-f6ca-4727-8083-1281abaec7be",
+      "subKeys": [
+        "41f59c58-0f1f-4e33-bfd0-a404e15525d6",
+        "be05ca81-4eba-47c4-987b-8bd33878fed9",
+        "5ebf4380-a14c-4318-ba98-5bc85f1752a7",
+        "28166805-b690-427c-9e07-240e60f8dab2",
+        "273cb76a-3f33-4d9c-9fc4-cb0afa8611fa",
+        "96e22ecb-558e-4497-9dcc-efa4726dcbaa"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "BIO"
+        }
+      ]
+    },
+    {
+      "key": "74f0a014-8127-4dc0-a380-cf89d02e1e0c",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "disgust"
+        }
+      ]
+    },
+    {
+      "key": "afe2521d-6554-447d-a72b-c451702cd9bc",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "trust"
+        }
+      ]
+    },
+    {
+      "key": "c3baa154-9005-4b71-a29e-aa42fce0b7a2",
+      "parentKey": "875c3388-097d-4497-8a39-cdfd2123dded",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "sadness"
+        }
+      ]
+    },
+    {
+      "key": "fb6d7700-8fe0-4bc0-9b4b-3222700ae27f",
+      "parentKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Psychology Application \nfor users and psychologists"
+        }
+      ]
+    },
+    {
+      "key": "9d51407e-329c-44cf-9cbd-523f2329be78",
+      "parentKey": "d72b83e0-822c-49d6-ae84-39f9ada39584",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "share content"
+        }
+      ]
+    },
+    {
+      "key": "d72b83e0-822c-49d6-ae84-39f9ada39584",
+      "parentKey": "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+      "subKeys": [
+        "7709a254-5e49-492b-9899-388adce180ba",
+        "9d51407e-329c-44cf-9cbd-523f2329be78",
+        "8d52fd5a-167f-47b7-b940-401cec7272d0",
+        "1528e04d-33fd-4231-9913-56c6b3e3b293",
+        "f6788590-0650-482c-9700-65a56c16912e"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Content management"
+        }
+      ]
+    },
+    {
+      "key": "40fd596a-4e84-4ba4-b9c1-c470e307ec9a",
+      "parentKey": "be05ca81-4eba-47c4-987b-8bd33878fed9",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "native language"
+        }
+      ]
+    },
+    {
+      "key": "ea38ccbe-1fe8-45f8-836e-878332bbaf71",
+      "parentKey": "2814ff55-098e-4641-86e9-6603203d4f96",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "audio"
+        }
+      ]
+    },
+    {
+      "key": "f3afe7fc-950e-49b1-a511-7ac683cc4e15",
+      "parentKey": "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "within application only"
+        }
+      ]
+    },
+    {
+      "key": "952dafde-fa61-4a6c-8d80-8de70f0c90d0",
+      "parentKey": "66a9ffba-ab0c-4fb9-a539-c27a09b0b3f6",
+      "subKeys": [
+        "2814ff55-098e-4641-86e9-6603203d4f96",
+        "1d4423b3-065c-4bc0-acd1-f0d7bb4bf067",
+        "f3afe7fc-950e-49b1-a511-7ac683cc4e15",
+        "3c23672b-7638-4b94-b1e4-9dc457c4e03d",
+        "62b029e5-ca88-4eba-83f2-823758cce8d5"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "questionaire feeding"
+        }
+      ]
+    },
+    {
+      "key": "96e22ecb-558e-4497-9dcc-efa4726dcbaa",
+      "parentKey": "e9c757fb-95a1-47d5-9700-c68a68e3e2e3",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "features"
+        }
+      ]
+    },
+    {
+      "key": "1528e04d-33fd-4231-9913-56c6b3e3b293",
+      "parentKey": "d72b83e0-822c-49d6-ae84-39f9ada39584",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "expire content"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "readOnly": false,
+    "allowUndo": true,
+    "layoutDir": 0,
+    "theme": {
+      "name": "default",
+      "randomColor": true,
+      "background": "rgb(57,60,65)",
+      "highlightColor": "#50C9CE",
+      "marginH": 60,
+      "marginV": 20,
+      "contentStyle": {
+        "lineHeight": "1.5",
+        "fontSize": "16px"
+      },
+      "linkStyle": {
+        "lineRadius": 5,
+        "lineType": "curve",
+        "lineWidth": "3px"
+      },
+      "rootTopic": {
+        "contentStyle": {
+          "fontSize": "36px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px"
+        }
+      },
+      "primaryTopic": {
+        "contentStyle": {
+          "fontSize": "24px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px"
+        }
+      },
+      "normalTopic": {
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px"
+        }
+      }
+    }
+  },
+  "formatVersion": "0.0"
+}
