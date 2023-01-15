@@ -1,7 +1,7 @@
 {
   "rootTopicKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
   "editorRootTopicKey": "47eabf7d-efe2-4455-8bb9-69226c04203e",
-  "focusKey": "6a4127fd-f6ca-4727-8083-1281abaec7be",
+  "focusKey": "aefa742f-1476-4f7d-ac80-fd5ef8e9516b",
   "extData": {
     "TOPIC_REFERENCE": {
       "reference": {}
@@ -321,7 +321,7 @@
         "c9ee0abe-ed7f-479a-89e2-b2037387500a",
         "27ffd6c6-6e86-47a3-a361-4f7f2ae6addf"
       ],
-      "collapse": false,
+      "collapse": true,
       "style": null,
       "blocks": [
         {
@@ -496,7 +496,7 @@
         "6a4127fd-f6ca-4727-8083-1281abaec7be",
         "9b1a8fbe-f699-47ae-846f-bc2e6c3f9ef4"
       ],
-      "collapse": false,
+      "collapse": true,
       "style": null,
       "blocks": [
         {

@@ -3,11 +3,29 @@ info:
   title: Plutchik API
   version: '1.0'
 servers:
-  - url: https://470282aa-075b-43ac-8f84-0dd31c013821.mock.pstmn.io
+  - url: http://localhost:8000
+    description: Local server
   - url: https://5dfbb146-c21e-4b30-b009-2b34abadefb3.mock.pstmn.io
-    description: Server description
+    description: Postman server
 
 components:
+  securitySchemes:
+    PlutchikAuthOrganizationId:
+      type: apiKey
+      in: header
+      name: organizationid
+    PlutchikAuthOrganizationKey:
+      type: apiKey
+      in: header
+      name: organizationkey
+    PlutchikAuthUserId:
+      type: apiKey
+      in: header
+      name: uid
+    PlutchikAuthSessionToken:
+      type: apiKey
+      in: header
+      name: PlutchikAuthSessionToken
   schemas:
     version:
       type: object
@@ -27,11 +45,11 @@ components:
         uid:
           type: string
           description: Uniq user's id at Plutchik
-          format: uuid
+          pattern: ^[0-9a-fA-F]{24}$
           nullable: true
         organizationid:
           type: string
-          format: uuid
+          pattern: ^[0-9a-fA-F]{24}$
           description: Uniq organization id at Plutchik
           nullable: false
         useridinorganization:
@@ -39,7 +57,7 @@ components:
           description: Uniq user's id at organization
         birthdate:
           type: string
-          format: date
+          pattern: ^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$
           description: Birthdate of user
           nullable: true
         nativelanguage:
@@ -52,6 +70,7 @@ components:
           items:
             type: string
           nullable: true
+          
         location:
           description: Location of user (city, country of coord location) 
           type: string
@@ -77,7 +96,7 @@ components:
         cid:
           description: Uniq id of content item
           type: string
-          format: uuid
+          pattern: ^[0-9a-fA-F]{24}$
           nullable: true
         type:
           description: Type of content
@@ -113,13 +132,13 @@ components:
       properties:
         eid:
           type: string
-          format: uuid
+          pattern: ^[0-9a-fA-F]{24}$
         uid:
           type: string
-          format: uuid
+          pattern: ^[0-9a-fA-F]{24}$
         cid:
           type: string
-          format: uuid
+          pattern: ^[0-9a-fA-F]{24}$
         vector:
           type: object
           properties:
@@ -185,7 +204,8 @@ components:
       description: Uniq organization id
       schema: 
         type: string
-        format: uuid
+        pattern: ^[0-9a-fA-F]{24}$
+      example: 63c0e7dad80176886c22129d
     organizationkey:
       name: organizationkey
       in: header
@@ -193,20 +213,23 @@ components:
       description: Secret organization key
       schema: 
         type: string
-        format: uuid
+        pattern: ^[0-9a-fA-F]{24}$
+      example: 63c13287808a659be295092e
     sessiontoken:
-      name: sessiontoken
+      name: PlutchikAuthSessionToken
       in: header
       required: true
       description: Session token
       schema:
         type: string
-        format: uuid
+        pattern: ^[0-9a-fA-F]{24}$
     userinfo:
       name: userinfo
       in: query
       schema:
         $ref: "#/components/schemas/user"
+      style: deepObject
+      explode: false
     contentinfo:
       name: contentinfo
       in: query
@@ -219,12 +242,12 @@ components:
         $ref: "#/components/schemas/assessment"
     uid: 
       name: uid
-      in: path
+      in: header
       required: true
       description: Uniq user id
       schema:
         type: string
-        format: uuid
+        pattern: ^[0-9a-fA-F]{24}$
     cid: 
       name: cid
       in: path
@@ -232,7 +255,7 @@ components:
       description: Uniq content id
       schema:
         type: string
-        format: uuid
+        pattern: ^[0-9a-fA-F]{24}$
     eid: 
       name: eid
       in: path
@@ -240,10 +263,13 @@ components:
       description: Uniq assessment id
       schema:
         type: string
-        format: uuid
+        pattern: ^[0-9a-fA-F]{24}$
 paths:
   /version:
     get:
+      description: Reveal versions of components
+      operationId: version
+      security: []
       responses:
         '200':
           description: OK
@@ -253,13 +279,16 @@ paths:
                 $ref: "#/components/schemas/version"
               example:
                 api: 1.0.0
-                data: 1.0.0.
+                data: 1.0.0
                 ai: 0.0.1
   /getsessiontoken:
     get:
-      parameters:
-        - $ref: "#/components/parameters/organizationid"
-        - $ref: "#/components/parameters/organizationkey"
+      description: Returns session token by authorization
+      operationId: getsessiontoken
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+          PlutchikAuthUserId: []
       responses:
         '200':
           description: OK
@@ -267,20 +296,23 @@ paths:
             application/json:
               schema:
                 type: string
-                format: uuid
+                pattern: ^[0-9a-fA-F]{24}$
                 example:
-                  urn:uuid:39c2c23c-5fa4-402b-4034-8b8f6cce36fd
+                  63c12e625c80a49f1b08ad71
         '401':
           $ref: '#/components/responses/NotAuthorized'
   /adduser:
-    description: Add new user to Plutchik
     post:
+      description: Add new user from organization
+      operationId: adduser
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
       tags:
         - user
         - new content
       parameters:
         - $ref: "#/components/parameters/userinfo"
-        - $ref: "#/components/parameters/sessiontoken"
       responses:
         '200':
           description: OK
@@ -290,15 +322,16 @@ paths:
                 $ref: "#/components/schemas/user"
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /userinfo{uid}:
+  /userinfo:
     description: Reveal user information
     get:
       tags:
         - user
         - read
+      security:
+        - PlutchikAuth: []
       parameters:
         - $ref: "#/components/parameters/uid"
-        - $ref: "#/components/parameters/sessiontoken"
       responses:
         '200':
           description: OK
@@ -307,8 +340,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/user"
               example:
-                uid: urn:uuid:39c2c23c-5fa4-402b-4034-8b8f6cce36ff
-                organizationid: urn:uuid:39c2c23c-5fa4-402b-4034-8b8f6cce36fe
+                uid: 63c13295808a659be295092f
+                organizationid: 63c13295808a659be295092f
                 useridinorganization: 00000080880675
                 birthdate: 1995-11-03
                 nativelanguage: Polska
@@ -320,7 +353,7 @@ paths:
                 blocked: false
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /unblockuser/{uid}:
+  /unblockuser:
     get:
       parameters:
         - $ref: "#/components/parameters/sessiontoken"
@@ -330,7 +363,7 @@ paths:
           description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /blockuser/{uid}:
+  /blockuser:
     get:
       parameters:
         - $ref: "#/components/parameters/sessiontoken"
@@ -432,3 +465,8 @@ paths:
                 $ref: "#/components/schemas/assessment"
         '401':
           $ref: '#/components/responses/NotAuthorized'
+security:
+  - PlutchikAuthOrganizationId: []
+    PlutchikAuthOrganizationKey: []
+  - PlutchikAuthUserId: []
+  - PlutchikAuthSessionToken: []
