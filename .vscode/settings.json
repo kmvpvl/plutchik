@@ -1,7 +1,0 @@
-{
-    "yaml.schemas": {
-        "swaggerviewer:openapi": "file:///Users/kmvpvl/Projects/plutchik/server/plutchikAPI.yml"
-    },
-    "http.client": {
-    }
-}
