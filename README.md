@@ -42,6 +42,19 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 ## Authorization schemas
 
 ## API
+|object|Description|
+|---|---|
+|User| User who can evaluate content and get matched with other users|
+|Content| Item (unit) for evaluation by Plutchik's wheel|
+
+|method|Description|
+|---|---|
+|[version](#version)| Gets version Plutchik API|
+|[adduser](#adduser)| Adds new user|
+|[getsessiontoken](#getsessiontoken)| Gets session token for user|
+|[blockuser](#blockuser)| Block user|
+|[unblockuser](#unblockuser)| Unblock user|
+
 ---
 * ### **`version`** 
     Description: returns object with values of versions: api, data, ai
@@ -57,6 +70,77 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
     * object version {api: x.x.x, data: x.x.x, ai: x.x.x}
     * format application/json
 
+
+    [Back to API 👆](#api)
+---
+* ### **`adduser`**
+    Description: creates user or updates existing user. Returns actual user information 
+    
+    Method: `POST`
+
+    Parameters: 
+        
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- | --- |
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    |`userinfo`||||✅|
+    |`userinfo.userid` | Uniq user id of user which info changed. Can be empty or absent, then new user will be created | MongoDB uuid | query|
+    |`userinfo.birthdate`|User's birthdate|YYYY-mm-dd|query|
+    |`userinfo.nativelanguage`|User's native language|string|query|
+    |`userinfo.secondlanguages`|Other user's languages that can be used|Array of string|query|
+    |`userinfo.location`|String as 'lat: xx.xxxxx, lng: yy.yyyyy' or 'Prague, Czech' etc. which describes user's location|string|query|
+    |`userinfo.gender`|User's gender in his(her,...) opinion|string|query|
+    |`userinfo.maritalstatus`| User's marital status in one's opinion| string|query|
+    |`userinfo.features`|Any information about user|string|query|
+
+
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
+
+    Returns: 
+    * format `application/json`
+    * #### object `User`
+    ```
+    interface IUser {
+        _id: Types.ObjectId;
+        organizationid: Types.ObjectId;
+        birthdate: Date;
+        nativelanguage: string;
+        secondlanguages: Array<string>,
+        location: string;
+        gender: string;
+        maritalstatus: string;
+        features: string;
+        blocked: boolean;
+        created: Date;
+        changed: Date;
+    }    
+    ```
+    Request example:
+    ```
+    POST http://localhost:8000/adduser
+    Content-Type: application/json
+    organizationid: 63c0e7dad80176886c22129d
+    organizationkey: 63c2875ecb60f72dc1eb6bbb
+    userid: 63c28926cb60f72dc1eb6bbf
+
+    {
+        "userinfo": {
+            "birthdate": "1972-07-23",
+            "nativelanguage": "English",
+            "secondlanguages": ["French", "Ukrain"],
+            "location": "Prague",
+            "gender": "male",
+            "maritalstatus": "single",
+            "features": "extra",
+            "blocked": "false"
+        }
+    }
+    ```
+
+    [Back to API 👆](#api)
 ---
 * ### **`getsessiontoken`**
     Description: returns session token for user 
@@ -65,20 +149,65 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 
     Parameters: 
         
-    | Parameter | description | Format | Where |
-    | --- | --- | --- | --- |
-    | `organizationid` | Uniq id of organization | MongoDB uuid | header |
-    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | 
-    | `userid` | User which session token requsted for | MongoDB uuid | header|
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- |---|
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    | `userid` | User which session token requsted for | MongoDB uuid | header|✅
 
 
     Security schemas: 
-    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey& PlutchikAuthUserId`
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey & PlutchikAuthUserId`
 
     Returns: 
     
     * text string MongoDB uuid 
     * format application/json
+
+    [Back to API 👆](#api)
 ---
+* ### **`blockuser`**
+    Description: Blocks user. After that user can't assess content and can't get matched
+    
+    Method: `GET`
+
+    Parameters: 
+        
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- |---|
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    | `userid` | User which session token requsted for | MongoDB uuid | header|✅
+
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey & PlutchikAuthUserId`
+
+    Returns: NONE
+
+    [Back to API 👆](#api)
+---
+* ### **`unblockuser`**
+    Description: Unblocks user. After that user can assess content and can get matched
+    
+    Method: `GET`
+
+    Parameters: 
+        
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- |---|
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    | `userid` | User which session token requsted for | MongoDB uuid | header|✅
+
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey & PlutchikAuthUserId`
+
+    Returns: `NONE`
+
+    [Back to API 👆](#api)
+---
+
 ## References
 1. [Wikipedia](#https://en.wikipedia.org/wiki/Robert_Plutchik) about R.Plutchik studies
