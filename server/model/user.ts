@@ -38,6 +38,7 @@ export const mongoUsers = model<IUser>('users', UserSchema);
 
 export default class User extends PlutchikProto<IUser> {
     public async load(data?: IUser) {
+        PlutchikProto.connectMongo();
         if (!data) {
             const users = await mongoUsers.aggregate([
                 {
