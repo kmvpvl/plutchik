@@ -100,11 +100,15 @@ components:
           type: string
           enum: [text, audio, video, mem]
           nullable: false
-        htmlcontent:
+        name:
           description: Content of item, can be HTML
           type: string
           nullable: true
-        href:
+        description:
+          description: Content of item, can be HTML
+          type: string
+          nullable: true
+        url:
           description: Reference to external content
           type: string
           nullable: true
@@ -112,16 +116,10 @@ components:
           description: Is content blocked?
           type: boolean
           nullable: false
-        expiredate:
+        expire:
           type: string
           format: date-time
         validfrom:
-          type: string
-          format: date-time
-        created:
-          type: string
-          format: date-time
-        changed:
           type: string
           format: date-time
     assessment:
@@ -379,9 +377,12 @@ paths:
   /addcontent:
     description: Add new content item
     post:
+      operationId: addcontent
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
       parameters:
         - $ref: "#/components/parameters/contentinfo"
-        - $ref: "#/components/parameters/sessiontoken"
       responses:
         '200':
           description: OK
@@ -389,6 +390,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/contentitem"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /blockcontent/{cid}:
+    get:
+      operationId: blockcontent
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+      parameters:
+        - $ref: "#/components/parameters/cid"
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /unblockcontent/{cid}:
+    get:
+      operationId: unblockcontent
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+      parameters: 
+        - $ref: "#/components/parameters/cid"
+      responses:
+        '200':
+          description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
   /getcontent/user/{uid}:
@@ -428,26 +455,6 @@ paths:
         - $ref: "#/components/parameters/sessiontoken"
         - $ref: "#/components/parameters/cid"
         - $ref: "#/components/parameters/uid"
-      responses:
-        '200':
-          description: OK
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /blockcontent/{cid}:
-    get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/cid"
-      responses:
-        '200':
-          description: OK
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /unblockcontent/{cid}:
-    get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/cid"
       responses:
         '200':
           description: OK

@@ -44,19 +44,60 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 ## API
 |object|Description|
 |---|---|
-|User| User who can evaluate content and get matched with other users|
-|Content| Item (unit) for evaluation by Plutchik's wheel|
+|[User](#user)| User who can evaluate content and get matched with other users|
+|[Content](#content)| Item (unit) for evaluation by user in Plutchik's wheel|
 
 |method|Description|
-|---|---|
+|---|-|
 |[version](#version)| Gets version Plutchik API|
+|📁 **USER management**|
 |[adduser](#adduser)| Adds new user|
 |[getsessiontoken](#getsessiontoken)| Gets session token for user|
 |[blockuser](#blockuser)| Block user|
 |[unblockuser](#unblockuser)| Unblock user|
+|📁 **CONTENT management**|
+|[addcontent](#addcontent)| Adds new content item|
+|[blockcontent](#blockcontent)| Block content item|
+|[unblockcontent](#unblockcontent)| Unblock content item|
 
 ---
-* ### **`version`** 
+* ### **`User` object**
+```
+interface IUser {
+    _id: Types.ObjectId;
+    organizationid: Types.ObjectId;
+    birthdate: Date;
+    nativelanguage: string;
+    secondlanguages: Array<string>,
+    location: string;
+    gender: string;
+    maritalstatus: string;
+    features: string;
+    blocked: boolean;
+    created: Date;
+    changed: Date;
+}    
+```
+---
+* ### **`Content` object**
+```
+export interface IContent {
+    _uid: Types.ObjectId;
+    type: ContentTypes;
+    url: string;
+    name: string;
+    description: string;
+    language: string;
+    restrictions: Array<string>;
+    organizationidref?: Types.ObjectId;
+    foruseronlyidref?: Types.ObjectId;
+    blocked: boolean;
+    created: Date;
+    changed: Date;
+}
+```
+---
+* ### **`version`** method
     Description: returns object with values of versions: api, data, ai
     
     Method: `GET`
@@ -73,7 +114,7 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 
     [Back to API 👆](#api)
 ---
-* ### **`adduser`**
+* ### **`adduser`** method
     Description: creates user or updates existing user. Returns actual user information 
     
     Method: `POST`
@@ -100,24 +141,9 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
     ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
 
     Returns: 
-    * format `application/json`
-    * #### object `User`
-    ```
-    interface IUser {
-        _id: Types.ObjectId;
-        organizationid: Types.ObjectId;
-        birthdate: Date;
-        nativelanguage: string;
-        secondlanguages: Array<string>,
-        location: string;
-        gender: string;
-        maritalstatus: string;
-        features: string;
-        blocked: boolean;
-        created: Date;
-        changed: Date;
-    }    
-    ```
+    * format: `application/json`
+    * data: [User](#user) object
+
     Request example:
     ```
     POST http://localhost:8000/adduser
@@ -142,7 +168,7 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 
     [Back to API 👆](#api)
 ---
-* ### **`getsessiontoken`**
+* ### **`getsessiontoken`** method
     Description: returns session token for user 
     
     Method: `GET`
@@ -166,7 +192,7 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 
     [Back to API 👆](#api)
 ---
-* ### **`blockuser`**
+* ### **`blockuser`** method
     Description: Blocks user. After that user can't assess content and can't get matched
     
     Method: `GET`
@@ -187,7 +213,7 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 
     [Back to API 👆](#api)
 ---
-* ### **`unblockuser`**
+* ### **`unblockuser`** method
     Description: Unblocks user. After that user can assess content and can get matched
     
     Method: `GET`
@@ -203,6 +229,105 @@ Collecting of assessments is anonymous fully. Plutchik API don't collect names o
 
     Security schemas: 
     ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey & PlutchikAuthUserId`
+
+    Returns: `NONE`
+
+    [Back to API 👆](#api)
+---
+* ### **`addcontent`** method
+    Description: creates content or updates existing content item. Returns actual content item 
+    
+    Method: `POST`
+
+    Parameters: 
+        
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- | --- |
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    |`contentinfo`|||query|✅|
+    |`contentinfo._id` | Uniq content item's id. It can be empty or absent, then new content item will be created | MongoDB uuid | query|
+    |`contentinfo.type`|String one of values: text, audio, video, image, memes|string|query|✅|
+    |`contentinfo.url`|URL located the content item|string|query|✅|
+    |`contentinfo.name`|Name of content item|string|query|✅|
+    |`contentinfo.tags`|User's native language|string|query|✅|
+    |`contentinfo.description`|Description of content item|Array of string|query|✅|
+    |`contentinfo.language`|language of content item|string|query|✅|
+    |`contentinfo.restrictions`|Array of restrictions|Array of strings|query|
+    |`contentinfo.blocked`| Blocked or unblocked content item| string: "true" or "false"|query|
+    |`contentinfo.expired`|Date time after that content item will be hide from users|string RFC3339|query|
+    |`contentinfo.validfrom`|Date time before that content item is hide from users|string RFC3339|query|
+
+
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
+
+    Returns: 
+    * format: `application/json`
+    * data: [User](#user) object
+
+    Request example:
+    ```
+    POST http://localhost:8000/adduser
+    Content-Type: application/json
+    organizationid: 63c0e7dad80176886c22129d
+    organizationkey: 63c2875ecb60f72dc1eb6bbb
+    userid: 63c28926cb60f72dc1eb6bbf
+
+    {
+        "userinfo": {
+            "birthdate": "1972-07-23",
+            "nativelanguage": "English",
+            "secondlanguages": ["French", "Ukrain"],
+            "location": "Prague",
+            "gender": "male",
+            "maritalstatus": "single",
+            "features": "extra",
+            "blocked": "false"
+        }
+    }
+    ```
+
+    [Back to API 👆](#api)
+---
+* ### **`blockcontent`** method
+    Description: Blocks content item. After that users can't find and assess this content
+    
+    Method: `GET`
+
+    Parameters: 
+        
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- |---|
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    | `cid` | Content item's uniq id | MongoDB uuid | path|✅
+
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
+
+    Returns: NONE
+
+    [Back to API 👆](#api)
+---
+* ### **`unblockcontent`** method
+    Description: Unblocks content item. After that user can find and assess this content item
+    
+    Method: `GET`
+
+    Parameters: 
+        
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- |---|
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with exact roles| MongoDB uuid | header | ✅
+    | `cid` | Content item's uniq id | MongoDB uuid | path|✅
+
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
 
     Returns: `NONE`
 
