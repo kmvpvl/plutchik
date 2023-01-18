@@ -52,9 +52,6 @@ components:
           pattern: ^[0-9a-fA-F]{24}$
           description: Uniq organization id at Plutchik
           nullable: false
-        useridinorganization:
-          type: string
-          description: Uniq user's id at organization
         birthdate:
           type: string
           pattern: ^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$
@@ -228,8 +225,8 @@ components:
       in: query
       schema:
         $ref: "#/components/schemas/user"
-      style: deepObject
-      explode: false
+      #style: deepObject
+      #explode: false
     contentinfo:
       name: contentinfo
       in: query
@@ -355,9 +352,12 @@ paths:
           $ref: '#/components/responses/NotAuthorized'
   /unblockuser:
     get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/uid"
+      operationId: unblockuser
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+          PlutchikAuthUserId: []
+      parameters: []
       responses:
         '200':
           description: OK
@@ -365,9 +365,12 @@ paths:
           $ref: '#/components/responses/NotAuthorized'
   /blockuser:
     get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/uid"
+      operationId: blockuser
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+          PlutchikAuthUserId: []
+      parameters: []
       responses:
         '200':
           description: OK

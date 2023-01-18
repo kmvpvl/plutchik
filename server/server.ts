@@ -5,6 +5,7 @@ import cors from 'cors';
 import version from './api/version';
 import adduser from './api/adduser';
 import getsessiontoken from './api/getsessiontoken';
+import blockuser from './api/blockuser';
 
 const PORT = process.env.PORT || 8000;
 
@@ -25,6 +26,8 @@ api.register({
     version:    async (c, req, res) => version(c, req, res),
     getsessiontoken:    async (c, req, res) => getsessiontoken(c, req, res),
     adduser:    async (c, req, res) => adduser(c, req, res),
+    blockuser:    async (c, req, res) => blockuser(c, req, res),
+    unblockuser:    async (c, req, res) => blockuser(c, req, res, false),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
     notFound: (c, req, res) => res.status(404).json({ code: 'Command not found', description: "Command not found" }),
     notImplemented: (c, req, res) => res.status(500).json({ err: 'not found' }),

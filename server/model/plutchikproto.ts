@@ -42,11 +42,11 @@ export default class PlutchikProto<T> {
             changed: new Date(),
         };        
     }
-    public save(){
+    public async save(){
         if (this.data) {
             (this.data as any).changed = new Date();
             let h = this.getHistoryInfo();
-            //let history = new Array<any>;
+            let history = new Array<any>;
             //if (('history' in this.data)) history = (this.data as any).history;
             //history.push(h); 
             //(this.data as any).history = history;
