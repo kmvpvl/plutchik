@@ -69,6 +69,7 @@ For editing content items you must have organizationkey with create_content role
 |[User](#user-object)| User who can evaluate content and get matched with other users|
 |[Content](#content-object)| Item (unit) for evaluation by user in Plutchik's wheel|
 
+
 |method|Description|
 |---|-|
 |[version](#version)| Gets version Plutchik API|
@@ -81,6 +82,7 @@ For editing content items you must have organizationkey with create_content role
 |[addcontent](#addcontent-method)| Adds new content item|
 |[blockcontent](#blockcontent-method)| Block content item|
 |[unblockcontent](#unblockcontent-method)| Unblock content item|
+
 
 ---
 * ### **`User` object**
