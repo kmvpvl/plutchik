@@ -61,17 +61,29 @@ export default class Organization extends PlutchikProto <IOrganization>{
         await super.load(org[0]);
     } 
 
-    // 
-    public async checkKeyAndGetRoles(k: Types.ObjectId): Promise<Array<string>> {
-        const md5 = Md5.hashStr(`${this.id} ${k}`);
+    /**
+     * Function checks pair organizationid and organizationkey. If pair is right then returns list of roles
+     * @param key is key uuid 
+     * @returns list of roles
+     */ 
+    public async checkKeyAndGetRoles(key: Types.ObjectId): Promise<Array<string>> {
+        const md5 = Md5.hashStr(`${this.id} ${key}`);
         if (!this.data) throw new PlutchikError("organization:notloaded", `id = '${this.id}'`);
         for (const key of this.data?.keys) {
             if (key.keyhash == md5) {
                 return key.roles;
             }
         }
-        throw new PlutchikError("organization:wrongkey", `organizationid = '${this.id}'; organizationkey = '${k}'`)
+        throw new PlutchikError("organization:wrongkey", `organizationid = '${this.id}'; organizationkey = '${key}'`)
     }
+
+    /**
+     * Function finds the actual session token and update its expired time or create new session token with exact roles 
+     * @param uid User id
+     * @param roles list of roles
+     * @param sessionminutes default time of session period in minutes
+     * @returns id of session token
+     */
     public async checkAndUpdateSessionToken(uid: Types.ObjectId, roles: Array<string>, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Types.ObjectId> {
         const sts = await mongoSessionTokens.aggregate([{
             '$match': {
