@@ -8,6 +8,7 @@ import getsessiontoken from './api/getsessiontoken';
 import blockuser from './api/blockuser';
 import addcontent from './api/addcontent';
 import blockcontent from './api/blockcontent';
+import addassessment from './api/addassessment';
 
 const PORT = process.env.PORT || 8000;
 
@@ -33,6 +34,7 @@ api.register({
     addcontent:    async (c, req, res) => addcontent(c, req, res),
     blockcontent:    async (c, req, res) => blockcontent(c, req, res),
     unblockcontent:    async (c, req, res) => blockcontent(c, req, res, false),
+    addassessment:    async (c, req, res) => addassessment(c, req, res),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
     notFound: (c, req, res) => res.status(404).json({ code: 'Command not found', description: "Command not found" }),
     notImplemented: (c, req, res) => res.status(500).json({ err: 'not found' }),
