@@ -8,9 +8,12 @@ export type ErrorCode =
     | "organization:wrongkey" /* Organization has no that key*/
     | "user:notfound" /* User id not found*/
     | "user:notloaded" /* User id not loaded*/
+    | "user:hasnoactivesession" /* User has no active session*/
     | "user:multiplesession" /* User has session not only once*/
     | "content:notfound" /* Content id not found*/
     | "content:notloaded" /* Content id not loaded*/
+    | "assessment:notfound" /* assessment id not found*/
+    | "assessment:notloaded" /* assessment id not loaded*/
     ;
 export default class PlutchikError extends Error {
     public code: ErrorCode;
@@ -23,9 +26,12 @@ export default class PlutchikError extends Error {
             ["organization:wrongkey", "Organization has no that key"],
             ["user:notfound", "User id not found"],
             ["user:notloaded", "User id not loaded"],
+            ["user:hasnoactivesession", "User has no active session"],
             ["user:multiplesession", "User has more that one active session"],
             ["content:notfound", "Content id not found"],
             ["content:notloaded", "Content id not loaded"],
+            ["assessment:notfound", "assessment id not found"],
+            ["assessment:notloaded", "assessment id not loaded"],
         ]);
         super(`${descs.get(code)} - ${description}`);
         this.code = code;
