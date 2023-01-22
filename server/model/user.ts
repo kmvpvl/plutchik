@@ -77,6 +77,13 @@ export default class User extends PlutchikProto<IUser> {
             console.log(`New user was created. ${colours.fg.blue}User id = '${this.id}'${colours.reset}`);
         }
     }
+
+    /**
+     * Function check existing session token and increase its expired time
+     * @param st session token
+     * @param sessionminutes duration of session token
+     * @returns list of roles on this session token
+     */
     public async checkSesstionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<string>> {
         PlutchikProto.connectMongo();
         const sts = await mongoSessionTokens.aggregate([{
