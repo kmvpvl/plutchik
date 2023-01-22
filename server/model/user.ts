@@ -2,10 +2,8 @@ import { Schema, Types, model } from "mongoose";
 import colours from "./colours";
 import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
-import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
 import PlutchikProto from "./plutchikproto";
 
-export type RoleType = "supervisor"|"create_user"|"create_content"|"assess";
 export interface IUser {
     _id: Types.ObjectId;
     organizationid: Types.ObjectId;
@@ -76,20 +74,5 @@ export default class User extends PlutchikProto<IUser> {
             this.load(userInserted[0]);
             console.log(`New user was created. ${colours.fg.blue}User id = '${this.id}'${colours.reset}`);
         }
-    }
-    public async checkSesstionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<string>> {
-        PlutchikProto.connectMongo();
-        const sts = await mongoSessionTokens.aggregate([{
-            '$match': {
-                'useridref': this.id,
-                '_id': st,
-                'expired': {'$gte': new Date()}
-            }
-        }]);
-        if (!sts.length) throw new PlutchikError("user:hasnoactivesession", `userid = '${this.id}'; sessiontoken = '${st}'`)
-        const nexpired = new Date(new Date().getTime() + sessionminutes * 60000);
-        if (sts[0].expired < nexpired) await mongoSessionTokens.findByIdAndUpdate(sts[0]._id, {expired:nexpired});
-        console.log(`Session token updated: id = '${sts[0]._id}'; new expired = '${nexpired}'`);
-        return sts[0].roles;
     }
 }
