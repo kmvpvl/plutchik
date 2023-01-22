@@ -5,8 +5,6 @@ import PlutchikProto from "./plutchikproto";
 import {Md5} from 'ts-md5';
 import User, { IUser } from "./user";
 
-export const DEFAULT_SESSION_DURATION = 30;
-
 export interface ISessionToken {
     _id: Types.ObjectId;
     organizationidref: Types.ObjectId;
@@ -20,7 +18,6 @@ export interface IOrganization {
     name: string | IMLString;
     keys: Array<{
         roles: Array<string>;
-        keyname: string;
         expired: Date;
         created: Date;
         keyhash: string;
@@ -72,7 +69,7 @@ export default class Organization extends PlutchikProto <IOrganization>{
         }
         throw new PlutchikError("organization:wrongkey", `organizationid = '${this.id}'; organizationkey = '${k}'`)
     }
-    public async checkAndUpdateSessionToken(uid: Types.ObjectId, roles: Array<string>, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Types.ObjectId> {
+    public async checkAndUpdateSessionToken(uid: Types.ObjectId, roles: Array<string>, defaultsessionminutes = 30): Promise<Types.ObjectId> {
         const sts = await mongoSessionTokens.aggregate([{
             '$match': {
                 'organizationidref': this.id,
@@ -86,14 +83,14 @@ export default class Organization extends PlutchikProto <IOrganization>{
             const st = await mongoSessionTokens.insertMany([{
                 organizationidref: this.id,
                 useridref: uid,
-                expired: new Date(new Date().getTime() + sessionminutes * 60000),
+                expired: new Date(new Date().getTime() + defaultsessionminutes * 60000),
                 roles: roles,
                 created: new Date()
             }]);
             console.log(`New session token created: id = '${st[0]._id}'`);
             return st[0]._id;
         } else {
-            const nexpired = new Date(new Date().getTime() + sessionminutes * 60000);
+            const nexpired = new Date(new Date().getTime() + defaultsessionminutes * 60000);
             if (sts[0].expired < nexpired) await mongoSessionTokens.findByIdAndUpdate(sts[0]._id, {expired:nexpired});
             console.log(`Session token updated: id = '${sts[0]._id}'`);
             return sts[0]._id;

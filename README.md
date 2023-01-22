@@ -68,7 +68,6 @@ For editing content items you must have organizationkey with create_content role
 |---|---|
 |[User](#user-object)| User who can evaluate content and get matched with other users|
 |[Content](#content-object)| Item (unit) for evaluation by user in Plutchik's wheel|
-|[Assessment](#assessment-object)| Assessment (evaluation) by user of content item in Plutchik's wheel|
 
 
 |method|Description|
@@ -83,8 +82,6 @@ For editing content items you must have organizationkey with create_content role
 |[addcontent](#addcontent-method)| Adds new content item|
 |[blockcontent](#blockcontent-method)| Block content item|
 |[unblockcontent](#unblockcontent-method)| Unblock content item|
-|📁 **ASSESSMENT management**|
-|[addassessment](#addassessment-method)| Adds new assessment|
 
 
 ---
@@ -121,28 +118,6 @@ export interface IContent {
     blocked: boolean;
     created: Date;
     changed: Date;
-}
-```
----
-* ### **`Assessment` object**
-```
-export interface IAssessment {
-    _id?: Types.ObjectId; // uniq ID of assessment
-    uid?: Types.ObjectId; // user ID, required but may be undefined. userid posted by security schema of call
-    cid: Types.ObjectId; // content ID
-    vector: {
-        joy?: number;
-        trust?: number;
-        fear?: number;
-        surprise?: number;
-        disgust?: number;
-        sadness?: number;
-        anger?: number;
-        anticipation?: number;
-    },
-    tags?: Array<string>; // tags from user
-    rating?: number; // value of assessed content item for match with others
-    created?: Date;
 }
 ```
 ---
@@ -191,7 +166,7 @@ export interface IAssessment {
 
     Returns: 
     * format: `application/json`
-    * data: [User](#user-object) object
+    * data: [User](#user) object
 
     Request example:
     ```
@@ -314,24 +289,25 @@ export interface IAssessment {
 
     Returns: 
     * format: `application/json`
-    * data: [Content](#content-object) object
+    * data: [User](#user) object
 
     Request example:
     ```
-    POST http://localhost:8000/addcontent
+    POST http://localhost:8000/adduser
     Content-Type: application/json
     organizationid: 63c0e7dad80176886c22129d
     organizationkey: 63c2875ecb60f72dc1eb6bbb
+    userid: 63c28926cb60f72dc1eb6bbf
 
     {
-        "contentinfo": {
-            "type": "memes",
-            "url": "https://i.ytimg.com/vi/NbpdFJrothU/maxresdefault.jpg",
-            "name": "TH sound",
-            "tags": [],
-            "description": "When your teacher explains how to pronounce TH",
-            "language": "English",
-            "restrictions": [],
+        "userinfo": {
+            "birthdate": "1972-07-23",
+            "nativelanguage": "English",
+            "secondlanguages": ["French", "Ukrain"],
+            "location": "Prague",
+            "gender": "male",
+            "maritalstatus": "single",
+            "features": "extra",
             "blocked": "false"
         }
     }
@@ -378,58 +354,6 @@ export interface IAssessment {
     ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
 
     Returns: `NONE`
-
-    [Back to API 👆](#api)
----
-* ### **`addassessment`** method
-    Description: creates user's assessment of content item. Returns full object [Assessment](#assessment-object) as it's saved.
-    
-    Method: `POST`
-
-    Parameters: 
-        
-    | Parameter | description | Format | Where |Mandatory|
-    | --- | --- | --- | --- | --- |
-    | `userid` | Uniq id user | MongoDB uuid | header |✅
-    | `sessiontoken`| Active session token got by [getsessiontoken](#getsessiontoken-method)| MongoDB uuid | header | ✅
-    |`assessmentinfo`||||✅|
-    |`assessmentinfo.cid` | Uniq content id  | MongoDB uuid | query|✅|
-    |`assessmentinfo.tags`|Array of tags from user with evaluation|Array of strings|query|
-    |`assessmentinfo.rating`|Measure of confidence of user in his(her) assessment|number |query|
-    |`assessmentinfo.vector`|Plutchik's wheel object|object|query|✅|
-    |`assessmentinfo.vector.joy`|`joy` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.trust`|`trust` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.fear`|`fear` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.surprise`|`surprise` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.sadness`|`sadness` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.disgust`|`disgust` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.anger`|`anger` evaluation|float: 0 - 1|query|
-    |`assessmentinfo.vector.anticipation`|`anticipation` evaluation|float: 0 - 1|query|
-
-    Security schemas: 
-    ` PlutchikAuthUserId & PlutchikAuthSessionToken`
-
-    Returns: 
-    * format: `application/json`
-    * data: [Assessment](#assessment-object) object
-
-    Request example:
-    ```
-    POST http://localhost:8000/addassessment
-    Content-Type: application/json
-    userid: 63c28926cb60f72dc1eb6bbf
-    sessiontoken: $st.data
-
-    {
-        "assessmentinfo": {
-            "cid": "63c83c56116ae4954bdc51ad",
-            "vector": {
-                "joy": 0.5,
-                "trust": 0.6
-            }
-        }
-    }
-    ```
 
     [Back to API 👆](#api)
 ---
