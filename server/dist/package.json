@@ -4,8 +4,7 @@
     "description": "Plutchik API for dating services",
     "main": "server.js",
     "scripts": {
-      "build": "yarn build",
-      "start": "yarn node ./server.js",
+      "start": "node server.js",
       "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
@@ -21,6 +20,9 @@
         "ts-node": "^10.9.1"
       },
       "devDependencies": {
+      },
+      "engines": {
+        "node": ">=14"
       }
   }
   
