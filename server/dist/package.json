@@ -4,7 +4,8 @@
     "description": "Plutchik API for dating services",
     "main": "server.js",
     "scripts": {
-      "start": "yarn server.js",
+      "build": "yarn build",
+      "start": "yarn node ./server.js",
       "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
