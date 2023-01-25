@@ -1,5 +1,15 @@
-import mongoose, { connect, Types } from "mongoose";
+import mongoose, { connect, SchemaTypeOptions, Types } from "mongoose";
+import colours from "./colours";
 import PlutchikError from "./error";
+let settings: any = {};
+try {
+    settings = require("../settings.json");
+} catch (err: any) {
+    console.log(`${colours.bg.red}${err.message}${colours.reset}`);
+    if (!process.env["mongouri"]) throw new PlutchikError("mongo:connect", `Environment variable 'mongouri' can't be read`);
+    settings.mongouri = process.env["mongouri"];
+
+}
 
 export default class PlutchikProto<T> {
     protected data?: T;
@@ -20,7 +30,7 @@ export default class PlutchikProto<T> {
         await this.checkData();
     }
     public static connectMongo(){
-        let uri = 'mongodb://0.0.0.0/PLUTCHIK';
+        let uri = settings.mongouri;
         mongoose.set('strictQuery', false);
         connect(uri)
         .catch((err)=>{
