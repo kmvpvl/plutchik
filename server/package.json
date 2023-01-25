@@ -4,7 +4,7 @@
   "description": "Plutchik API for dating services",
   "main": "server.ts",
   "scripts": {
-    "build": "npx tsc && cp plutchikAPI.yml dist/plutchikAPI.yml",
+    "build": "npx tsc && cp  *.{yml,template} dist/",
     "start": "npx nodemon server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

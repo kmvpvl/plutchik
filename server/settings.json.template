@@ -1,0 +1,3 @@
+{
+    "mongouri": "mongodb://0.0.0.0/PLUTCHIK" // conection string of mongodb to connect
+}

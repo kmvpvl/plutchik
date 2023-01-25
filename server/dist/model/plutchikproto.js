@@ -36,7 +36,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const colours_1 = __importDefault(require("./colours"));
 const error_1 = __importDefault(require("./error"));
+let settings = {};
+try {
+    settings = require("../settings.json");
+}
+catch (err) {
+    console.log(`${colours_1.default.bg.red}${err.message}${colours_1.default.reset}`);
+    if (!process.env["mongouri"])
+        throw new error_1.default("mongo:connect", `Environment variable 'mongouri' can't be read`);
+    settings.mongouri = process.env["mongouri"];
+}
 class PlutchikProto {
     constructor(id, data) {
         if (id)
@@ -58,7 +69,7 @@ class PlutchikProto {
         });
     }
     static connectMongo() {
-        let uri = 'mongodb://0.0.0.0/PLUTCHIK';
+        let uri = settings.mongouri;
         mongoose_1.default.set('strictQuery', false);
         (0, mongoose_1.connect)(uri)
             .catch((err) => {
