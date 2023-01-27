@@ -9,6 +9,9 @@ import blockuser from './api/blockuser';
 import addcontent from './api/addcontent';
 import blockcontent from './api/blockcontent';
 import addassessment from './api/addassessment';
+import addorganizationkey from './api/addorganizationkey';
+import organizationkeyslist from './api/organizationkeyslist';
+import removeorganizationkey from './api/removeorganizationkey';
 
 const PORT = process.env.PORT || 8000;
 
@@ -29,6 +32,9 @@ api.register({
     version:    async (c, req, res) => version(c, req, res),
     getsessiontoken:    async (c, req, res) => getsessiontoken(c, req, res),
     adduser:    async (c, req, res) => adduser(c, req, res),
+    addorganizationkey:    async (c, req, res) => addorganizationkey(c, req, res),
+    organizationkeyslist:    async (c, req, res) => organizationkeyslist(c, req, res),
+    removeorganizationkey: async (c, req, res) => removeorganizationkey(c, req, res),
     blockuser:    async (c, req, res) => blockuser(c, req, res),
     unblockuser:    async (c, req, res) => blockuser(c, req, res, false),
     addcontent:    async (c, req, res) => addcontent(c, req, res),
