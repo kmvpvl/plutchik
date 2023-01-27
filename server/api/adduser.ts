@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
-//import { model, Schema, Model, Document, Mongoose, connect, Types } from 'mongoose';
 import PlutchikError from '../model/error';
 import Organization from '../model/organization';
 import User from "../model/user";
