@@ -18,6 +18,7 @@ const error_1 = __importDefault(require("./error"));
 const mlstring_1 = require("./mlstring");
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 const ts_md5_1 = require("ts-md5");
+const colours_1 = __importDefault(require("./colours"));
 exports.DEFAULT_SESSION_DURATION = 30;
 exports.SessionTokenSchema = new mongoose_1.Schema({
     organizationidref: mongoose_1.Types.ObjectId,
@@ -39,20 +40,51 @@ exports.OrganizationSchema = new mongoose_1.Schema({
 exports.mongoOrgs = (0, mongoose_1.model)('organizations', exports.OrganizationSchema);
 exports.mongoSessionTokens = (0, mongoose_1.model)('sessiontokens', exports.SessionTokenSchema);
 class Organization extends plutchikproto_1.default {
-    load() {
+    load(data) {
         const _super = Object.create(null, {
             load: { get: () => super.load }
         });
         return __awaiter(this, void 0, void 0, function* () {
-            plutchikproto_1.default.connectMongo();
-            const org = yield exports.mongoOrgs.aggregate([{
-                    '$match': {
-                        '_id': this.id
-                    }
-                }]);
-            if (1 != org.length)
-                throw new error_1.default("organization:notfound", `id = '${this.id}'`);
-            yield _super.load.call(this, org[0]);
+            if (!data) {
+                plutchikproto_1.default.connectMongo();
+                const org = yield exports.mongoOrgs.aggregate([{
+                        '$match': {
+                            '_id': this.id
+                        }
+                    }]);
+                if (1 != org.length)
+                    throw new error_1.default("organization:notfound", `id = '${this.id}'`);
+                yield _super.load.call(this, org[0]);
+            }
+            else {
+                yield _super.load.call(this, data);
+            }
+        });
+    }
+    addKey(name, roles) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            const oNK = new mongoose_1.Types.ObjectId();
+            const md5 = ts_md5_1.Md5.hashStr(`${this.id} ${oNK}`);
+            const nk = {
+                keyname: name,
+                roles: roles,
+                keyhash: md5,
+                created: new Date()
+            };
+            (_a = this.data) === null || _a === void 0 ? void 0 : _a.keys.push(nk);
+            yield this.save();
+            return oNK;
+        });
+    }
+    removeKey(id) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            // never remove first organization key
+            if (id)
+                (_a = this.data) === null || _a === void 0 ? void 0 : _a.keys.splice(id, 1);
+            yield this.save();
         });
     }
     /**
@@ -110,6 +142,26 @@ class Organization extends plutchikproto_1.default {
                     yield exports.mongoSessionTokens.findByIdAndUpdate(sts[0]._id, { expired: nexpired });
                 console.log(`Session token updated: id = '${sts[0]._id}'`);
                 return sts[0]._id;
+            }
+        });
+    }
+    save() {
+        const _super = Object.create(null, {
+            save: { get: () => super.save }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            plutchikproto_1.default.connectMongo();
+            yield this.checkData();
+            yield _super.save.call(this);
+            if (this.id) {
+                yield exports.mongoOrgs.findByIdAndUpdate(this.id, this.data);
+                console.log(`Organization data was successfully updated. Org id = '${this.id}'`);
+            }
+            else {
+                const orgInserted = yield exports.mongoOrgs.insertMany([this.data]);
+                this.id = orgInserted[0]._id;
+                this.load(orgInserted[0]);
+                console.log(`New organization was created. ${colours_1.default.fg.blue}Org id = '${this.id}'${colours_1.default.reset}`);
             }
         });
     }

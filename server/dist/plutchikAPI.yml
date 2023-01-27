@@ -324,6 +324,85 @@ paths:
                 $ref: "#/components/schemas/user"
         '401':
           $ref: '#/components/responses/NotAuthorized'
+  /addorganizationkey:
+    post:
+      description: Add new organizationkey with exect roles
+      operationId: addorganizationkey
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          #required: true
+        - in: query
+          name: roles
+          schema:
+            type: array
+            items: 
+              type: string
+          #required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /removeorganizationkey:
+    post:
+      description: Remove organizationkey permanently
+      operationId: removeorganizationkey
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /organizationkeyslist:
+    get:
+      description: Reveals all organizationkey s
+      operationId: organizationkeyslist
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    keyname: 
+                      type: string
+                    id:
+                      type: number
+                    roles:
+                      type: array
+                      items: 
+                        type: string
+                    created:
+                      type: string
+                      format: date-time
+                    expired:
+                      type: string
+                      format: date-time
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
   /userinfo:
     description: Reveal user information
     get:
