@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const assessment_1 = __importDefault(require("../model/assessment"));
 const colours_1 = __importDefault(require("../model/colours"));
+const error_1 = __importDefault(require("../model/error"));
+const organization_1 = __importDefault(require("../model/organization"));
 const user_1 = __importDefault(require("../model/user"));
 function addassessment(c, req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -29,6 +31,8 @@ function addassessment(c, req, res) {
             //checking active session and get roles
             const checkST = yield user.checkSesstionToken(new mongoose_1.Types.ObjectId(sessiontoken));
             console.log(`Checking session token successful. Roles = ${colours_1.default.fg.blue}${checkST}${colours_1.default.reset}`);
+            if (!organization_1.default.checkRoles(checkST, "create_assessment"))
+                throw new error_1.default("forbidden:rolerequiered", `create_assessment role was expected`);
             //filling optional fields
             req.body.assessmentinfo.uid = new mongoose_1.Types.ObjectId(userid);
             req.body.assessmentinfo.created = new Date();
@@ -38,7 +42,12 @@ function addassessment(c, req, res) {
             return res.status(200).json(a.json);
         }
         catch (e) {
-            return res.status(400).json(e);
+            switch (e.code) {
+                case "forbidden:rolerequiered":
+                    return res.status(401).json(e);
+                default:
+                    return res.status(400).json(e);
+            }
         }
     });
 }

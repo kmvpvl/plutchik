@@ -3,7 +3,7 @@ import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
 import PlutchikProto from "./plutchikproto";
 import {Md5} from 'ts-md5';
-import User, { IUser } from "./user";
+import { RoleType } from "./user";
 import colours from "./colours";
 
 export const DEFAULT_SESSION_DURATION = 30;
@@ -13,14 +13,14 @@ export interface IKey {
     keyhash: string;
     created: Date;
     expired?: Date;
-    roles: Array<string>;
+    roles: Array<RoleType>;
 }
 export interface ISessionToken {
     _id: Types.ObjectId;
     organizationidref: Types.ObjectId;
     useridref: Types.ObjectId;
     expired: Date;
-    roles: Array<string>;
+    roles: Array<RoleType>;
     created: Date;
 }
 export interface IOrganization {
@@ -35,7 +35,7 @@ export const SessionTokenSchema = new Schema({
     useridref: Types.ObjectId,
     created: Date,
     expired: Date,
-    roles: Array<string>
+    roles: Array<RoleType>
 });
 export const OrganizationSchema = new Schema({
     name: { oneOf:[
@@ -67,7 +67,7 @@ export default class Organization extends PlutchikProto <IOrganization>{
         }
     } 
 
-    public async addKey(name: string, roles: Array<string>): Promise<Types.ObjectId> {
+    public async addKey(name: string, roles: Array<RoleType>): Promise<Types.ObjectId> {
         await this.checkData();
         const oNK: Types.ObjectId = new Types.ObjectId();
         const md5 = Md5.hashStr(`${this.id} ${oNK}`);
@@ -94,7 +94,7 @@ export default class Organization extends PlutchikProto <IOrganization>{
      * @param key is key uuid 
      * @returns list of roles
      */ 
-    public async checkKeyAndGetRoles(key: Types.ObjectId): Promise<Array<string>> {
+    public async checkKeyAndGetRoles(key: Types.ObjectId): Promise<Array<RoleType>> {
         const md5 = Md5.hashStr(`${this.id} ${key}`);
         if (!this.data) throw new PlutchikError("organization:notloaded", `id = '${this.id}'`);
         for (const key of this.data?.keys) {
@@ -139,6 +139,13 @@ export default class Organization extends PlutchikProto <IOrganization>{
             return sts[0]._id;
         }
     }
+
+    static checkRoles(roles_had: Array<RoleType>, role_to_find: RoleType): boolean {
+        const superivor_role: RoleType = "supervisor";
+        if (roles_had.includes(superivor_role)) return true;
+        return roles_had.includes(role_to_find);
+    }
+
     public async save() {
         PlutchikProto.connectMongo();
         await this.checkData();

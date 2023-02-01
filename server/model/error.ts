@@ -3,6 +3,7 @@ import colours from "./colours";
 export type ErrorCode = 
       "mongo:connect" /* Couldn'n connect to MongoDB*/ 
     | "mongo:any" /* */
+    | "forbidden:rolerequiered" /* U need role doing this operation*/
     | "organization:notfound" /* Organization id not found*/
     | "organization:notloaded" /* Organization id not loaded*/
     | "organization:wrongkey" /* Organization has no that key*/
@@ -21,6 +22,7 @@ export default class PlutchikError extends Error {
     constructor(code: ErrorCode, description?: string){
         const descs = new Map<ErrorCode, string>([
             ["mongo:connect",  "Couldn'n connect to MongoDB"],
+            ["forbidden:rolerequiered", "U need role doing this operation"], 
             ["organization:notfound", "Organization id not found"],
             ["organization:notloaded", "Organization id not loaded"],
             ["organization:wrongkey", "Organization has no that key"],

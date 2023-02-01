@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
 //import { model, Schema, Model, Document, Mongoose, connect, Types } from 'mongoose';
-import PlutchikError from '../model/error';
+import PlutchikError, { ErrorCode } from '../model/error';
 import Organization from '../model/organization';
 import User from '../model/user';
 //import User from "../model/user";
@@ -19,6 +19,7 @@ export default async function blockuser(c: any, req: Request, res: Response, blo
         // Checking organization key
         const roles = await org.checkKeyAndGetRoles(new Types.ObjectId(organizationkey as string));
         console.log(`${colours.fg.blue}roles = '${roles}'${colours.reset}`);
+        if (!Organization.checkRoles(roles, "manage_users")) throw new PlutchikError("forbidden:rolerequiered", `manage_users role was expected`);
         // Checking user id
         const oUserid = new Types.ObjectId(userid as string);
         const user = new User(oUserid);
@@ -28,6 +29,11 @@ export default async function blockuser(c: any, req: Request, res: Response, blo
         // looking for existing session
         return res.status(200).json();
     } catch (e: any) {
-        return res.status(404).json(e);
+        switch (e.code as ErrorCode) {
+            case "forbidden:rolerequiered":
+                return res.status(401).json(e);
+            default:
+            return res.status(400).json(e);
+        }
     }
 }

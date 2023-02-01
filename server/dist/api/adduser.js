@@ -31,6 +31,8 @@ function adduser(c, req, res) {
             // Checking organization key
             const roles = yield org.checkKeyAndGetRoles(new mongoose_1.Types.ObjectId(organizationkey));
             console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
+            if (!organization_1.default.checkRoles(roles, "manage_users"))
+                throw new error_1.default("forbidden:rolerequiered", `manage_users role was expected`);
             req.body.userinfo.organizationid = organizationid;
             let user;
             if (userid) {
@@ -55,7 +57,12 @@ function adduser(c, req, res) {
             return res.status(200).json(user.json);
         }
         catch (e) {
-            return res.status(400).json(e);
+            switch (e.code) {
+                case "forbidden:rolerequiered":
+                    return res.status(401).json(e);
+                default:
+                    return res.status(400).json(e);
+            }
         }
     });
 }

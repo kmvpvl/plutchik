@@ -145,6 +145,12 @@ class Organization extends plutchikproto_1.default {
             }
         });
     }
+    static checkRoles(roles_had, role_to_find) {
+        const superivor_role = "supervisor";
+        if (roles_had.includes(superivor_role))
+            return true;
+        return roles_had.includes(role_to_find);
+    }
     save() {
         const _super = Object.create(null, {
             save: { get: () => super.save }

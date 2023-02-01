@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
-import PlutchikError from '../model/error';
+import PlutchikError, { ErrorCode } from '../model/error';
 import Organization from '../model/organization';
 import Content from '../model/content';
 
@@ -17,6 +17,7 @@ export default async function blockuser(c: any, req: Request, res: Response, blo
         // Checking organization key
         const roles = await org.checkKeyAndGetRoles(new Types.ObjectId(organizationkey as string));
         console.log(`${colours.fg.blue}roles = '${roles}'${colours.reset}`);
+        if (!Organization.checkRoles(roles, "manage_content")) throw new PlutchikError("forbidden:rolerequiered", `manage_content role was expected`);
         // Checking user id
         const ocid = new Types.ObjectId(cid as string);
         const ci = new Content(ocid);
@@ -26,6 +27,11 @@ export default async function blockuser(c: any, req: Request, res: Response, blo
         // looking for existing session
         return res.status(200).json();
     } catch (e: any) {
-        return res.status(404).json(e);
+        switch (e.code as ErrorCode) {
+            case "forbidden:rolerequiered":
+                return res.status(401).json(e);
+            default:
+            return res.status(400).json(e);
+        }
     }
 }
