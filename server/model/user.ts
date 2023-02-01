@@ -5,7 +5,7 @@ import IMLString, {MLStringSchema} from "./mlstring";
 import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
 import PlutchikProto from "./plutchikproto";
 
-export type RoleType = "supervisor"|"create_user"|"create_content"|"assess";
+export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match";
 export interface IUser {
     _id: Types.ObjectId;
     organizationid: Types.ObjectId;
@@ -84,7 +84,7 @@ export default class User extends PlutchikProto<IUser> {
      * @param sessionminutes duration of session token
      * @returns list of roles on this session token
      */
-    public async checkSesstionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<string>> {
+    public async checkSesstionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<RoleType>> {
         PlutchikProto.connectMongo();
         const sts = await mongoSessionTokens.aggregate([{
             '$match': {

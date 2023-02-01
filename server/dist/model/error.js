@@ -8,6 +8,7 @@ class PlutchikError extends Error {
     constructor(code, description) {
         const descs = new Map([
             ["mongo:connect", "Couldn'n connect to MongoDB"],
+            ["forbidden:rolerequiered", "U need role doing this operation"],
             ["organization:notfound", "Organization id not found"],
             ["organization:notloaded", "Organization id not loaded"],
             ["organization:wrongkey", "Organization has no that key"],

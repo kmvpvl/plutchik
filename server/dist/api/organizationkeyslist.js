@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("../model/colours"));
+const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
 function organizationkeyslist(c, req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -26,6 +27,8 @@ function organizationkeyslist(c, req, res) {
             // Checking organization key
             const roles = yield org.checkKeyAndGetRoles(new mongoose_1.Types.ObjectId(organizationkey));
             console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
+            if (!organization_1.default.checkRoles(roles, "administrator"))
+                throw new error_1.default("forbidden:rolerequiered", `administrator role was expected`);
             const ret = new Array();
             if (org.json)
                 for (const [i, k] of Object.entries(org.json.keys)) {
@@ -40,7 +43,12 @@ function organizationkeyslist(c, req, res) {
             return res.status(200).json(ret);
         }
         catch (e) {
-            return res.status(400).json(e);
+            switch (e.code) {
+                case "forbidden:rolerequiered":
+                    return res.status(401).json(e);
+                default:
+                    return res.status(400).json(e);
+            }
         }
     });
 }

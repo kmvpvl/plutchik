@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
-import PlutchikError from '../model/error';
+import PlutchikError, { ErrorCode } from '../model/error';
 import Organization, { IKey } from '../model/organization';
 
 export default async function removeorganizationkey(c: any, req: Request, res: Response) {
@@ -17,9 +17,15 @@ export default async function removeorganizationkey(c: any, req: Request, res: R
         // Checking organization key
         const roles = await org.checkKeyAndGetRoles(new Types.ObjectId(organizationkey as string));
         console.log(`${colours.fg.blue}roles = '${roles}'${colours.reset}`);
+        if (!Organization.checkRoles(roles, "administrator")) throw new PlutchikError("forbidden:rolerequiered", `administrator role was expected`);
         org.removeKey(id);
         return res.status(200).json();
     } catch (e: any) {
-        return res.status(400).json(e);
+        switch (e.code as ErrorCode) {
+            case "forbidden:rolerequiered":
+                return res.status(401).json(e);
+            default:
+            return res.status(400).json(e);
+        }
     }
 }

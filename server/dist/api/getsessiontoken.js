@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("../model/colours"));
+//import { model, Schema, Model, Document, Mongoose, connect, Types } from 'mongoose';
+const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
 const user_1 = __importDefault(require("../model/user"));
 //import User from "../model/user";
@@ -30,6 +32,8 @@ function getsessiontoken(c, req, res) {
             // Checking organization key
             const roles = yield org.checkKeyAndGetRoles(new mongoose_1.Types.ObjectId(organizationkey));
             console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
+            if (!organization_1.default.checkRoles(roles, "mining_session"))
+                throw new error_1.default("forbidden:rolerequiered", `mining_session role was expected`);
             // Checking user id
             const oUserid = new mongoose_1.Types.ObjectId(userid);
             const user = new user_1.default(oUserid);
@@ -38,7 +42,12 @@ function getsessiontoken(c, req, res) {
             return res.status(200).json(yield org.checkAndUpdateSessionToken(oUserid, roles));
         }
         catch (e) {
-            return res.status(404).json(e);
+            switch (e.code) {
+                case "forbidden:rolerequiered":
+                    return res.status(401).json(e);
+                default:
+                    return res.status(400).json(e);
+            }
         }
     });
 }
