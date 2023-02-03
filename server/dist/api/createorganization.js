@@ -12,26 +12,31 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("../model/colours"));
-const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
-function removeorganizationkey(c, req, res) {
+function createorganization(c, req, res) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const organizationid = req.headers["organizationid"];
-        const organizationkey = req.headers["organizationkey"];
-        const id = req.body.id;
-        console.log(`${colours_1.default.fg.green}API: removeorganizationkey function${colours_1.default.reset}\n ${colours_1.default.fg.blue}Parameters: organizationid = '${organizationid}'; organizationkey = '${organizationkey}'; id = '${id}'`);
+        // const organizationid = req.headers["organizationid"];
+        // const organizationkey = req.headers["organizationkey"];
+        const name = req.body.name;
+        const emails = req.body.emails;
+        console.log(`${colours_1.default.fg.green}API: createorganization function${colours_1.default.reset}\n ${colours_1.default.fg.blue}Parameters: name = '${name}'; roles = '${emails}'`);
         try {
-            const org = new organization_1.default(new mongoose_1.Types.ObjectId(organizationid));
-            yield org.load();
-            // Checking organization key
-            const roles = yield org.checkKeyAndGetRoles(new mongoose_1.Types.ObjectId(organizationkey));
-            console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
-            if (!organization_1.default.checkRoles(roles, "administrator"))
-                throw new error_1.default("forbidden:rolerequiered", `administrator role was expected`);
-            yield org.removeKey(id);
-            return res.status(200).json();
+            const orgData = {
+                name: name,
+                keys: [],
+                emails: emails,
+                created: new Date(),
+                changed: new Date()
+            };
+            const org = new organization_1.default(undefined, orgData);
+            yield org.save();
+            const oNK = yield org.addKey("Administrator", ["administrator"]);
+            return res.status(200).json({
+                organizationid: (_a = org.json) === null || _a === void 0 ? void 0 : _a._id,
+                organizationkey: oNK.toString()
+            });
         }
         catch (e) {
             switch (e.code) {
@@ -43,4 +48,4 @@ function removeorganizationkey(c, req, res) {
         }
     });
 }
-exports.default = removeorganizationkey;
+exports.default = createorganization;

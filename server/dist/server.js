@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.server = exports.app = void 0;
 const openapi_backend_1 = __importDefault(require("openapi-backend"));
 const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
@@ -26,6 +27,7 @@ const addassessment_1 = __importDefault(require("./api/addassessment"));
 const addorganizationkey_1 = __importDefault(require("./api/addorganizationkey"));
 const organizationkeyslist_1 = __importDefault(require("./api/organizationkeyslist"));
 const removeorganizationkey_1 = __importDefault(require("./api/removeorganizationkey"));
+const createorganization_1 = __importDefault(require("./api/createorganization"));
 const PORT = process.env.PORT || 8000;
 function checkSecurity(c) {
     try {
@@ -42,6 +44,7 @@ const api = new openapi_backend_1.default({
 api.init();
 api.register({
     version: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, version_1.default)(c, req, res); }),
+    createorganization: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, createorganization_1.default)(c, req, res); }),
     getsessiontoken: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, getsessiontoken_1.default)(c, req, res); }),
     adduser: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, adduser_1.default)(c, req, res); }),
     addorganizationkey: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, addorganizationkey_1.default)(c, req, res); }),
@@ -62,12 +65,12 @@ api.registerSecurityHandler('PlutchikAuthOrganizationId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthOrganizationKey', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthUserId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthSessionToken', checkSecurity);
-const app = (0, express_1.default)();
-app.use(express_1.default.json());
-app.use((0, morgan_1.default)('tiny'));
-app.use((0, cors_1.default)());
+exports.app = (0, express_1.default)();
+exports.app.use(express_1.default.json());
+exports.app.use((0, morgan_1.default)('tiny'));
+exports.app.use((0, cors_1.default)());
 // use as express middleware
-app.use((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.use((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         return yield api.handleRequest({
             method: req.method,
@@ -81,6 +84,6 @@ app.use((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return res.status(500).json({ code: "Wrong parameters", description: `Request ${req.url}- ${e.message}` });
     }
 }));
-app.listen(PORT, () => {
+exports.server = exports.app.listen(PORT, () => {
     console.log("Server is running on port", PORT);
 });

@@ -16,7 +16,7 @@ const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("../model/colours"));
 const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
-function adduser(c, req, res) {
+function addorganizationkey(c, req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const organizationid = req.headers["organizationid"];
         const organizationkey = req.headers["organizationkey"];
@@ -44,4 +44,4 @@ function adduser(c, req, res) {
         }
     });
 }
-exports.default = adduser;
+exports.default = addorganizationkey;

@@ -22,8 +22,7 @@ export default async function blockuser(c: any, req: Request, res: Response, blo
         const ocid = new Types.ObjectId(cid as string);
         const ci = new Content(ocid);
         await ci.load();
-        ci.block(block);
-        await ci.save();
+        await ci.block(block);
         // looking for existing session
         return res.status(200).json();
     } catch (e: any) {

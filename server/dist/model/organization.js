@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.mongoSessionTokens = exports.mongoOrgs = exports.OrganizationSchema = exports.SessionTokenSchema = exports.DEFAULT_SESSION_DURATION = void 0;
 const mongoose_1 = require("mongoose");
 const error_1 = __importDefault(require("./error"));
-const mlstring_1 = require("./mlstring");
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 const ts_md5_1 = require("ts-md5");
 const colours_1 = __importDefault(require("./colours"));
@@ -28,11 +27,9 @@ exports.SessionTokenSchema = new mongoose_1.Schema({
     roles: (Array)
 });
 exports.OrganizationSchema = new mongoose_1.Schema({
-    name: { oneOf: [
-            String,
-            mlstring_1.MLStringSchema,
-        ] },
+    name: String,
     keys: [],
+    emails: [],
     created: Date,
     changed: Date,
     history: (Array),

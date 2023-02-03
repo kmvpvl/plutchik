@@ -36,8 +36,7 @@ function blockuser(c, req, res, block = true) {
             const ocid = new mongoose_1.Types.ObjectId(cid);
             const ci = new content_1.default(ocid);
             yield ci.load();
-            ci.block(block);
-            yield ci.save();
+            yield ci.block(block);
             // looking for existing session
             return res.status(200).json();
         }

@@ -4,7 +4,7 @@ import colours from '../model/colours';
 import PlutchikError, { ErrorCode } from '../model/error';
 import Organization from '../model/organization';
 
-export default async function adduser(c: any, req: Request, res: Response) {
+export default async function addorganizationkey(c: any, req: Request, res: Response) {
     const organizationid = req.headers["organizationid"];
     const organizationkey = req.headers["organizationkey"];
     const key_name = req.body.name;
