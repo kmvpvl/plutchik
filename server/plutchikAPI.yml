@@ -283,6 +283,36 @@ paths:
                 api: 1.0.0
                 data: 1.0.0
                 ai: 0.0.1
+  /createorganization:
+    post:
+      description: Creates new organization and returns first organization key with administrator roles
+      operationId: createorganization
+      security: []
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+        - in: query
+          name: emails
+          schema:
+            type: array
+            items: 
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organizationid:
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                  organizationkey:
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
   /getsessiontoken:
     get:
       description: Returns session token by authorization

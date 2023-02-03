@@ -12,6 +12,7 @@ import addassessment from './api/addassessment';
 import addorganizationkey from './api/addorganizationkey';
 import organizationkeyslist from './api/organizationkeyslist';
 import removeorganizationkey from './api/removeorganizationkey';
+import createorganization from './api/createorganization';
 
 const PORT = process.env.PORT || 8000;
 
@@ -30,6 +31,7 @@ const api = new OpenAPIBackend({
 api.init();
 api.register({
     version:    async (c, req, res) => version(c, req, res),
+    createorganization: async (c, req, res) => createorganization(c, req, res),
     getsessiontoken:    async (c, req, res) => getsessiontoken(c, req, res),
     adduser:    async (c, req, res) => adduser(c, req, res),
     addorganizationkey:    async (c, req, res) => addorganizationkey(c, req, res),
@@ -52,7 +54,7 @@ api.registerSecurityHandler('PlutchikAuthUserId',  checkSecurity);
 api.registerSecurityHandler('PlutchikAuthSessionToken',  checkSecurity);
 
 
-const app: Application = express();
+export const app: Application = express();
 
 app.use(express.json());
 app.use(morgan('tiny'));
@@ -73,6 +75,6 @@ app.use(async (req: Request, res: Response) => {
         return res.status(500).json({code: "Wrong parameters", description: `Request ${req.url}- ${(e as Error).message}`});
     }
 });
-app.listen(PORT, () => {
+export const server = app.listen(PORT, () => {
     console.log("Server is running on port", PORT);
 });

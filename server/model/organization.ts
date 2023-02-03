@@ -24,9 +24,10 @@ export interface ISessionToken {
     created: Date;
 }
 export interface IOrganization {
-    _id: Types.ObjectId;
+    _id?: Types.ObjectId;
     name: string | IMLString;
     keys: Array<IKey>;
+    emails: Array<string>;
     created: Date;
     changed: Date;
 }
@@ -38,12 +39,10 @@ export const SessionTokenSchema = new Schema({
     roles: Array<RoleType>
 });
 export const OrganizationSchema = new Schema({
-    name: { oneOf:[
-        String,
-        MLStringSchema,
-    ]},
+    name: String,
     keys: [
     ],
+    emails: [],
     created: Date,
     changed: Date,
     history: Array<any>,
