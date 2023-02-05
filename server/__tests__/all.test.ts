@@ -4,7 +4,7 @@ import {describe, expect, jest, it, beforeAll} from '@jest/globals';
 jest.setTimeout(15000);
 
 beforeAll(() => {
-    jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    //jest.spyOn(console, 'warn').mockImplementation(jest.fn());
     jest.spyOn(console, 'log').mockImplementation(jest.fn());
     jest.spyOn(console, 'debug').mockImplementation(jest.fn());
 });

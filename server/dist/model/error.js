@@ -24,7 +24,7 @@ class PlutchikError extends Error {
         super(`${descs.get(code)} - ${description}`);
         this.code = code;
         this.description = this.message;
-        console.error(`${colours_1.default.fg.red}Error occured: code: ${code}; desc: ${description}${colours_1.default.reset}`);
+        console.log(`${colours_1.default.fg.red}Error occured: code: ${code}; desc: ${description}${colours_1.default.reset}`);
     }
     toString() { return this.message; }
 }
