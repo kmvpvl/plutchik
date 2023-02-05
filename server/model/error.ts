@@ -38,7 +38,7 @@ export default class PlutchikError extends Error {
         super(`${descs.get(code)} - ${description}`);
         this.code = code;
         this.description = this.message;
-        console.error(`${colours.fg.red}Error occured: code: ${code}; desc: ${description}${colours.reset}`);
+        console.log(`${colours.fg.red}Error occured: code: ${code}; desc: ${description}${colours.reset}`);
     }
     toString(){return this.message}
 }
