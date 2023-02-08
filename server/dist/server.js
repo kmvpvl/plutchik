@@ -28,6 +28,7 @@ const addorganizationkey_1 = __importDefault(require("./api/addorganizationkey")
 const organizationkeyslist_1 = __importDefault(require("./api/organizationkeyslist"));
 const removeorganizationkey_1 = __importDefault(require("./api/removeorganizationkey"));
 const createorganization_1 = __importDefault(require("./api/createorganization"));
+const organizationinfo_1 = __importDefault(require("./api/organizationinfo"));
 const PORT = process.env.PORT || 8000;
 function checkSecurity(c) {
     try {
@@ -50,6 +51,7 @@ api.register({
     addorganizationkey: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, addorganizationkey_1.default)(c, req, res); }),
     organizationkeyslist: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, organizationkeyslist_1.default)(c, req, res); }),
     removeorganizationkey: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, removeorganizationkey_1.default)(c, req, res); }),
+    organizationinfo: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, organizationinfo_1.default)(c, req, res); }),
     blockuser: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, blockuser_1.default)(c, req, res); }),
     unblockuser: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, blockuser_1.default)(c, req, res, false); }),
     addcontent: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, addcontent_1.default)(c, req, res); }),

@@ -5,7 +5,7 @@ jest.setTimeout(15000);
 
 beforeAll(() => {
     //jest.spyOn(console, 'warn').mockImplementation(jest.fn());
-    jest.spyOn(console, 'log').mockImplementation(jest.fn());
+    //jest.spyOn(console, 'log').mockImplementation(jest.fn());
     jest.spyOn(console, 'debug').mockImplementation(jest.fn());
 });
 
@@ -34,6 +34,7 @@ describe("TEST: Organization, content and user management", ()=>{
     let responseToken: any;
     let responseKeyManageToken: any;
     let responseAssessment: any;
+    let responseOrganizationinfo: any;
 
     it("createorganization:success", async () => {
         responseCreateorganization = await Request(app)["post"]("/createorganization")
@@ -126,6 +127,17 @@ describe("TEST: Organization, content and user management", ()=>{
 
         expect(responseOrganizationkeyslist.statusCode).toBe(200);
         expect(Array.isArray(responseOrganizationkeyslist.body)).toBe(true);
+    });
+
+    it("organizationinfo:success", async () => {
+        responseOrganizationinfo = await Request(app)["get"]("/organizationinfo")
+        .set('Content-Type', 'application/json')
+        .set('organizationid', responseCreateorganization.body.organizationid)
+        .set('organizationkey', responseCreateorganization.body.organizationkey)
+        .send();
+
+        expect(responseOrganizationinfo.statusCode).toBe(200);
+        expect(responseOrganizationinfo.body.keyscount).toBe(5);
     });
 
     it("removeorganizationkey:success", async () => {

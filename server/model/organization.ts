@@ -88,20 +88,24 @@ export default class Organization extends PlutchikProto <IOrganization>{
         await this.save();
     }
 
+    public async checkKey(key: Types.ObjectId): Promise<IKey> {
+        const md5 = Md5.hashStr(`${this.id} ${key}`);
+        if (!this.data) throw new PlutchikError("organization:notloaded", `id = '${this.id}'`);
+        for (const key of this.data?.keys) {
+            if (key.keyhash == md5) {
+                return key;
+            }
+        }
+        throw new PlutchikError("organization:wrongkey", `organizationid = '${this.id}'; organizationkey = '${key}'`)
+    }
+
     /**
      * Function checks pair organizationid and organizationkey. If pair is right then returns list of roles
      * @param key is key uuid 
      * @returns list of roles
      */ 
     public async checkKeyAndGetRoles(key: Types.ObjectId): Promise<Array<RoleType>> {
-        const md5 = Md5.hashStr(`${this.id} ${key}`);
-        if (!this.data) throw new PlutchikError("organization:notloaded", `id = '${this.id}'`);
-        for (const key of this.data?.keys) {
-            if (key.keyhash == md5) {
-                return key.roles;
-            }
-        }
-        throw new PlutchikError("organization:wrongkey", `organizationid = '${this.id}'; organizationkey = '${key}'`)
+        return (await this.checkKey(key)).roles;
     }
 
     /**

@@ -19,6 +19,7 @@ const error_1 = __importDefault(require("./error"));
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 exports.AssessmentSchema = new mongoose_1.Schema({
     uid: { type: mongoose_1.Types.ObjectId, required: false },
+    organizationid: mongoose_1.Types.ObjectId,
     cid: mongoose_1.Types.ObjectId,
     vector: (Map),
     tags: { type: (Array), required: false },

@@ -97,9 +97,10 @@ There are two authorization schemas:
 |---|-|
 |[version](#version)| Gets version Plutchik API|
 |📁 **ORGANIZATION management**|
-|[addorganizationkey]()| Adds new organization key with exact roles|
-|[listorganizationkeys]()| Returns list of organization keys with their roles|
-|[removeorganizationkey]()| Removes the organization key|
+|[addorganizationkey](#addorganizationkey-method)| Adds new organization key with exact roles|
+|[listorganizationkeys](#organizationkeyslist-method)| Returns list of organization keys with their roles|
+|[removeorganizationkey](#removeorganizationkey-method)| Removes the organization key|
+|[organizationinfo](#organizationinfo-method)| Check the pair of organization id and key and returns common organization's info|
 |📁 **USER management**|
 |[adduser](#adduser-method)| Adds new user|
 |[getsessiontoken](#getsessiontoken-method)| Gets session token for user|
@@ -304,6 +305,44 @@ export interface IAssessment {
     Request example:
     ```
     GET http://localhost:8000/organizationkeyslist
+    Content-Type: application/json
+    organizationid: 63c0e7dad80176886c22129d
+    organizationkey: 63c2875ecb60f72dc1eb6bbb
+    ```
+
+    [Back to API 👆](#api)
+---
+* ### **`organizationinfo`** method
+    Description: Check the pair of organization id and key and returns common organization's info
+
+    Method: `GET`
+
+    Parameters:
+
+    | Parameter | description | Format | Where |Mandatory|
+    | --- | --- | --- | --- | --- |
+    | `organizationid` | Uniq id of organization | MongoDB uuid | header |✅
+    | `organizationkey`| Key recieved from Plutchik API with role [administrator](#roles)| MongoDB uuid | header | ✅
+
+    Security schemas: 
+    ` PlutchikAuthOrganizationId & PlutchikAuthOrganizationKey`
+
+    Returns: 
+    * format: `application/json`
+    * data: object
+        {
+            name: string - organization name,
+            keyname: string - name of key
+            keyroles: array of string - list of current roles
+            keyscount: number - count of organization's keys
+            userscount: number - count of organization's users
+            contentcount: number - count of organization's content items
+            assessmentscount: number - count of organization's user assessments
+        }
+
+    Request example:
+    ```
+    GET http://localhost:8000/organizationinfo
     Content-Type: application/json
     organizationid: 63c0e7dad80176886c22129d
     organizationkey: 63c2875ecb60f72dc1eb6bbb

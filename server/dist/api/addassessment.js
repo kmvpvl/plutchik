@@ -19,6 +19,7 @@ const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
 const user_1 = __importDefault(require("../model/user"));
 function addassessment(c, req, res) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const userid = req.headers["userid"];
         const sessiontoken = req.headers["sessiontoken"];
@@ -33,6 +34,7 @@ function addassessment(c, req, res) {
             console.log(`Checking session token successful. Roles = ${colours_1.default.fg.blue}${checkST}${colours_1.default.reset}`);
             if (!organization_1.default.checkRoles(checkST, "create_assessment"))
                 throw new error_1.default("forbidden:rolerequiered", `create_assessment role was expected`);
+            req.body.assessmentinfo.organizationid = (_a = user.json) === null || _a === void 0 ? void 0 : _a._id;
             //filling optional fields
             req.body.assessmentinfo.uid = new mongoose_1.Types.ObjectId(userid);
             req.body.assessmentinfo.created = new Date();

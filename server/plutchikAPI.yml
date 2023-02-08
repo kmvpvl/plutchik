@@ -534,48 +534,6 @@ paths:
           description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /getcontent/user/{uid}:
-    description: Feed content to user
-    get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/uid"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contentitem"
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /getcontent/{cid}:
-    description: Reveal content by id
-    get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/cid"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contentitem"
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /suggestcontenttomatchwith/{cid}/user/{uid}:
-    description: Marks content to promote for all users about to match with user
-    get:
-      parameters:
-        - $ref: "#/components/parameters/sessiontoken"
-        - $ref: "#/components/parameters/cid"
-        - $ref: "#/components/parameters/uid"
-      responses:
-        '200':
-          description: OK
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
   /addassessment:
     description: Add new assessment
     post:
@@ -592,6 +550,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/assessment"
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /organizationinfo:
+    get:
+      operationId: organizationinfo
+      security:
+        - PlutchikAuthOrganizationId: []
+          PlutchikAuthOrganizationKey: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name: 
+                    type: string
+                  keyname:
+                    type: string
+                  keyroles:
+                    type: array
+                    items: 
+                      type: string
+                  keyscount:
+                    type: number
+                  userscount:
+                    type: number
+                  contentcount:
+                    type: number
+                  assessmnetscount:
+                    type: number
         '401':
           $ref: '#/components/responses/NotAuthorized'
 security:
