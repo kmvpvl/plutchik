@@ -13,6 +13,7 @@ import addorganizationkey from './api/addorganizationkey';
 import organizationkeyslist from './api/organizationkeyslist';
 import removeorganizationkey from './api/removeorganizationkey';
 import createorganization from './api/createorganization';
+import organizationinfo from './api/organizationinfo';
 
 const PORT = process.env.PORT || 8000;
 
@@ -37,6 +38,7 @@ api.register({
     addorganizationkey:    async (c, req, res) => addorganizationkey(c, req, res),
     organizationkeyslist:    async (c, req, res) => organizationkeyslist(c, req, res),
     removeorganizationkey: async (c, req, res) => removeorganizationkey(c, req, res),
+    organizationinfo:    async (c, req, res) => organizationinfo(c, req, res),
     blockuser:    async (c, req, res) => blockuser(c, req, res),
     unblockuser:    async (c, req, res) => blockuser(c, req, res, false),
     addcontent:    async (c, req, res) => addcontent(c, req, res),

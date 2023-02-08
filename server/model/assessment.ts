@@ -6,6 +6,7 @@ import PlutchikProto from "./plutchikproto";
 export interface IAssessment {
     _id?: Types.ObjectId; // uniq ID of assessment
     uid?: Types.ObjectId; // user ID, required but may be undefined. userid posted by security schema of call
+    organizationid: Types.ObjectId;
     cid: Types.ObjectId; // content ID
     vector: {
         joy?: number;
@@ -24,6 +25,7 @@ export interface IAssessment {
 
 export const AssessmentSchema = new Schema({
     uid: {type: Types.ObjectId, required: false},
+    organizationid: Types.ObjectId,
     cid: Types.ObjectId,
     vector: Map <String, Number>,
     tags: {type: Array<String>, required: false},

@@ -31,7 +31,7 @@ function addcontent(c, req, res) {
             console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
             if (!organization_1.default.checkRoles(roles, "manage_content"))
                 throw new error_1.default("forbidden:rolerequiered", `manage_content role was expected`);
-            req.body.contentinfo.organizationid = organizationid;
+            req.body.contentinfo.organizationid = new mongoose_1.Types.ObjectId(organizationid);
             const cid = req.body.contentinfo._id;
             let content;
             if (cid) {

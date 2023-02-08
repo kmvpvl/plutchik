@@ -20,7 +20,7 @@ export default async function adduser(c: any, req: Request, res: Response) {
 
         if (!Organization.checkRoles(roles, "manage_users")) throw new PlutchikError("forbidden:rolerequiered", `manage_users role was expected`);
 
-        req.body.userinfo.organizationid = organizationid;
+        req.body.userinfo.organizationid = org.json?._id;
         let user: User;
         if (userid) {
             // update existing user

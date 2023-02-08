@@ -19,7 +19,7 @@ export default async function addcontent(c: any, req: Request, res: Response) {
 
         if (!Organization.checkRoles(roles, "manage_content")) throw new PlutchikError("forbidden:rolerequiered", `manage_content role was expected`);
 
-        req.body.contentinfo.organizationid = organizationid;
+        req.body.contentinfo.organizationid = new Types.ObjectId(organizationid as string);
         const cid = req.body.contentinfo._id;
         let content: Content;
          if (cid) {

@@ -18,7 +18,7 @@ const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
 const user_1 = __importDefault(require("../model/user"));
 function adduser(c, req, res) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const organizationid = req.headers["organizationid"];
         const organizationkey = req.headers["organizationkey"];
@@ -33,14 +33,14 @@ function adduser(c, req, res) {
             console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
             if (!organization_1.default.checkRoles(roles, "manage_users"))
                 throw new error_1.default("forbidden:rolerequiered", `manage_users role was expected`);
-            req.body.userinfo.organizationid = organizationid;
+            req.body.userinfo.organizationid = (_a = org.json) === null || _a === void 0 ? void 0 : _a._id;
             let user;
             if (userid) {
                 // update existing user
                 user = new user_1.default(new mongoose_1.Types.ObjectId(userid));
                 yield user.load();
                 //need to check that user belongs that organization
-                if (!new mongoose_1.Types.ObjectId(organizationid).equals((_a = user.json) === null || _a === void 0 ? void 0 : _a.organizationid))
+                if (!new mongoose_1.Types.ObjectId(organizationid).equals((_b = user.json) === null || _b === void 0 ? void 0 : _b.organizationid))
                     throw new error_1.default("user:notfound", `organizationid = '${organizationid}' is wrong, userid = '${userid}'`);
                 const d = user.clone();
                 for (const p in req.body.userinfo) {

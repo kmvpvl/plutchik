@@ -20,6 +20,7 @@ export default async function addassessment(c: any, req: Request, res: Response)
         console.log(`Checking session token successful. Roles = ${colours.fg.blue}${checkST}${colours.reset}`);
         if (!Organization.checkRoles(checkST, "create_assessment")) throw new PlutchikError("forbidden:rolerequiered", `create_assessment role was expected`);
         
+        req.body.assessmentinfo.organizationid = user.json?._id;
         //filling optional fields
         req.body.assessmentinfo.uid = new Types.ObjectId(userid as string);
         req.body.assessmentinfo.created = new Date();

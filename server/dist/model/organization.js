@@ -84,12 +84,7 @@ class Organization extends plutchikproto_1.default {
             yield this.save();
         });
     }
-    /**
-     * Function checks pair organizationid and organizationkey. If pair is right then returns list of roles
-     * @param key is key uuid
-     * @returns list of roles
-     */
-    checkKeyAndGetRoles(key) {
+    checkKey(key) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const md5 = ts_md5_1.Md5.hashStr(`${this.id} ${key}`);
@@ -97,10 +92,20 @@ class Organization extends plutchikproto_1.default {
                 throw new error_1.default("organization:notloaded", `id = '${this.id}'`);
             for (const key of (_a = this.data) === null || _a === void 0 ? void 0 : _a.keys) {
                 if (key.keyhash == md5) {
-                    return key.roles;
+                    return key;
                 }
             }
             throw new error_1.default("organization:wrongkey", `organizationid = '${this.id}'; organizationkey = '${key}'`);
+        });
+    }
+    /**
+     * Function checks pair organizationid and organizationkey. If pair is right then returns list of roles
+     * @param key is key uuid
+     * @returns list of roles
+     */
+    checkKeyAndGetRoles(key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return (yield this.checkKey(key)).roles;
         });
     }
     /**
