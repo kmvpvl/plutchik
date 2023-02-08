@@ -14,7 +14,7 @@ export interface IContent {
     description: string;
     language: string;
     restrictions: Array<string>;
-    organizationidref?: Types.ObjectId;
+    organizationid?: Types.ObjectId;
     foruseronlyidref?: Types.ObjectId;
     blocked: boolean;
     expired?: Date;
@@ -24,7 +24,7 @@ export interface IContent {
 }
 
 export const ContentSchema = new Schema({
-    organizationidref: {type: Types.ObjectId, required: false},
+    organizationid: {type: Types.ObjectId, required: false},
     foruseronlyidref: {type: Types.ObjectId, required: false},
     name: String,
     description: String,
