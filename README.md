@@ -330,6 +330,7 @@ export interface IAssessment {
     Returns: 
     * format: `application/json`
     * data: object
+    ```
         {
             name: string - organization name,
             keyname: string - name of key
@@ -339,7 +340,7 @@ export interface IAssessment {
             contentcount: number - count of organization's content items
             assessmentscount: number - count of organization's user assessments
         }
-
+    ```
     Request example:
     ```
     GET http://localhost:8000/organizationinfo
