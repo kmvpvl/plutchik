@@ -1,5 +1,6 @@
 import { Schema, Types, model } from "mongoose";
 import colours from "./colours";
+import { IContent, mongoContent, SourceType } from "./content";
 import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
 import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
@@ -7,30 +8,32 @@ import PlutchikProto from "./plutchikproto";
 
 export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match";
 export interface IUser {
-    _id: Types.ObjectId;
-    organizationid: Types.ObjectId;
-    birthdate: Date;
-    nativelanguage: string;
-    secondlanguages: Array<string>,
-    location: string;
-    gender: string;
-    maritalstatus: string;
-    features: string;
+    _id?: Types.ObjectId;
+    tguserid?: number;
+    organizationid?: Types.ObjectId;
+    birthdate?: Date;
+    nativelanguage?: string;
+    secondlanguages?: Array<string>,
+    location?: string;
+    gender?: string;
+    maritalstatus?: string;
+    features?: string;
     blocked: boolean;
     created: Date;
-    changed: Date;
-    history: Array<any>;
+    changed?: Date;
+    history?: Array<any>;
 }
 
 export const UserSchema = new Schema({
-    organizationid: Types.ObjectId,
-    birthdate: Date,
-    nativelanguage: String,
-    secondlanguages: Array<string>,
-    location: String,
-    gender: String,
-    maritalstatus: String,
-    features: String,
+    organizationid: {type: Types.ObjectId, require: false},
+    tguserid: {type: Number, require: false},
+    birthdate: {type: Date, require: false},
+    nativelanguage: {type: String, require: false},
+    secondlanguages: {type: Array<string>, require: false},
+    location: {type: String, require: false},
+    gender: {type: String, require: false},
+    maritalstatus: {type: String, require: false},
+    features: {type: String, require: false},
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -84,7 +87,7 @@ export default class User extends PlutchikProto<IUser> {
      * @param sessionminutes duration of session token
      * @returns list of roles on this session token
      */
-    public async checkSesstionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<RoleType>> {
+    public async checkSessionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<RoleType>> {
         PlutchikProto.connectMongo();
         const sts = await mongoSessionTokens.aggregate([{
             '$match': {
@@ -98,5 +101,37 @@ export default class User extends PlutchikProto<IUser> {
         if (sts[0].expired < nexpired) await mongoSessionTokens.findByIdAndUpdate(sts[0]._id, {expired:nexpired});
         console.log(`Session token updated: id = '${sts[0]._id}'; new expired = '${nexpired}'`);
         return sts[0].roles;
+    }
+
+    public async nextContentItem(language?: string, source_type?: SourceType): Promise <IContent>{
+        //this.checkData();
+        PlutchikProto.connectMongo();
+        const v = await mongoContent.aggregate([{
+          $lookup: {
+            from: "assessments",
+            let: {
+              contentid: "$_id",
+            },
+            pipeline: [{
+              $match: {
+                $expr: {
+                  $and: [
+                    {$eq: [this.id, "$uid",]},
+                    {$eq: ["$cid", "$$contentid"]},
+                  ],
+                },
+              },
+            }],
+            as: "result",
+          },
+        }, {
+          $match: {
+            result: [],
+          },
+        },{
+          $limit: 1,
+        }]);
+        if (!v.length) throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';`)
+        return v[0];
     }
 }

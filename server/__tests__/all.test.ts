@@ -173,14 +173,15 @@ describe("TEST: Organization, content and user management", ()=>{
         expect(responseAddContent.statusCode).toBe(401);
     });
 
-    it("addcontent:success", async () => {
+    it("addcontent:web-success", async () => {
         responseAddContent = await Request(app)["post"]("/addcontent")
         .set('Content-Type', 'application/json')
         .set('organizationid', responseCreateorganization.body.organizationid)
         .set('organizationkey', responseKeyManageContent.body)
         .send({
             "contentinfo": {
-                "type": "memes",
+                "type": "image",
+                "source": "web",
                 "url": "https://i.ytimg.com/vi/NbpdFJrothU/maxresdefault.jpg",
                 "name": "TH sound",
                 "tags": [],
@@ -194,6 +195,7 @@ describe("TEST: Organization, content and user management", ()=>{
         expect(responseAddContent.statusCode).toBe(200);
     });
     
+
     it("blockcontent:success", async () => {
         responseBlockContent = await Request(app)["get"](`/blockcontent/${responseAddContent.body._id}`)
         .set('Content-Type', 'application/json')

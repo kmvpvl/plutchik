@@ -7,10 +7,12 @@ export type ErrorCode =
     | "organization:notfound" /* Organization id not found*/
     | "organization:notloaded" /* Organization id not loaded*/
     | "organization:wrongkey" /* Organization has no that key*/
+    | "organization:wrongtguserid" //, "Organization has no that telegram user id"],
     | "user:notfound" /* User id not found*/
     | "user:notloaded" /* User id not loaded*/
     | "user:hasnoactivesession" /* User has no active session*/
     | "user:multiplesession" /* User has session not only once*/
+    | "user:nonextcontent" /* User has done all assessments*/
     | "content:notfound" /* Content id not found*/
     | "content:notloaded" /* Content id not loaded*/
     | "assessment:notfound" /* assessment id not found*/
@@ -26,10 +28,12 @@ export default class PlutchikError extends Error {
             ["organization:notfound", "Organization id not found"],
             ["organization:notloaded", "Organization id not loaded"],
             ["organization:wrongkey", "Organization has no that key"],
+            ["organization:wrongtguserid", "Organization has no that telegram user id"],
             ["user:notfound", "User id not found"],
             ["user:notloaded", "User id not loaded"],
             ["user:hasnoactivesession", "User has no active session"],
             ["user:multiplesession", "User has more that one active session"],
+            ["user:nonextcontent", "User has done all assessments"],
             ["content:notfound", "Content id not found"],
             ["content:notloaded", "Content id not loaded"],
             ["assessment:notfound", "assessment id not found"],

@@ -15,18 +15,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.mongoUsers = exports.UserSchema = void 0;
 const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("./colours"));
+const content_1 = require("./content");
 const error_1 = __importDefault(require("./error"));
 const organization_1 = require("./organization");
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 exports.UserSchema = new mongoose_1.Schema({
-    organizationid: mongoose_1.Types.ObjectId,
-    birthdate: Date,
-    nativelanguage: String,
-    secondlanguages: (Array),
-    location: String,
-    gender: String,
-    maritalstatus: String,
-    features: String,
+    organizationid: { type: mongoose_1.Types.ObjectId, require: false },
+    tguserid: { type: Number, require: false },
+    birthdate: { type: Date, require: false },
+    nativelanguage: { type: String, require: false },
+    secondlanguages: { type: (Array), require: false },
+    location: { type: String, require: false },
+    gender: { type: String, require: false },
+    maritalstatus: { type: String, require: false },
+    features: { type: String, require: false },
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -97,7 +99,7 @@ class User extends plutchikproto_1.default {
      * @param sessionminutes duration of session token
      * @returns list of roles on this session token
      */
-    checkSesstionToken(st, sessionminutes = organization_1.DEFAULT_SESSION_DURATION) {
+    checkSessionToken(st, sessionminutes = organization_1.DEFAULT_SESSION_DURATION) {
         return __awaiter(this, void 0, void 0, function* () {
             plutchikproto_1.default.connectMongo();
             const sts = yield organization_1.mongoSessionTokens.aggregate([{
@@ -114,6 +116,40 @@ class User extends plutchikproto_1.default {
                 yield organization_1.mongoSessionTokens.findByIdAndUpdate(sts[0]._id, { expired: nexpired });
             console.log(`Session token updated: id = '${sts[0]._id}'; new expired = '${nexpired}'`);
             return sts[0].roles;
+        });
+    }
+    nextContentItem(language, source_type) {
+        return __awaiter(this, void 0, void 0, function* () {
+            //this.checkData();
+            plutchikproto_1.default.connectMongo();
+            const v = yield content_1.mongoContent.aggregate([{
+                    $lookup: {
+                        from: "assessments",
+                        let: {
+                            contentid: "$_id",
+                        },
+                        pipeline: [{
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: [this.id, "$uid",] },
+                                            { $eq: ["$cid", "$$contentid"] },
+                                        ],
+                                    },
+                                },
+                            }],
+                        as: "result",
+                    },
+                }, {
+                    $match: {
+                        result: [],
+                    },
+                }, {
+                    $limit: 1,
+                }]);
+            if (!v.length)
+                throw new error_1.default("user:nonextcontent", `userid = '${this.id}';`);
+            return v[0];
         });
     }
 }

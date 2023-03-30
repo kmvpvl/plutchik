@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<!--link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"-->
+<style>
+@font-face {
+    font-family: "UbuntuMono";
+    src: url("UbuntuMono-Regular.ttf");
+}
+* {
+    box-sizing: border-box;
+}    
+html {
+    height: 100%;
+    font-family: "UbuntuMono", monospace;
+}
+body {
+    min-height: 100%;
+    max-height: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    overflow:hidden;
+    width: 100%;
+    height:100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    margin: 0;
+    padding: 2px;
+}
+debuginfo {
+    display: none;
+    flex-direction: column;
+    max-width: 100%;
+    border: 1px solid navy;
+    overflow: auto;
+}
+debuginfo.small {
+    position:relative;
+    width: 100px;
+    height: 100px;
+    overflow: auto;
+}
+.joy{
+  fill:#edc500;
+  background-color:#edc500;
+} 
+.trust{
+  fill:#7abd0d;
+  background-color:#7abd0d;
+}
+.fear{
+  fill:#007b33;
+  background-color:#007b33;
+}
+.surprise{
+  fill:#0080ab;
+  background-color:#0080ab;
+}
+.sadness{
+  fill:#1f6dad;
+  background-color:#1f6dad;
+}
+.disgust{
+  fill:#7b4ea3;
+  background-color:#7b4ea3;
+}
+.anger{
+  fill:#dc0047;
+  background-color:#dc0047;
+}
+.anticipation{
+  fill:#e87200;
+  background-color:#e87200;
+}
+.dotted {
+  fill:transparent;
+  stroke-width: 1px;
+  opacity: 0.5;
+  stroke: black;
+}
+.disabled{
+  fill:silver;
+  background-color:silver;
+}
+#flower {
+    height: 100px;
+    width: 100vh;
+}
+emotion[type=range]
+{
+    height: 8em;
+    width: 100%;
+    cursor: pointer;
+}
+.emotion-label{
+    display: inline-block;
+    transform: translate(-50%, 0px) rotate(-90deg);
+}
+.header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 100px;
+}
+control-panel {
+    display: grid;
+    grid-template-rows: auto auto;
+}
+control-panel-vector {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+}
+.vector-header {
+    text-align: center;
+    font-size: larger;
+}
+.nocontent {
+    text-align: center;
+    font-size: x-large;
+    margin-top: 50%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+#media-name {
+    margin: auto;
+    font-size: x-large;
+}
+.content {
+    overflow: hidden;
+}
+</style>
+</head>
+<body>
+<!--script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script-->
+<div class="header">
+    <debuginfo class="small">
+    sessiontoken <span id="sessiontoken"></span>
+    tg_user_id <span id="tg_user_id"></span>
+    user <span id="user"></span>
+    content <span id="content"></span>
+    vector <span id="vector"></span>
+    </debuginfo>
+    <span id="media-name"></span>
+    <span id="flower"></span>
+</div>
+<div class="content">
+</div>
+<control-panel>
+<div class="vector-header">My emotions</div>
+<control-panel-vector>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="joy"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="trust"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="fear"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="surprise"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="sadness"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="disgust"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="anger"></emotion>
+<emotion emotional-vector type="range" class="form-range" min="0" max="1" step="0.1" disabled id="anticipation"></emotion>
+</control-panel-vector>
+</control-panel>
+<script>
+class EmotionRange {
+    constructor (jQueryElement, emotion) {
+        this.range = 1;
+        this.padding = 3; 
+        this.sliderSize = 10;
+        this.jQueryElement = jQueryElement;
+        this.h = Math.round(this.jQueryElement.innerHeight());
+        this.w = Math.round(this.jQueryElement.innerWidth());
+        this.emotion = emotion;
+        this.value = jQueryElement.val();
+        this.disabled = jQueryElement.attr('disabled');
+        if (!this.value) this.value = 0;
+        jQueryElement.on('click', (ev)=>{
+            if (this.disabled) return;
+            let v = 1 - (ev.offsetY - this.padding)/(this.h - 2 * this.padding);
+            if (v < 0) v = 0;
+            if (v > 1) v = 1;
+            v = Math.round(v * 10)/10;
+            this.value = v;
+            this.jQueryElement.val(v);
+            this.render();
+            this.jQueryElement.trigger('input');
+        });
+    }
+    render (){
+        this.disabled = this.jQueryElement.attr('disabled');
+        this.value = this.jQueryElement.val();
+        const em_class = this.disabled?'disabled':this.emotion;
+        let s = `<svg viewbox="0 0 ${this.w} ${this.h}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width:${this.w}px;height:${this.h}px;">`;
+        //let s = `<span class="emotion-label">${this.emotion}</span>`;
+        s += `<rect class="${em_class}" x="${this.padding + this.sliderSize}" y="${this.padding}" width="5" height="${this.h - 2 * this.padding}"></rect>`;
+        const y = Math.round((this.h - 2 * this.padding - this.sliderSize/2) - ((this.h - 2 * this.padding - this.sliderSize/2) / this.range * this.value) - this.sliderSize);
+        s += `<rect class="${em_class}" x="${this.padding}" y="${y + this.sliderSize}" width="${this.sliderSize * 2}" height="${this.sliderSize}"></rect>`;
+        s += `<text class="${em_class}" x="${2 * this.padding + this.sliderSize}" y="${this.h + 2 * this.sliderSize + this.padding}" transform="rotate(270 ${2 * this.padding},${this.h - 2 * this.padding})">${this.emotion}</text>`;
+        s += '</svg>';
+        this.jQueryElement.html(s);
+    }
+}
+function yt_id(url) {
+    const r = url.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/);
+    return r?r[1]:undefined;
+}
+
+let emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
+let emotion_objects = {};
+function getEmotionalVector(){
+    let ret = {};
+    for (let [i, inp] of Object.entries($('emotion[emotional-vector]'))) {
+        ret[inp.id] = inp.value;
+    }
+    $('#vector').text(JSON.stringify(ret));
+    return ret;
+}
+$('emotion[emotional-vector]').val(0);
+let tg = window.Telegram.WebApp;
+$('debuginfo').on('click', ()=>{
+    $('debuginfo').toggleClass('small');
+});
+tg.MainButton.text = "ASSESS";
+tg.MainButton.show();
+function init() {
+    for (let i in $('emotion[emotional-vector]')) {
+        if (!Number.isInteger(Number.parseInt(i))) break;
+        let er = new EmotionRange($($('emotion[emotional-vector]')[i]), $('emotion[emotional-vector]')[i].id);
+        emotion_objects[$('emotion[emotional-vector]')[i].id] = er;
+    }
+}
+init();
+render();
+function render() {
+    drawFlower($('#flower'), getEmotionalVector());
+    for (const [i, ob] of Object.entries(emotion_objects)) {
+        ob.render();
+    }
+}
+$('emotion[emotional-vector]').on('input', (ev)=>emotion_objects[ev.currentTarget.id].render());
+$('#tg_user_id').text( `${tg.initDataUnsafe.user.id};
+${tg.initDataUnsafe.user.username} (${tg.initDataUnsafe.user.language_code})`);
+tg.MainButton.onClick(()=>{
+    $.ajaxSetup({
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'userid': JSON.parse($('#user').text())._id,
+            'sessiontoken': $('#sessiontoken').text()
+        }
+    });
+    $.post(`addassessment`, JSON.stringify({
+            "assessmentinfo": {
+                "cid": JSON.parse($('#content').text())._id,
+                "vector": getEmotionalVector()
+            }
+        }), (data, status, xhdr)=>{
+        if ('success' == status) {
+            $('#sessiontoken').text('');
+            $('#content').text('');
+            $('.content').text('');
+            $('#media-name').text('');
+            $('emotion[emotional-vector]').val(0);
+            $('emotion[emotional-vector]').attr('disabled', '');
+            render();
+            getnext();
+        } else {
+            $('.content').text(status);
+        }
+    })
+    .fail((xhr, status, errorObj)=>{
+        $('.content').text(xhr.status);
+    });
+});
+function getnext(){
+    $.get(`/telegram?command=getnext&tg_user_id=${tg.initDataUnsafe.user.id}`, (data, status, xhdr)=>{
+    if ('success' == status) {
+        $('#user').text(JSON.stringify(data.user));
+        $('#sessiontoken').text(data.sessiontoken);
+        $('#content').text(JSON.stringify(data.content));
+        $('#media-name').text(`${data.content.name}`);
+        switch (data.content.source) {
+            case 'youtube':
+                $(".content").html(`<iframe width="100%" height="auto" src="https://www.youtube.com/embed/${yt_id(data.content.url)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`);
+                $('emotion[emotional-vector]').removeAttr('disabled');
+                render();
+                break;
+            case 'web':
+                if (data.content.type == 'image') {
+                    $(".content").html(`<img width="100%" height="auto" src="${data.content.url}"></img>`);
+                    $('emotion[emotional-vector]').removeAttr('disabled');
+                    render();
+                    break;
+                }
+            default:
+                $(".content").html(`Unfortunatelly there have unknown content type. Url: ${data.content.url}. You can assess this content item, or get next`);
+                ;
+            }
+        }
+    })
+    .fail((xhr, status, errorObj)=>{
+        switch(xhr.status) {
+                case 404: 
+                    $('.content').html(`<div class="nocontent"><span>Sorry, thats all!</span><button onclick="getnext();">Press to get new one</button></div>`);
+                    break;
+                default:
+
+            }
+        //$('.content').text(xhr.status);
+    });
+}
+getnext();
+function drawFlower (element, emotion) {
+	var w = element.innerHeight();
+	var R = w / 2;
+	var r = R * 0.6;
+	var N = 8;
+	var s = '<svg class="flower" viewbox="-'+R+' -'+R+' '+w+' '+w+'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width:'+w+'px;height:'+w+'px;">';
+	if (emotion) {
+		for (i=0; i<N; i++) {
+			var axis = parseFloat(emotion[emotions[i]]);
+			if (!axis) R = w/2;
+			else R = axis * w/2;
+			r = R * 0.6;
+			av = 2 * Math.PI * i / N;
+			xv = Math.round(R * Math.sin(av));
+			yv = -Math.round(R * Math.cos(av));
+			ac1 = 2 * Math.PI * i / N + Math.PI/N;
+			ac2 = 2 * Math.PI * i / N - Math.PI/N;
+			xc1 = Math.round(r * Math.sin(ac1));
+			xc2 = Math.round(r * Math.sin(ac2));
+			yc1 = -Math.round(r * Math.cos(ac1));
+			yc2 = -Math.round(r * Math.cos(ac2));
+			s += '<path class="'+(axis?emotions[i]:'dotted')+'" d="M 0,0 L '+xc1+','+yc1+' Q '+xv+','+yv+' '+xc2+','+yc2+' L 0,0 z"></path>\n';
+		}
+	}
+	s += '</svg>';
+	element.html(s);
+}
+
+</script>
+</body>
+</html>

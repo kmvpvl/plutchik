@@ -584,6 +584,32 @@ paths:
                     type: number
         '401':
           $ref: '#/components/responses/NotAuthorized'
+  /telegram:
+    post:
+      operationId: telegram
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+    get:
+      operationId: tgwebapp
+      parameters:
+        - in: query
+          name: command
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: tg_user_id
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
 security:
   - PlutchikAuthOrganizationId: []
     PlutchikAuthOrganizationKey: []
