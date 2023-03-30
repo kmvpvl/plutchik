@@ -84,6 +84,19 @@ class Organization extends plutchikproto_1.default {
             yield this.save();
         });
     }
+    checkTgUserId(userId) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.data)
+                throw new error_1.default("organization:notloaded", `id = '${this.id}'`);
+            for (const key of (_a = this.data) === null || _a === void 0 ? void 0 : _a.keys) {
+                if (key.tgUserId == userId) {
+                    return key;
+                }
+            }
+            throw new error_1.default("organization:wrongtguserid", `organizationid = '${this.id}'; tgUserId = '${userId}'`);
+        });
+    }
     checkKey(key) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {

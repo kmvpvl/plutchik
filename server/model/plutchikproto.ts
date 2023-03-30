@@ -1,14 +1,16 @@
 import mongoose, { connect, SchemaTypeOptions, Types } from "mongoose";
 import colours from "./colours";
 import PlutchikError from "./error";
-let settings: any = {};
+export let settings: any = {};
 try {
     settings = require("../settings.json");
 } catch (err: any) {
     console.log(`${colours.bg.red}${err.message}${colours.reset}`);
     if (!process.env["mongouri"]) throw new PlutchikError("mongo:connect", `Environment variable 'mongouri' can't be read`);
     settings.mongouri = process.env["mongouri"];
-
+    if (!process.env["tg_bot_authtoken"]) throw new PlutchikError("mongo:connect", `Environment variable 'tg_bot_authtoken' can't be read`);
+    settings.tg_bot_authtoken = process.env["tg_bot_authtoken"];
+    settings.tg_web_hook_server = process.env["tg_web_hook_server"];
 }
 
 export default class PlutchikProto<T> {

@@ -14,6 +14,10 @@ import organizationkeyslist from './api/organizationkeyslist';
 import removeorganizationkey from './api/removeorganizationkey';
 import createorganization from './api/createorganization';
 import organizationinfo from './api/organizationinfo';
+import telegram, { onPhoto, webapp } from './api/telegram';
+import TelegramBot from 'node-telegram-bot-api';
+import {settings} from "./model/plutchikproto";
+import fs from 'fs';
 
 const PORT = process.env.PORT || 8000;
 
@@ -24,6 +28,13 @@ function checkSecurity(c: any): boolean {
     } catch(e){
         return false;
     }
+}
+
+async function notFound(c: any, req: Request, res: Response){
+    if (fs.existsSync(`${__dirname}/api${req.originalUrl}`)) {
+        return res.sendFile(`${__dirname}/api${req.originalUrl}`);
+    }
+    return res.status(404).json('Not found');
 }
 
 const api = new OpenAPIBackend({ 
@@ -45,9 +56,11 @@ api.register({
     blockcontent:    async (c, req, res) => blockcontent(c, req, res),
     unblockcontent:    async (c, req, res) => blockcontent(c, req, res, false),
     addassessment:    async (c, req, res) => addassessment(c, req, res),
+    telegram: async (c, req, res) => telegram(c, req, res, bot),
+    tgwebapp: async (c, req, res) => webapp(c, req, res, bot),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
-    notFound: (c, req, res) => res.status(404).json({ code: 'Command not found', description: "Command not found" }),
-    notImplemented: (c, req, res) => res.status(500).json({ err: 'not found' }),
+    notFound: (c, req, res) => notFound(c, req, res),
+    notImplemented: (c, req, res) => res.status(500).json({ err: 'not implemented' }),
     unauthorizedHandler: (c, req, res) => res.status(401).json({ err: 'not auth' })
 });
 api.registerSecurityHandler('PlutchikAuthOrganizationId',  checkSecurity);
@@ -57,6 +70,11 @@ api.registerSecurityHandler('PlutchikAuthSessionToken',  checkSecurity);
 
 
 export const app: Application = express();
+const bot = new TelegramBot(settings.tg_bot_authtoken);
+bot.on('photo', msg => {
+    onPhoto(bot, msg);
+});
+if (settings.tg_web_hook_server) bot.setWebHook(`${settings.tg_web_hook_server}/telegram`);
 
 app.use(express.json());
 app.use(morgan('tiny'));
@@ -77,6 +95,7 @@ app.use(async (req: Request, res: Response) => {
         return res.status(500).json({code: "Wrong parameters", description: `Request ${req.url}- ${(e as Error).message}`});
     }
 });
+
 export const server = app.listen(PORT, () => {
     console.log("Server is running on port", PORT);
 });

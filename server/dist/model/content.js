@@ -18,13 +18,25 @@ const colours_1 = __importDefault(require("./colours"));
 const error_1 = __importDefault(require("./error"));
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 exports.ContentSchema = new mongoose_1.Schema({
-    organizationidref: { type: mongoose_1.Types.ObjectId, required: false },
+    organizationid: { type: mongoose_1.Types.ObjectId, required: false },
     foruseronlyidref: { type: mongoose_1.Types.ObjectId, required: false },
-    name: String,
-    description: String,
-    language: String,
-    url: String,
-    type: { oneOf: ["text", "memes", "audio", "video"]
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    language: { type: String, required: true },
+    url: { type: String, required: false },
+    type: {
+        type: String,
+        enum: ["text", "image", "audio", "video"],
+        required: true
+    },
+    source: {
+        type: String,
+        enum: ["web", "telegram", "youtube"],
+        required: true
+    },
+    tgData: {
+        type: Array,
+        required: function () { return this.source === 'telegram'; },
     },
     tags: (Array),
     restrictions: (Array),

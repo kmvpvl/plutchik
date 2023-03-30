@@ -35,18 +35,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.settings = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const colours_1 = __importDefault(require("./colours"));
 const error_1 = __importDefault(require("./error"));
-let settings = {};
+exports.settings = {};
 try {
-    settings = require("../settings.json");
+    exports.settings = require("../settings.json");
 }
 catch (err) {
     console.log(`${colours_1.default.bg.red}${err.message}${colours_1.default.reset}`);
     if (!process.env["mongouri"])
         throw new error_1.default("mongo:connect", `Environment variable 'mongouri' can't be read`);
-    settings.mongouri = process.env["mongouri"];
+    exports.settings.mongouri = process.env["mongouri"];
+    if (!process.env["tg_bot_authtoken"])
+        throw new error_1.default("mongo:connect", `Environment variable 'tg_bot_authtoken' can't be read`);
+    exports.settings.tg_bot_authtoken = process.env["tg_bot_authtoken"];
+    exports.settings.tg_web_hook_server = process.env["tg_web_hook_server"];
 }
 class PlutchikProto {
     constructor(id, data) {
@@ -69,7 +74,7 @@ class PlutchikProto {
         });
     }
     static connectMongo() {
-        let uri = settings.mongouri;
+        let uri = exports.settings.mongouri;
         mongoose_1.default.set('strictQuery', false);
         (0, mongoose_1.connect)(uri)
             .catch((err) => {

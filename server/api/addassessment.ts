@@ -16,7 +16,7 @@ export default async function addassessment(c: any, req: Request, res: Response)
         await user.load();
 
         //checking active session and get roles
-        const checkST = await user.checkSesstionToken(new Types.ObjectId(sessiontoken as string));
+        const checkST = await user.checkSessionToken(new Types.ObjectId(sessiontoken as string));
         console.log(`Checking session token successful. Roles = ${colours.fg.blue}${checkST}${colours.reset}`);
         if (!Organization.checkRoles(checkST, "create_assessment")) throw new PlutchikError("forbidden:rolerequiered", `create_assessment role was expected`);
         

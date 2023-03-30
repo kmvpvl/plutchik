@@ -5,6 +5,7 @@ import PlutchikProto from "./plutchikproto";
 import {Md5} from 'ts-md5';
 import { RoleType } from "./user";
 import colours from "./colours";
+import TelegramBot from "node-telegram-bot-api";
 
 export const DEFAULT_SESSION_DURATION = 30;
 
@@ -13,6 +14,7 @@ export interface IKey {
     keyhash: string;
     created: Date;
     expired?: Date;
+    tgUserId?: number;
     roles: Array<RoleType>;
 }
 export interface ISessionToken {
@@ -86,6 +88,16 @@ export default class Organization extends PlutchikProto <IOrganization>{
         // never remove first organization key
         if (id) this.data?.keys.splice(id, 1);
         await this.save();
+    }
+
+    public async checkTgUserId(userId: number): Promise<IKey>{
+        if (!this.data) throw new PlutchikError("organization:notloaded", `id = '${this.id}'`);
+        for (const key of this.data?.keys) {
+            if (key.tgUserId == userId) {
+                return key;
+            }
+        }
+        throw new PlutchikError("organization:wrongtguserid", `organizationid = '${this.id}'; tgUserId = '${userId}'`)
     }
 
     public async checkKey(key: Types.ObjectId): Promise<IKey> {

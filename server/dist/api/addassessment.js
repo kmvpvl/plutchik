@@ -30,7 +30,7 @@ function addassessment(c, req, res) {
             const user = new user_1.default(new mongoose_1.Types.ObjectId(userid));
             yield user.load();
             //checking active session and get roles
-            const checkST = yield user.checkSesstionToken(new mongoose_1.Types.ObjectId(sessiontoken));
+            const checkST = yield user.checkSessionToken(new mongoose_1.Types.ObjectId(sessiontoken));
             console.log(`Checking session token successful. Roles = ${colours_1.default.fg.blue}${checkST}${colours_1.default.reset}`);
             if (!organization_1.default.checkRoles(checkST, "create_assessment"))
                 throw new error_1.default("forbidden:rolerequiered", `create_assessment role was expected`);

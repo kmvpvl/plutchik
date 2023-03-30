@@ -1,14 +1,18 @@
 import { Types, Schema, model } from "mongoose";
+import TelegramBot from "node-telegram-bot-api";
 import colours from "./colours";
 import PlutchikError from "./error";
 import { MLStringSchema } from "./mlstring";
 import PlutchikProto from "./plutchikproto";
 
 export type ContentTypes = "text" | "memes" | "audio" | "video";
+export type SourceType = "web" | "telegram" | "youtube";
 export interface IContent {
-    _uid: Types.ObjectId;
+    _uid?: Types.ObjectId;
     type: ContentTypes;
-    url: string;
+    source: SourceType;
+    tgData?: Array<TelegramBot.Message>;
+    url?: string;
     name: string;
     tags: Array<string>;
     description: string;
@@ -20,18 +24,29 @@ export interface IContent {
     expired?: Date;
     validfrom?: Date;
     created: Date;
-    changed: Date;
+    changed?: Date;
 }
 
 export const ContentSchema = new Schema({
     organizationid: {type: Types.ObjectId, required: false},
     foruseronlyidref: {type: Types.ObjectId, required: false},
-    name: String,
-    description: String,
-    language: String,
-    url: String,
-    type: {oneOf:
-        ["text", "memes", "audio", "video"]
+    name: {type: String, required: true},
+    description: {type: String, required: true},
+    language: {type: String, required: true},
+    url: {type: String, required: false},
+    type: {
+        type: String,
+        enum: ["text", "image", "audio", "video"],
+        required: true
+    },
+    source: {
+        type: String,
+        enum: ["web", "telegram", "youtube"],
+        required: true
+    },
+    tgData: {
+        type: Array, 
+        required: function() {return this.source === 'telegram';},
     },
     tags: Array<string>,
     restrictions: Array<string>,

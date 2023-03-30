@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -29,6 +52,10 @@ const organizationkeyslist_1 = __importDefault(require("./api/organizationkeysli
 const removeorganizationkey_1 = __importDefault(require("./api/removeorganizationkey"));
 const createorganization_1 = __importDefault(require("./api/createorganization"));
 const organizationinfo_1 = __importDefault(require("./api/organizationinfo"));
+const telegram_1 = __importStar(require("./api/telegram"));
+const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api"));
+const plutchikproto_1 = require("./model/plutchikproto");
+const fs_1 = __importDefault(require("fs"));
 const PORT = process.env.PORT || 8000;
 function checkSecurity(c) {
     try {
@@ -38,6 +65,14 @@ function checkSecurity(c) {
     catch (e) {
         return false;
     }
+}
+function notFound(c, req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (fs_1.default.existsSync(`${__dirname}/api${req.originalUrl}`)) {
+            return res.sendFile(`${__dirname}/api${req.originalUrl}`);
+        }
+        return res.status(404).json('Not found');
+    });
 }
 const api = new openapi_backend_1.default({
     definition: 'plutchikAPI.yml'
@@ -58,9 +93,11 @@ api.register({
     blockcontent: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, blockcontent_1.default)(c, req, res); }),
     unblockcontent: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, blockcontent_1.default)(c, req, res, false); }),
     addassessment: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, addassessment_1.default)(c, req, res); }),
+    telegram: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, telegram_1.default)(c, req, res, bot); }),
+    tgwebapp: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, telegram_1.webapp)(c, req, res, bot); }),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
-    notFound: (c, req, res) => res.status(404).json({ code: 'Command not found', description: "Command not found" }),
-    notImplemented: (c, req, res) => res.status(500).json({ err: 'not found' }),
+    notFound: (c, req, res) => notFound(c, req, res),
+    notImplemented: (c, req, res) => res.status(500).json({ err: 'not implemented' }),
     unauthorizedHandler: (c, req, res) => res.status(401).json({ err: 'not auth' })
 });
 api.registerSecurityHandler('PlutchikAuthOrganizationId', checkSecurity);
@@ -68,6 +105,12 @@ api.registerSecurityHandler('PlutchikAuthOrganizationKey', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthUserId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthSessionToken', checkSecurity);
 exports.app = (0, express_1.default)();
+const bot = new node_telegram_bot_api_1.default(plutchikproto_1.settings.tg_bot_authtoken);
+bot.on('photo', msg => {
+    (0, telegram_1.onPhoto)(bot, msg);
+});
+if (plutchikproto_1.settings.tg_web_hook_server)
+    bot.setWebHook(`${plutchikproto_1.settings.tg_web_hook_server}/telegram`);
 exports.app.use(express_1.default.json());
 exports.app.use((0, morgan_1.default)('tiny'));
 exports.app.use((0, cors_1.default)());
