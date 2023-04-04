@@ -123,7 +123,13 @@ class User extends plutchikproto_1.default {
             //this.checkData();
             plutchikproto_1.default.connectMongo();
             const v = yield content_1.mongoContent.aggregate([{
-                    $lookup: {
+                    $match: {
+                        'language': {
+                            '$regex': language ? language : '',
+                            '$options': 'i'
+                        }
+                    }
+                }, { $lookup: {
                         from: "assessments",
                         let: {
                             contentid: "$_id",

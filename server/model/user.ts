@@ -107,7 +107,13 @@ export default class User extends PlutchikProto<IUser> {
         //this.checkData();
         PlutchikProto.connectMongo();
         const v = await mongoContent.aggregate([{
-          $lookup: {
+            $match: {
+                'language': {
+                    '$regex': language?language:'', 
+                    '$options': 'i'
+                }
+            }
+        },{$lookup: {
             from: "assessments",
             let: {
               contentid: "$_id",

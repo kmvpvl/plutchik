@@ -48,7 +48,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
                         const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["create_assessment"]);
-                        const ci = await user.nextContentItem('en');
+                        const ci = await user.nextContentItem(user.json?.nativelanguage);
                         return res.status(200).json({result: 'OK', content: ci, user:user.json, sessiontoken: st});
                     } else {
                         return res.status(404).json({result: 'FAIL', description: 'User not found'});
