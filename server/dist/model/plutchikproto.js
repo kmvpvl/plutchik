@@ -52,6 +52,7 @@ catch (err) {
         throw new error_1.default("mongo:connect", `Environment variable 'tg_bot_authtoken' can't be read`);
     exports.settings.tg_bot_authtoken = process.env["tg_bot_authtoken"];
     exports.settings.tg_web_hook_server = process.env["tg_web_hook_server"];
+    exports.settings.yt_API_KEY = process.env["yt_API_KEY"];
 }
 class PlutchikProto {
     constructor(id, data) {
