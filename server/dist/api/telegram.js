@@ -257,6 +257,8 @@ function processURLs(bot, tgData) {
                             created: new Date(),
                             restrictions: []
                         };
+                        if (!ic.language)
+                            ic.language = 'en';
                         let content = new content_1.default(undefined, ic);
                         yield content.save();
                         const msg = `New content added`;

@@ -204,7 +204,8 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                         blocked: false,
                         created: new Date(),
                         restrictions:[]
-                    }
+                    };
+                    if (!ic.language) ic.language = 'en';
                     let content = new Content(undefined, ic);
                     await content.save();
                     const msg = `New content added`;
