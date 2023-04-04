@@ -206,6 +206,7 @@ function yt_id(url) {
 function yt_video_data(yt_video_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            console.log();
             const youtube = googleapis_1.google.youtube({
                 version: "v3",
                 auth: plutchikproto_1.settings.yt_API_KEY,
@@ -217,7 +218,7 @@ function yt_video_data(yt_video_id) {
             return d;
         }
         catch (e) {
-            console.log(e);
+            console.log(`${colours_1.default.fg.red}YoutubeAPI error. API_KEY = '${plutchikproto_1.settings.yt_API_KEY}'; error = '${e}'${colours_1.default.reset}`);
         }
     });
 }

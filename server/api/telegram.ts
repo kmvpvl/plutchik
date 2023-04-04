@@ -158,6 +158,7 @@ function yt_id(url: string): string|undefined {
 
 async function yt_video_data(yt_video_id: string) {
     try{
+        console.log();
         const youtube = google.youtube({
             version: "v3",
             auth: settings.yt_API_KEY,
@@ -168,7 +169,7 @@ async function yt_video_data(yt_video_id: string) {
         });
         return d;
     } catch(e){
-        console.log(e);
+        console.log(`${colours.fg.red}YoutubeAPI error. API_KEY = '${settings.yt_API_KEY}'; error = '${e}'${colours.reset}`);
     }
 }
 
