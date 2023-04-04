@@ -48,7 +48,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
                         const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["create_assessment"]);
-                        const ci = await user.nextContentItem('en');
+                        const ci = await user.nextContentItem(user.json?.nativelanguage);
                         return res.status(200).json({result: 'OK', content: ci, user:user.json, sessiontoken: st});
                     } else {
                         return res.status(404).json({result: 'FAIL', description: 'User not found'});
@@ -158,6 +158,7 @@ function yt_id(url: string): string|undefined {
 
 async function yt_video_data(yt_video_id: string) {
     try{
+        console.log();
         const youtube = google.youtube({
             version: "v3",
             auth: settings.yt_API_KEY,
@@ -168,7 +169,7 @@ async function yt_video_data(yt_video_id: string) {
         });
         return d;
     } catch(e){
-        console.log(e);
+        console.log(`${colours.fg.red}YoutubeAPI error. API_KEY = '${settings.yt_API_KEY}'; error = '${e}'${colours.reset}`);
     }
 }
 
@@ -203,7 +204,8 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                         blocked: false,
                         created: new Date(),
                         restrictions:[]
-                    }
+                    };
+                    if (!ic.language) ic.language = 'en';
                     let content = new Content(undefined, ic);
                     await content.save();
                     const msg = `New content added`;

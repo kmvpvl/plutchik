@@ -234,15 +234,22 @@ function init() {
 }
 init();
 render();
-function render() {
+function renderFlower(){
     drawFlower($('#flower'), getEmotionalVector());
+}
+function render() {
+    renderFlower();
     for (const [i, ob] of Object.entries(emotion_objects)) {
         ob.render();
     }
 }
-$('emotion[emotional-vector]').on('input', (ev)=>emotion_objects[ev.currentTarget.id].render());
+$('emotion[emotional-vector]').on('input', (ev)=>{
+    emotion_objects[ev.currentTarget.id].render();
+    renderFlower();
+});
 $('#tg_user_id').text( `${tg.initDataUnsafe.user.id};
 ${tg.initDataUnsafe.user.username} (${tg.initDataUnsafe.user.language_code})`);
+tg.expand();
 tg.MainButton.onClick(()=>{
     $.ajaxSetup({
         headers: {

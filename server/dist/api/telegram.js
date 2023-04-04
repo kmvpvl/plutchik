@@ -78,7 +78,7 @@ function onPhoto(bot, msg) {
 }
 exports.onPhoto = onPhoto;
 function webapp(c, req, res, bot) {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram webapp${colours_1.default.reset}`);
         try {
@@ -90,7 +90,7 @@ function webapp(c, req, res, bot) {
                             const org = new organization_1.default((_a = user.json) === null || _a === void 0 ? void 0 : _a.organizationid);
                             yield org.load();
                             const st = yield org.checkAndUpdateSessionToken((_b = user.json) === null || _b === void 0 ? void 0 : _b._id, ["create_assessment"]);
-                            const ci = yield user.nextContentItem('en');
+                            const ci = yield user.nextContentItem((_c = user.json) === null || _c === void 0 ? void 0 : _c.nativelanguage);
                             return res.status(200).json({ result: 'OK', content: ci, user: user.json, sessiontoken: st });
                         }
                         else {
@@ -206,6 +206,7 @@ function yt_id(url) {
 function yt_video_data(yt_video_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            console.log();
             const youtube = googleapis_1.google.youtube({
                 version: "v3",
                 auth: plutchikproto_1.settings.yt_API_KEY,
@@ -217,7 +218,7 @@ function yt_video_data(yt_video_id) {
             return d;
         }
         catch (e) {
-            console.log(e);
+            console.log(`${colours_1.default.fg.red}YoutubeAPI error. API_KEY = '${plutchikproto_1.settings.yt_API_KEY}'; error = '${e}'${colours_1.default.reset}`);
         }
     });
 }
@@ -256,6 +257,8 @@ function processURLs(bot, tgData) {
                             created: new Date(),
                             restrictions: []
                         };
+                        if (!ic.language)
+                            ic.language = 'en';
                         let content = new content_1.default(undefined, ic);
                         yield content.save();
                         const msg = `New content added`;
