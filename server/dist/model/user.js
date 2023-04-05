@@ -118,14 +118,23 @@ class User extends plutchikproto_1.default {
             return sts[0].roles;
         });
     }
+    changeNativeLanguage(lang) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data)
+                this.data.nativelanguage = lang;
+            yield this.save();
+        });
+    }
     nextContentItem(language, source_type) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             //this.checkData();
             plutchikproto_1.default.connectMongo();
             const v = yield content_1.mongoContent.aggregate([{
                     $match: {
                         'language': {
-                            '$regex': language ? language : '',
+                            '$regex': language ? language : (_a = this.json) === null || _a === void 0 ? void 0 : _a.nativelanguage,
                             '$options': 'i'
                         }
                     }
