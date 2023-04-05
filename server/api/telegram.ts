@@ -9,11 +9,158 @@ import User, { mongoUsers } from '../model/user';
 import { google } from 'googleapis';
 import { Types } from 'mongoose';
 
+const assess_new_content: Map<string, string> = new Map([
+    ['en', 'Assess new content']
+    ,['uk', 'Оцінити емоції']
+    ,['ru', 'Оценить ещё']
+    ,['es', 'Evaluar emociones']
+    ,['de', 'Emotionen bewerten']
+]);
+
+const my_settings: Map<string, string> = new Map([
+    ['en', 'My settings']
+    ,['uk', 'Мої налаштування']
+    ,['ru', 'Мои настройки']
+    ,['es', 'Mi configuración']
+    ,['de', 'Meine Einstellungen']
+]);
+
+const set_language: Map<string, string> = new Map([
+    ['en', 'Set language']
+    ,['uk', 'Встановити мову']
+    ,['ru', 'Установить язык']
+    ,['es', 'Elegir lenguaje']
+    ,['de', 'Sprache einstellen']
+]);
+
+const choose_language: Map<string, string> = new Map([
+    ['en', 'Choose language']
+    ,['uk', 'Виберіть мову']
+    ,['ru', 'Выберите язык']
+    ,['es', 'Elige lengua']
+    ,['de', 'Sprache wählen']
+]);
+
+const language_changed: Map<string, string> = new Map([
+    ['en', 'Language was changed']
+    ,['uk', 'Мова змінена']
+    ,['ru', 'Язык изменен']
+    ,['es', 'Idioma cambiado']
+    ,['de', 'Sprache geändert']
+]);
+
+function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
+    return  {
+        reply_markup: {
+            inline_keyboard:[
+                [
+                    {
+                        text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
+                        web_app: {
+                            url: `${settings.tg_web_hook_server}/telegram`
+                        }
+                    }
+                    ,{
+                        text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
+                        callback_data: 'settings'
+                    }
+                ]
+            ]
+        }
+    }
+};
+
+function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
+    return {
+        reply_markup: {
+            inline_keyboard:[
+                [
+                    {
+                        text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string,
+                        callback_data: 'set_language'
+                    }
+                    /*,{
+                        text: 'Set my location',
+                        callback_data: 'set_location'
+                    }*/
+                ]
+                ,[
+                    {
+                        text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
+                        callback_data: 'settings'
+                    }
+                ]
+            ]
+        }
+    }
+};
+
+const tg_bot_set_language_menu:TelegramBot.SendMessageOptions = {
+    reply_markup: {
+        inline_keyboard:[
+            [
+                {
+                    text: 'English',
+                    callback_data: 'set_language_en'
+                }
+                ,{
+                    text: 'Español',
+                    callback_data: 'set_language_es'
+                }
+                ,{
+                    text: 'Deutsch',
+                    callback_data: 'set_language_de'
+                }
+            ], [
+                {
+                    text: 'Українська',
+                    callback_data: 'set_language_uk'
+                }
+                ,{
+                    text: 'Русский',
+                    callback_data: 'set_language_ru'
+                }
+            ]
+            ,[
+                {
+                    text: 'My settings',
+                    callback_data: 'settings'
+                }
+            ]
+        ]
+    }
+};
 export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {
     console.log(`${colours.fg.green}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
-    if (tgData.message){
+    if (tgData.callback_query){
+        try {
+            const u = await getUserByTgUserId(tgData.callback_query.from.id as number);
 
+            console.log(`Callback command '${tgData.callback_query.data}'`);
+            switch(tgData.callback_query.data) {
+                case 'settings':
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, my_settings.get(u?.json?.nativelanguage as string)?my_settings.get(u?.json?.nativelanguage as string) as string:my_settings.get('en') as string, tg_bot_settings_menu(u?.json?.nativelanguage as string));
+                    break;
+                case 'set_language':
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, choose_language.get(u?.json?.nativelanguage as string)?choose_language.get(u?.json?.nativelanguage as string) as string:choose_language.get('en') as string, tg_bot_set_language_menu);
+                    break;
+                case 'set_language_en':
+                case 'set_language_uk':
+                case 'set_language_es':
+                case 'set_language_ru':
+                case 'set_language_de':
+                    const lang = tgData.callback_query.data.split('_')[2];
+                    console.log(`Changing user's language to '${lang}'`);
+                    await u?.changeNativeLanguage(lang);
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, language_changed.get(lang)?language_changed.get(lang) as string:language_changed.get('en') as string, tg_bot_start_menu(u?.json?.nativelanguage as string));
+                    break;
+                default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu(u?.json?.nativelanguage as string));
+            }
+            return res.status(200).json("OK");
+        } catch (e: any) {
+            return res.status(400).json(e);
+        }
     }
     console.log(`${colours.fg.blue}Telegram userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${tgData.message?.chat.id}'`);
     try{
@@ -80,22 +227,13 @@ async function getUserByTgUserId(tg_user_id: number): Promise<User | undefined> 
     if (ou.length) return new User(undefined, ou[0]);
 }
 
-const tg_bot_start_menu:TelegramBot.SendMessageOptions = {
-    reply_markup: {
-        inline_keyboard:[
-            [
-                {
-                    text: 'Assess new content',
-                    web_app: {
-                        url: `${settings.tg_web_hook_server}/telegram`
-                    }
-                }
-            ]
-        ]
-    }
-};
-
-const tgWelcome = `Welcome back!\nThis bot helps you finding people with similar mindset.\nWe respect your privacy. Be sure that we'll delete all your data at any moment you request`;
+const tgWelcome: Map<string, string> = new Map([
+    ['en', `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request`]
+    ,['uk', 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит']
+    ,['ru', 'Добро пожаловать! Этот бот помогает динамически оценить вашу психологическую устойчивость. Также он позволяет вам найти людей со схожим мышлением. Мы уважаем вашу конфиденциальность. Будьте уверены, что мы удалим все ваши данные в любое время по вашему запросу']
+    ,['es', '¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita.']
+    ,['de', 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.']
+]);
 
 async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
     // looking for bot-command from user
@@ -107,8 +245,9 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
         console.log(`${colours.fg.green}Processing command = '${command_name}'${colours.reset}`);
         switch (command_name) {
             case '/start': 
-                if (await getUserByTgUserId(tgData.message?.from?.id as number)){
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome, tg_bot_start_menu);
+                const u = await getUserByTgUserId(tgData.message?.from?.id as number);
+                if (u){
+                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(u.json?.nativelanguage?u.json?.nativelanguage:'en') as string, tg_bot_start_menu(u.json?.nativelanguage as string));
                 } else {
                     const user = new User(undefined, {
                         organizationid: new Types.ObjectId('63c0e7dad80176886c22129d'),
@@ -118,7 +257,7 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                         created: new Date()
                     });
                     await user.save();
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome, tg_bot_start_menu);
+                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(user.json?.nativelanguage?user.json?.nativelanguage:'en') as string, tg_bot_start_menu(user.json?.nativelanguage as string));
                 }
 /*                 const cb = await bot.setMyCommands([
                     {

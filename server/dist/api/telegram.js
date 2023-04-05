@@ -44,18 +44,161 @@ const content_1 = __importStar(require("../model/content"));
 const user_1 = __importStar(require("../model/user"));
 const googleapis_1 = require("googleapis");
 const mongoose_1 = require("mongoose");
+const assess_new_content = new Map([
+    ['en', 'Assess new content'],
+    ['uk', 'Оцінити емоції'],
+    ['ru', 'Оценить ещё'],
+    ['es', 'Evaluar emociones'],
+    ['de', 'Emotionen bewerten']
+]);
+const my_settings = new Map([
+    ['en', 'My settings'],
+    ['uk', 'Мої налаштування'],
+    ['ru', 'Мои настройки'],
+    ['es', 'Mi configuración'],
+    ['de', 'Meine Einstellungen']
+]);
+const set_language = new Map([
+    ['en', 'Set language'],
+    ['uk', 'Встановити мову'],
+    ['ru', 'Установить язык'],
+    ['es', 'Elegir lenguaje'],
+    ['de', 'Sprache einstellen']
+]);
+const choose_language = new Map([
+    ['en', 'Choose language'],
+    ['uk', 'Виберіть мову'],
+    ['ru', 'Выберите язык'],
+    ['es', 'Elige lengua'],
+    ['de', 'Sprache wählen']
+]);
+const language_changed = new Map([
+    ['en', 'Language was changed'],
+    ['uk', 'Мова змінена'],
+    ['ru', 'Язык изменен'],
+    ['es', 'Idioma cambiado'],
+    ['de', 'Sprache geändert']
+]);
+function tg_bot_start_menu(lang) {
+    return {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: assess_new_content.get(lang) ? assess_new_content.get(lang) : assess_new_content.get('en'),
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
+                        }
+                    },
+                    {
+                        text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
+                        callback_data: 'settings'
+                    }
+                ]
+            ]
+        }
+    };
+}
+;
+function tg_bot_settings_menu(lang) {
+    return {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: set_language.get(lang) ? set_language.get(lang) : set_language.get('en'),
+                        callback_data: 'set_language'
+                    }
+                    /*,{
+                        text: 'Set my location',
+                        callback_data: 'set_location'
+                    }*/
+                ],
+                [
+                    {
+                        text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
+                        callback_data: 'settings'
+                    }
+                ]
+            ]
+        }
+    };
+}
+;
+const tg_bot_set_language_menu = {
+    reply_markup: {
+        inline_keyboard: [
+            [
+                {
+                    text: 'English',
+                    callback_data: 'set_language_en'
+                },
+                {
+                    text: 'Español',
+                    callback_data: 'set_language_es'
+                },
+                {
+                    text: 'Deutsch',
+                    callback_data: 'set_language_de'
+                }
+            ], [
+                {
+                    text: 'Українська',
+                    callback_data: 'set_language_uk'
+                },
+                {
+                    text: 'Русский',
+                    callback_data: 'set_language_ru'
+                }
+            ],
+            [
+                {
+                    text: 'My settings',
+                    callback_data: 'settings'
+                }
+            ]
+        ]
+    }
+};
 function telegram(c, req, res, bot) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram function${colours_1.default.reset}`);
         const tgData = req.body;
-        if (tgData.message) {
+        if (tgData.callback_query) {
+            try {
+                const u = yield getUserByTgUserId(tgData.callback_query.from.id);
+                console.log(`Callback command '${tgData.callback_query.data}'`);
+                switch (tgData.callback_query.data) {
+                    case 'settings':
+                        bot.sendMessage((_b = (_a = tgData.callback_query) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.chat.id, my_settings.get((_c = u === null || u === void 0 ? void 0 : u.json) === null || _c === void 0 ? void 0 : _c.nativelanguage) ? my_settings.get((_d = u === null || u === void 0 ? void 0 : u.json) === null || _d === void 0 ? void 0 : _d.nativelanguage) : my_settings.get('en'), tg_bot_settings_menu((_e = u === null || u === void 0 ? void 0 : u.json) === null || _e === void 0 ? void 0 : _e.nativelanguage));
+                        break;
+                    case 'set_language':
+                        bot.sendMessage((_g = (_f = tgData.callback_query) === null || _f === void 0 ? void 0 : _f.message) === null || _g === void 0 ? void 0 : _g.chat.id, choose_language.get((_h = u === null || u === void 0 ? void 0 : u.json) === null || _h === void 0 ? void 0 : _h.nativelanguage) ? choose_language.get((_j = u === null || u === void 0 ? void 0 : u.json) === null || _j === void 0 ? void 0 : _j.nativelanguage) : choose_language.get('en'), tg_bot_set_language_menu);
+                        break;
+                    case 'set_language_en':
+                    case 'set_language_uk':
+                    case 'set_language_es':
+                    case 'set_language_ru':
+                    case 'set_language_de':
+                        const lang = tgData.callback_query.data.split('_')[2];
+                        console.log(`Changing user's language to '${lang}'`);
+                        yield (u === null || u === void 0 ? void 0 : u.changeNativeLanguage(lang));
+                        bot.sendMessage((_l = (_k = tgData.callback_query) === null || _k === void 0 ? void 0 : _k.message) === null || _l === void 0 ? void 0 : _l.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_m = u === null || u === void 0 ? void 0 : u.json) === null || _m === void 0 ? void 0 : _m.nativelanguage));
+                        break;
+                    default: bot.sendMessage((_p = (_o = tgData.callback_query) === null || _o === void 0 ? void 0 : _o.message) === null || _p === void 0 ? void 0 : _p.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_q = u === null || u === void 0 ? void 0 : u.json) === null || _q === void 0 ? void 0 : _q.nativelanguage));
+                }
+                return res.status(200).json("OK");
+            }
+            catch (e) {
+                return res.status(400).json(e);
+            }
         }
-        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.from) === null || _b === void 0 ? void 0 : _b.id}'${colours_1.default.reset}; chat_id = '${(_c = tgData.message) === null || _c === void 0 ? void 0 : _c.chat.id}'`);
+        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_s = (_r = tgData.message) === null || _r === void 0 ? void 0 : _r.from) === null || _s === void 0 ? void 0 : _s.id}'${colours_1.default.reset}; chat_id = '${(_t = tgData.message) === null || _t === void 0 ? void 0 : _t.chat.id}'`);
         try {
             if (!(yield processCommands(bot, tgData))
                 && !(yield processURLs(bot, tgData))) {
-                bot.sendMessage((_d = tgData.message) === null || _d === void 0 ? void 0 : _d.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
+                bot.sendMessage((_u = tgData.message) === null || _u === void 0 ? void 0 : _u.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
             }
             ;
             return res.status(200).json("OK");
@@ -128,23 +271,15 @@ function getUserByTgUserId(tg_user_id) {
             return new user_1.default(undefined, ou[0]);
     });
 }
-const tg_bot_start_menu = {
-    reply_markup: {
-        inline_keyboard: [
-            [
-                {
-                    text: 'Assess new content',
-                    web_app: {
-                        url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
-                    }
-                }
-            ]
-        ]
-    }
-};
-const tgWelcome = `Welcome back!\nThis bot helps you finding people with similar mindset.\nWe respect your privacy. Be sure that we'll delete all your data at any moment you request`;
+const tgWelcome = new Map([
+    ['en', `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request`],
+    ['uk', 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит'],
+    ['ru', 'Добро пожаловать! Этот бот помогает динамически оценить вашу психологическую устойчивость. Также он позволяет вам найти людей со схожим мышлением. Мы уважаем вашу конфиденциальность. Будьте уверены, что мы удалим все ваши данные в любое время по вашему запросу'],
+    ['es', '¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita.'],
+    ['de', 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.']
+]);
 function processCommands(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
     return __awaiter(this, void 0, void 0, function* () {
         // looking for bot-command from user
         const commands = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.entities) === null || _b === void 0 ? void 0 : _b.filter(v => v.type == "bot_command");
@@ -156,19 +291,20 @@ function processCommands(bot, tgData) {
             console.log(`${colours_1.default.fg.green}Processing command = '${command_name}'${colours_1.default.reset}`);
             switch (command_name) {
                 case '/start':
-                    if (yield getUserByTgUserId((_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.from) === null || _g === void 0 ? void 0 : _g.id)) {
-                        bot.sendMessage((_h = tgData.message) === null || _h === void 0 ? void 0 : _h.chat.id, tgWelcome, tg_bot_start_menu);
+                    const u = yield getUserByTgUserId((_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.from) === null || _g === void 0 ? void 0 : _g.id);
+                    if (u) {
+                        bot.sendMessage((_h = tgData.message) === null || _h === void 0 ? void 0 : _h.chat.id, tgWelcome.get(((_j = u.json) === null || _j === void 0 ? void 0 : _j.nativelanguage) ? (_k = u.json) === null || _k === void 0 ? void 0 : _k.nativelanguage : 'en'), tg_bot_start_menu((_l = u.json) === null || _l === void 0 ? void 0 : _l.nativelanguage));
                     }
                     else {
                         const user = new user_1.default(undefined, {
                             organizationid: new mongoose_1.Types.ObjectId('63c0e7dad80176886c22129d'),
-                            tguserid: (_k = (_j = tgData.message) === null || _j === void 0 ? void 0 : _j.from) === null || _k === void 0 ? void 0 : _k.id,
-                            nativelanguage: (_m = (_l = tgData.message) === null || _l === void 0 ? void 0 : _l.from) === null || _m === void 0 ? void 0 : _m.language_code,
+                            tguserid: (_o = (_m = tgData.message) === null || _m === void 0 ? void 0 : _m.from) === null || _o === void 0 ? void 0 : _o.id,
+                            nativelanguage: (_q = (_p = tgData.message) === null || _p === void 0 ? void 0 : _p.from) === null || _q === void 0 ? void 0 : _q.language_code,
                             blocked: false,
                             created: new Date()
                         });
                         yield user.save();
-                        bot.sendMessage((_o = tgData.message) === null || _o === void 0 ? void 0 : _o.chat.id, tgWelcome, tg_bot_start_menu);
+                        bot.sendMessage((_r = tgData.message) === null || _r === void 0 ? void 0 : _r.chat.id, tgWelcome.get(((_s = user.json) === null || _s === void 0 ? void 0 : _s.nativelanguage) ? (_t = user.json) === null || _t === void 0 ? void 0 : _t.nativelanguage : 'en'), tg_bot_start_menu((_u = user.json) === null || _u === void 0 ? void 0 : _u.nativelanguage));
                     }
                     /*                 const cb = await bot.setMyCommands([
                                         {
@@ -192,7 +328,7 @@ function processCommands(bot, tgData) {
                 case '/getnext':
                     break;
                 default:
-                    bot.sendMessage((_p = tgData.message) === null || _p === void 0 ? void 0 : _p.chat.id, `'${command_name}' is unknoun command. Check spelling`);
+                    bot.sendMessage((_v = tgData.message) === null || _v === void 0 ? void 0 : _v.chat.id, `'${command_name}' is unknoun command. Check spelling`);
                     return false;
             }
         }
