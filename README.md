@@ -1,7 +1,10 @@
-# `!DRAFT!` Plutchik API
-API for dating sevices based on studies of Robert Plutchik. 
-[See Wikipedia about R.Plutchik studies](#https://en.wikipedia.org/wiki/Robert_Plutchik)
+# Plutchik API & Telegram bot
+There are three possible options of usage:
+- For any users and psychologists try [Telegram bot](#https://t.me/plutchik_bot)
+- API for dating sevices based on studies of Robert Plutchik. 
 
+
+About methodology [See Wikipedia about R.Plutchik studies](#https://en.wikipedia.org/wiki/Robert_Plutchik)
 <!---
 ## Content
 
