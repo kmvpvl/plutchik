@@ -103,13 +103,19 @@ export default class User extends PlutchikProto<IUser> {
         return sts[0].roles;
     }
 
+    public async changeNativeLanguage(lang:string) {
+        await this.checkData();
+        if (this.data) this.data.nativelanguage = lang;
+        await this.save();
+    }
+
     public async nextContentItem(language?: string, source_type?: SourceType): Promise <IContent>{
         //this.checkData();
         PlutchikProto.connectMongo();
         const v = await mongoContent.aggregate([{
             $match: {
                 'language': {
-                    '$regex': language?language:'', 
+                    '$regex': language?language:this.json?.nativelanguage, 
                     '$options': 'i'
                 }
             }
