@@ -5,8 +5,8 @@ info:
 servers:
   - url: http://localhost:8000
     description: Local server
-  - url: https://5dfbb146-c21e-4b30-b009-2b34abadefb3.mock.pstmn.io
-    description: Postman server
+  - url: https://plutchik.onrender.com
+    description: Temporary free hosting to test changes
 
 components:
   securitySchemes:
