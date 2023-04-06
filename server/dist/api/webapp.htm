@@ -179,12 +179,50 @@ class EmotionRange {
         if (!this.value) this.value = 0;
         jQueryElement.on('click', (ev)=>{
             if (this.disabled) return;
-            let v = 1 - (ev.offsetY - this.padding)/(this.h - 2 * this.padding);
-            if (v < 0) v = 0;
-            if (v > 1) v = 1;
-            v = Math.round(v * 10)/10;
-            this.value = v;
-            this.jQueryElement.val(v);
+            this.value = this.calcEmotionRange(ev);
+            this.jQueryElement.val(this.value);
+            this.render();
+            this.jQueryElement.trigger('input');
+        });
+        jQueryElement.on('mousedown', (ev)=>{
+            this.dragged = true;
+            if (this.disabled) return;
+            this.value = this.calcEmotionRange(ev);
+            this.jQueryElement.val(this.value);
+            this.render();
+            this.jQueryElement.trigger('input');
+        });
+        jQueryElement.on('mousemove', (ev)=>{
+            if (!this.dragged) return;
+            if (this.disabled) return;
+            this.value = this.calcEmotionRange(ev);
+            this.jQueryElement.val(this.value);
+            this.render();
+            this.jQueryElement.trigger('input');
+        });
+        jQueryElement.on('tap', (ev)=>{
+            if (!this.dragged) return;
+            if (this.disabled) return;
+            this.value = this.calcEmotionRange(ev);
+            this.jQueryElement.val(this.value);
+            this.render();
+            this.jQueryElement.trigger('input');
+        });
+        jQueryElement.on('mouseup', (ev)=>{
+            if (!this.dragged) return;
+            this.dragged = false;
+            if (this.disabled) return;
+            this.value = this.calcEmotionRange(ev);
+            this.jQueryElement.val(this.value);
+            this.render();
+            this.jQueryElement.trigger('input');
+        });
+        jQueryElement.on('mouseout', (ev)=>{
+            if (!this.dragged) return;
+            this.dragged = false;
+            if (this.disabled) return;
+            this.value = this.calcEmotionRange(ev);
+            this.jQueryElement.val(this.value);
             this.render();
             this.jQueryElement.trigger('input');
         });
@@ -201,6 +239,13 @@ class EmotionRange {
         s += `<text class="${em_class}" x="${2 * this.padding + this.sliderSize}" y="${this.h + 2 * this.sliderSize + this.padding}" transform="rotate(270 ${2 * this.padding},${this.h - 2 * this.padding})">${this.emotion}</text>`;
         s += '</svg>';
         this.jQueryElement.html(s);
+    }
+    calcEmotionRange(ev) {
+        let v = 1 - (ev.offsetY - this.padding)/(this.h - 2 * this.padding);
+        if (v < 0) v = 0;
+        if (v > 1) v = 1;
+        v = Math.round(v * 10)/10;
+        return v;
     }
 }
 function yt_id(url) {
