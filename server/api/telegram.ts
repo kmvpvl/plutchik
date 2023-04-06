@@ -143,7 +143,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, my_settings.get(u?.json?.nativelanguage as string)?my_settings.get(u?.json?.nativelanguage as string) as string:my_settings.get('en') as string, tg_bot_settings_menu(u?.json?.nativelanguage as string));
                     break;
                 case 'set_language':
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, choose_language.get(u?.json?.nativelanguage as string)?choose_language.get(u?.json?.nativelanguage as string) as string:choose_language.get('en') as string, tg_bot_set_language_menu);
+                    menuSetLanguage(bot, tgData.callback_query?.message?.chat.id as number, u as User);
                     break;
                 case 'set_language_en':
                 case 'set_language_uk':
@@ -243,9 +243,9 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
     for (let [i, c] of Object.entries(commands as Array<TelegramBot.MessageEntity>)) {
         const command_name = tgData.message?.text?.substring(c.offset, c.offset + c.length);
         console.log(`${colours.fg.green}Processing command = '${command_name}'${colours.reset}`);
+        const u = await getUserByTgUserId(tgData.message?.from?.id as number);
         switch (command_name) {
             case '/start': 
-                const u = await getUserByTgUserId(tgData.message?.from?.id as number);
                 if (u){
                     bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(u.json?.nativelanguage?u.json?.nativelanguage:'en') as string, tg_bot_start_menu(u.json?.nativelanguage as string));
                 } else {
@@ -259,28 +259,14 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                     await user.save();
                     bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(user.json?.nativelanguage?user.json?.nativelanguage:'en') as string, tg_bot_start_menu(user.json?.nativelanguage as string));
                 }
-/*                 const cb = await bot.setMyCommands([
-                    {
-                        command: 'getnext',
-                        description: 'Get next content item for assessment'
-                    }
-                ], { scope: {type: "all_private_chats"}});
-                //await bot.set
-                const mb = await bot.setChatMenuButton({
-                    chat_id: undefined,
-                    menu_button: {
-                        type: 'default',
-                        text: 'ASSESS',
-                        web_app: {
-                            url: `${settings.tg_web_hook_server}/telegram`
-                        }
-                  }
-                });
-                console.log(`Menu button has been set: ${mb}`);
-*/            break;
+            break;
 
             case '/getnext':
             break;
+
+            case '/set_language':
+                menuSetLanguage(bot, tgData.message?.chat.id as number, u as User);
+                break;
 
             default: 
                 bot.sendMessage(tgData.message?.chat.id as number, `'${command_name}' is unknoun command. Check spelling`);
@@ -293,6 +279,10 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
 function yt_id(url: string): string|undefined {
     const r = url.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/);
     return r?r[1]:undefined;
+}
+
+function menuSetLanguage(bot: TelegramBot, chat_id: number, user: User){
+    bot.sendMessage(chat_id, choose_language.get(user.json?.nativelanguage as string)?choose_language.get(user.json?.nativelanguage as string) as string:choose_language.get('en') as string, tg_bot_set_language_menu);
 }
 
 async function yt_video_data(yt_video_id: string) {

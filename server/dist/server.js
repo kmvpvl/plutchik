@@ -109,8 +109,30 @@ const bot = new node_telegram_bot_api_1.default(plutchikproto_1.settings.tg_bot_
 bot.on('photo', msg => {
     (0, telegram_1.onPhoto)(bot, msg);
 });
-if (plutchikproto_1.settings.tg_web_hook_server)
+if (plutchikproto_1.settings.tg_web_hook_server) {
     bot.setWebHook(`${plutchikproto_1.settings.tg_web_hook_server}/telegram`);
+    bot.setMyCommands([
+        { command: '/start', description: 'Start', },
+        { command: '/set_language', description: 'Set language', },
+    ], { language_code: 'en' });
+    bot.setMyCommands([
+        { command: '/start', description: 'Comenzar', },
+        { command: '/set_language', description: 'Elegir lenguaje', },
+    ], { language_code: 'es' });
+    bot.setMyCommands([
+        { command: '/start', description: 'Start', },
+        { command: '/set_language', description: 'Sprache einstellen', },
+    ], { language_code: 'de' });
+    bot.setMyCommands([
+        { command: '/start', description: 'Почати', },
+        { command: '/set_language', description: 'Встановити мову', },
+    ], { language_code: 'uk' });
+    bot.setMyCommands([
+        { command: '/start', description: 'Начать', },
+        { command: '/set_language', description: 'Установить язык', },
+    ], { language_code: 'ru' });
+}
+;
 exports.app.use(express_1.default.json());
 exports.app.use((0, morgan_1.default)('tiny'));
 exports.app.use((0, cors_1.default)());
