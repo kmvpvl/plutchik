@@ -166,7 +166,9 @@ control-panel-vector {
 </control-panel>
 <script>
 class EmotionRange {
-    constructor (jQueryElement, emotion) {
+    constructor (jQueryElement, emotion, lang = 'en') {
+        this.lang = lang;
+        if (!ml_emotions.get(this.lang)) this.lang = 'en';
         this.range = 1;
         this.padding = 3; 
         this.sliderSize = 10;
@@ -236,7 +238,7 @@ class EmotionRange {
         s += `<rect class="${em_class}" x="${this.padding + this.sliderSize}" y="${this.padding}" width="5" height="${this.h - 2 * this.padding}"></rect>`;
         const y = Math.round((this.h - 2 * this.padding - this.sliderSize/2) - ((this.h - 2 * this.padding - this.sliderSize/2) / this.range * this.value) - this.sliderSize);
         s += `<rect class="${em_class}" x="${this.padding}" y="${y + this.sliderSize}" width="${this.sliderSize * 2}" height="${this.sliderSize}"></rect>`;
-        s += `<text class="${em_class}" x="${2 * this.padding + this.sliderSize}" y="${this.h + 2 * this.sliderSize + this.padding}" transform="rotate(270 ${2 * this.padding},${this.h - 2 * this.padding})">${this.emotion}</text>`;
+        s += `<text class="${em_class}" x="${2 * this.padding + this.sliderSize}" y="${this.h + 2 * this.sliderSize + this.padding}" transform="rotate(270 ${2 * this.padding},${this.h - 2 * this.padding})">${ml_emotions.get(this.lang).get(this.emotion)}</text>`;
         s += '</svg>';
         this.jQueryElement.html(s);
     }
@@ -253,7 +255,84 @@ function yt_id(url) {
     return r?r[1]:undefined;
 }
 
-let emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
+const emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
+const ml_emotions = new Map([
+    ['en', new Map([
+        ['joy','joy']
+        ,['trust','trust']
+        ,['fear', 'fear']
+        ,['surprise', 'surprise']
+        ,['sadness', 'sadness']
+        ,['disgust', 'disgust']
+        ,['anger', 'anger']
+        ,['anticipation', 'anticipation']
+    ])],
+    ['de', new Map([
+        ['joy','Freude']
+        ,['trust','Vertrauen']
+        ,['fear', 'Furcht']
+        ,['surprise', 'Erstaunen']
+        ,['sadness', 'Missvergnügen']
+        ,['disgust', 'Ekel']
+        ,['anger', 'Wut']
+        ,['anticipation', 'Vorwegnahme']
+    ])],
+    ['es', new Map([
+        ['joy','alegría']
+        ,['trust','confianza']
+        ,['fear', 'miedo']
+        ,['surprise', 'asombro']
+        ,['sadness', 'molestia']
+        ,['disgust', 'asco']
+        ,['anger', 'enojo']
+        ,['anticipation', 'anticipación']
+    ])],
+    ['uk', new Map([
+        ['joy','радість']
+        ,['trust','довіра']
+        ,['fear', 'страх']
+        ,['surprise', 'здивування']
+        ,['sadness', 'смуток']
+        ,['disgust', 'огида']
+        ,['anger', 'гнів']
+        ,['anticipation', 'очікування']
+    ])],
+   ['ru', new Map([
+        ['joy','радость']
+        ,['trust','доверие']
+        ,['fear', 'страх']
+        ,['surprise', 'удивление']
+        ,['sadness', 'досада']
+        ,['disgust', 'отвращение']
+        ,['anger', 'злость']
+        ,['anticipation', 'предвкушение']
+    ])]
+]);
+
+const myEmotions = new Map([
+    ['en', 'My emotions']
+    ,['ru', 'Мои эмоции']
+    ,['de', 'Meine Gefühle']
+    ,['es', 'Mis emociones']
+    ,['uk', 'мої емоції']
+]);
+
+const thatsAll = new Map([
+    ['en', `Sorry, that's all content `]
+    ,['ru', 'Извините на этом всё']
+    ,['de', 'Entschuldigung, das ist alles']
+    ,['es', 'lo siento, eso es todo']
+    ,['uk', 'Вибачте, на цьому все']
+]);
+
+const pressToNew = new Map([
+    ['en', `Press button to get new content item`]
+    ,['ru', 'Нажмите кнопку, чтобы получить новый контент для оценки']
+    ,['de', 'Klicken Sie auf die Schaltfläche, um neue Inhalte zum Bewerten zu erhalten']
+    ,['es', 'Haga clic en el botón para obtener contenido nuevo para calificar']
+    ,['uk', 'Натисніть кнопку, щоб отримати новий контент для оцінки']
+]);
+
 let emotion_objects = {};
 function getEmotionalVector(){
     let ret = {};
@@ -282,9 +361,11 @@ render();
 function renderFlower(){
     drawFlower($('#flower'), getEmotionalVector());
 }
-function render() {
+function render(lang = 'en') {
     renderFlower();
+    $('.vector-header').text(myEmotions.get(lang)?myEmotions.get(lang):myEmotions.get('en'));
     for (const [i, ob] of Object.entries(emotion_objects)) {
+        ob.lang = lang;
         ob.render();
     }
 }
@@ -328,34 +409,34 @@ tg.MainButton.onClick(()=>{
 });
 function getnext(){
     $.get(`/telegram?command=getnext&tg_user_id=${tg.initDataUnsafe.user.id}`, (data, status, xhdr)=>{
-    if ('success' == status) {
-        $('#user').text(JSON.stringify(data.user));
-        $('#sessiontoken').text(data.sessiontoken);
-        $('#content').text(JSON.stringify(data.content));
-        $('#media-name').text(`${data.content.name}`);
-        switch (data.content.source) {
-            case 'youtube':
-                $(".content").html(`<iframe width="100%" height="auto" src="https://www.youtube.com/embed/${yt_id(data.content.url)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`);
-                $('emotion[emotional-vector]').removeAttr('disabled');
-                render();
-                break;
-            case 'web':
-                if (data.content.type == 'image') {
-                    $(".content").html(`<img width="100%" height="auto" src="${data.content.url}"></img>`);
+        if ('success' == status) {
+            $('#user').text(JSON.stringify(data.user));
+            $('#sessiontoken').text(data.sessiontoken);
+            $('#content').text(JSON.stringify(data.content));
+            $('#media-name').text(`${data.content.name}`);
+            switch (data.content.source) {
+                case 'youtube':
+                    $(".content").html(`<iframe width="100%" height="auto" src="https://www.youtube.com/embed/${yt_id(data.content.url)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`);
                     $('emotion[emotional-vector]').removeAttr('disabled');
-                    render();
                     break;
-                }
-            default:
-                $(".content").html(`Unfortunatelly there have unknown content type. Url: ${data.content.url}. You can assess this content item, or get next`);
-                ;
+                case 'web':
+                    if (data.content.type == 'image') {
+                        $(".content").html(`<img width="100%" height="auto" src="${data.content.url}"></img>`);
+                        $('emotion[emotional-vector]').removeAttr('disabled');
+                        break;
+                    }
+                default:
+                    $(".content").html(`Unfortunatelly there have unknown content type. Url: ${data.content.url}. You can assess this content item, or get next`);
+                    ;
             }
+            render(data.user.nativelanguage);
         }
     })
     .fail((xhr, status, errorObj)=>{
         switch(xhr.status) {
                 case 404: 
-                    $('.content').html(`<div class="nocontent"><span>Sorry, thats all!</span><button onclick="getnext();">Press to get new one</button></div>`);
+                    $('.content').html(`<div class="nocontent"><span>${thatsAll.get(xhr.responseJSON.user.nativelanguage)}</span><button onclick="getnext();">${pressToNew.get(xhr.responseJSON.user.nativelanguage)}</button></div>`);
+                    render(xhr.responseJSON.user.nativelanguage);
                     break;
                 default:
 

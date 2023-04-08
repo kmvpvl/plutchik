@@ -224,11 +224,12 @@ function webapp(c, req, res, bot) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram webapp${colours_1.default.reset}`);
+        let user;
         try {
             if (req.query['command']) {
                 switch (req.query['command']) {
                     case 'getnext':
-                        const user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
                         if (user) {
                             const org = new organization_1.default((_a = user.json) === null || _a === void 0 ? void 0 : _a.organizationid);
                             yield org.load();
@@ -251,6 +252,8 @@ function webapp(c, req, res, bot) {
         catch (e) {
             switch (e.code) {
                 case "user:nonextcontent":
+                    if (user)
+                        e.user = user.json;
                     return res.status(404).json(e);
                 default:
                     return res.status(400).json(e);
