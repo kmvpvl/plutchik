@@ -186,11 +186,12 @@ export async function onPhoto(bot: TelegramBot, msg: TelegramBot.Message) {
 
 export async function webapp(c: any, req: Request, res: Response, bot: TelegramBot) {
     console.log(`${colours.fg.green}API: telegram webapp${colours.reset}`);
+    let user: User | undefined;
     try {
         if (req.query['command']) {
             switch(req.query['command']) {
                 case 'getnext':
-                    const user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
@@ -210,6 +211,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
     } catch(e: any) {
         switch (e.code as ErrorCode) {
             case "user:nonextcontent":
+                if (user) e.user = user.json;
                 return res.status(404).json(e);
             default:
                 return res.status(400).json(e);
