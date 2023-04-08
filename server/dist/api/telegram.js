@@ -161,7 +161,7 @@ const tg_bot_set_language_menu = {
     }
 };
 function telegram(c, req, res, bot) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram function${colours_1.default.reset}`);
         const tgData = req.body;
@@ -174,7 +174,7 @@ function telegram(c, req, res, bot) {
                         bot.sendMessage((_b = (_a = tgData.callback_query) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.chat.id, my_settings.get((_c = u === null || u === void 0 ? void 0 : u.json) === null || _c === void 0 ? void 0 : _c.nativelanguage) ? my_settings.get((_d = u === null || u === void 0 ? void 0 : u.json) === null || _d === void 0 ? void 0 : _d.nativelanguage) : my_settings.get('en'), tg_bot_settings_menu((_e = u === null || u === void 0 ? void 0 : u.json) === null || _e === void 0 ? void 0 : _e.nativelanguage));
                         break;
                     case 'set_language':
-                        bot.sendMessage((_g = (_f = tgData.callback_query) === null || _f === void 0 ? void 0 : _f.message) === null || _g === void 0 ? void 0 : _g.chat.id, choose_language.get((_h = u === null || u === void 0 ? void 0 : u.json) === null || _h === void 0 ? void 0 : _h.nativelanguage) ? choose_language.get((_j = u === null || u === void 0 ? void 0 : u.json) === null || _j === void 0 ? void 0 : _j.nativelanguage) : choose_language.get('en'), tg_bot_set_language_menu);
+                        menuSetLanguage(bot, (_g = (_f = tgData.callback_query) === null || _f === void 0 ? void 0 : _f.message) === null || _g === void 0 ? void 0 : _g.chat.id, u);
                         break;
                     case 'set_language_en':
                     case 'set_language_uk':
@@ -184,9 +184,9 @@ function telegram(c, req, res, bot) {
                         const lang = tgData.callback_query.data.split('_')[2];
                         console.log(`Changing user's language to '${lang}'`);
                         yield (u === null || u === void 0 ? void 0 : u.changeNativeLanguage(lang));
-                        bot.sendMessage((_l = (_k = tgData.callback_query) === null || _k === void 0 ? void 0 : _k.message) === null || _l === void 0 ? void 0 : _l.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_m = u === null || u === void 0 ? void 0 : u.json) === null || _m === void 0 ? void 0 : _m.nativelanguage));
+                        bot.sendMessage((_j = (_h = tgData.callback_query) === null || _h === void 0 ? void 0 : _h.message) === null || _j === void 0 ? void 0 : _j.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_k = u === null || u === void 0 ? void 0 : u.json) === null || _k === void 0 ? void 0 : _k.nativelanguage));
                         break;
-                    default: bot.sendMessage((_p = (_o = tgData.callback_query) === null || _o === void 0 ? void 0 : _o.message) === null || _p === void 0 ? void 0 : _p.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_q = u === null || u === void 0 ? void 0 : u.json) === null || _q === void 0 ? void 0 : _q.nativelanguage));
+                    default: bot.sendMessage((_m = (_l = tgData.callback_query) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_o = u === null || u === void 0 ? void 0 : u.json) === null || _o === void 0 ? void 0 : _o.nativelanguage));
                 }
                 return res.status(200).json("OK");
             }
@@ -194,11 +194,11 @@ function telegram(c, req, res, bot) {
                 return res.status(400).json(e);
             }
         }
-        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_s = (_r = tgData.message) === null || _r === void 0 ? void 0 : _r.from) === null || _s === void 0 ? void 0 : _s.id}'${colours_1.default.reset}; chat_id = '${(_t = tgData.message) === null || _t === void 0 ? void 0 : _t.chat.id}'`);
+        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_q = (_p = tgData.message) === null || _p === void 0 ? void 0 : _p.from) === null || _q === void 0 ? void 0 : _q.id}'${colours_1.default.reset}; chat_id = '${(_r = tgData.message) === null || _r === void 0 ? void 0 : _r.chat.id}'`);
         try {
             if (!(yield processCommands(bot, tgData))
                 && !(yield processURLs(bot, tgData))) {
-                bot.sendMessage((_u = tgData.message) === null || _u === void 0 ? void 0 : _u.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
+                bot.sendMessage((_s = tgData.message) === null || _s === void 0 ? void 0 : _s.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
             }
             ;
             return res.status(200).json("OK");
@@ -224,11 +224,12 @@ function webapp(c, req, res, bot) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram webapp${colours_1.default.reset}`);
+        let user;
         try {
             if (req.query['command']) {
                 switch (req.query['command']) {
                     case 'getnext':
-                        const user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
                         if (user) {
                             const org = new organization_1.default((_a = user.json) === null || _a === void 0 ? void 0 : _a.organizationid);
                             yield org.load();
@@ -251,6 +252,8 @@ function webapp(c, req, res, bot) {
         catch (e) {
             switch (e.code) {
                 case "user:nonextcontent":
+                    if (user)
+                        e.user = user.json;
                     return res.status(404).json(e);
                 default:
                     return res.status(400).json(e);
@@ -279,7 +282,7 @@ const tgWelcome = new Map([
     ['de', 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.']
 ]);
 function processCommands(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     return __awaiter(this, void 0, void 0, function* () {
         // looking for bot-command from user
         const commands = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.entities) === null || _b === void 0 ? void 0 : _b.filter(v => v.type == "bot_command");
@@ -289,9 +292,9 @@ function processCommands(bot, tgData) {
         for (let [i, c] of Object.entries(commands)) {
             const command_name = (_e = (_d = tgData.message) === null || _d === void 0 ? void 0 : _d.text) === null || _e === void 0 ? void 0 : _e.substring(c.offset, c.offset + c.length);
             console.log(`${colours_1.default.fg.green}Processing command = '${command_name}'${colours_1.default.reset}`);
+            const u = yield getUserByTgUserId((_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.from) === null || _g === void 0 ? void 0 : _g.id);
             switch (command_name) {
                 case '/start':
-                    const u = yield getUserByTgUserId((_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.from) === null || _g === void 0 ? void 0 : _g.id);
                     if (u) {
                         bot.sendMessage((_h = tgData.message) === null || _h === void 0 ? void 0 : _h.chat.id, tgWelcome.get(((_j = u.json) === null || _j === void 0 ? void 0 : _j.nativelanguage) ? (_k = u.json) === null || _k === void 0 ? void 0 : _k.nativelanguage : 'en'), tg_bot_start_menu((_l = u.json) === null || _l === void 0 ? void 0 : _l.nativelanguage));
                     }
@@ -306,29 +309,14 @@ function processCommands(bot, tgData) {
                         yield user.save();
                         bot.sendMessage((_r = tgData.message) === null || _r === void 0 ? void 0 : _r.chat.id, tgWelcome.get(((_s = user.json) === null || _s === void 0 ? void 0 : _s.nativelanguage) ? (_t = user.json) === null || _t === void 0 ? void 0 : _t.nativelanguage : 'en'), tg_bot_start_menu((_u = user.json) === null || _u === void 0 ? void 0 : _u.nativelanguage));
                     }
-                    /*                 const cb = await bot.setMyCommands([
-                                        {
-                                            command: 'getnext',
-                                            description: 'Get next content item for assessment'
-                                        }
-                                    ], { scope: {type: "all_private_chats"}});
-                                    //await bot.set
-                                    const mb = await bot.setChatMenuButton({
-                                        chat_id: undefined,
-                                        menu_button: {
-                                            type: 'default',
-                                            text: 'ASSESS',
-                                            web_app: {
-                                                url: `${settings.tg_web_hook_server}/telegram`
-                                            }
-                                      }
-                                    });
-                                    console.log(`Menu button has been set: ${mb}`);
-                    */ break;
+                    break;
                 case '/getnext':
                     break;
+                case '/set_language':
+                    menuSetLanguage(bot, (_v = tgData.message) === null || _v === void 0 ? void 0 : _v.chat.id, u);
+                    break;
                 default:
-                    bot.sendMessage((_v = tgData.message) === null || _v === void 0 ? void 0 : _v.chat.id, `'${command_name}' is unknoun command. Check spelling`);
+                    bot.sendMessage((_w = tgData.message) === null || _w === void 0 ? void 0 : _w.chat.id, `'${command_name}' is unknoun command. Check spelling`);
                     return false;
             }
         }
@@ -338,6 +326,10 @@ function processCommands(bot, tgData) {
 function yt_id(url) {
     const r = url.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/);
     return r ? r[1] : undefined;
+}
+function menuSetLanguage(bot, chat_id, user) {
+    var _a, _b;
+    bot.sendMessage(chat_id, choose_language.get((_a = user.json) === null || _a === void 0 ? void 0 : _a.nativelanguage) ? choose_language.get((_b = user.json) === null || _b === void 0 ? void 0 : _b.nativelanguage) : choose_language.get('en'), tg_bot_set_language_menu);
 }
 function yt_video_data(yt_video_id) {
     return __awaiter(this, void 0, void 0, function* () {

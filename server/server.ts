@@ -18,6 +18,7 @@ import telegram, { onPhoto, webapp } from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import {settings} from "./model/plutchikproto";
 import fs from 'fs';
+import { language } from 'googleapis/build/src/apis/language';
 
 const PORT = process.env.PORT || 8000;
 
@@ -74,7 +75,29 @@ const bot = new TelegramBot(settings.tg_bot_authtoken);
 bot.on('photo', msg => {
     onPhoto(bot, msg);
 });
-if (settings.tg_web_hook_server) bot.setWebHook(`${settings.tg_web_hook_server}/telegram`);
+if (settings.tg_web_hook_server) {
+    bot.setWebHook(`${settings.tg_web_hook_server}/telegram`);
+    bot.setMyCommands([
+        {command: '/start', description:'Start', },
+        {command: '/set_language', description:'Set language', },
+    ], {language_code: 'en'});
+    bot.setMyCommands([
+        {command: '/start', description:'Comenzar', },
+        {command: '/set_language', description:'Elegir lenguaje', },
+    ], {language_code: 'es'});
+    bot.setMyCommands([
+        {command: '/start', description:'Start', },
+        {command: '/set_language', description:'Sprache einstellen', },
+    ], {language_code: 'de'});
+    bot.setMyCommands([
+        {command: '/start', description:'Почати', },
+        {command: '/set_language', description:'Встановити мову', },
+    ], {language_code: 'uk'});
+    bot.setMyCommands([
+        {command: '/start', description:'Начать', },
+        {command: '/set_language', description:'Установить язык', },
+    ], {language_code: 'ru'});
+};
 
 app.use(express.json());
 app.use(morgan('tiny'));
