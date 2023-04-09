@@ -5,8 +5,8 @@ import PlutchikError from "./error";
 import { MLStringSchema } from "./mlstring";
 import PlutchikProto from "./plutchikproto";
 
-export type ContentTypes = "text" | "memes" | "audio" | "video";
-export type SourceType = "web" | "telegram" | "youtube";
+export type ContentTypes = "text" | "image" | "audio" | "video";
+export type SourceType = "web" | "telegram" | "youtube" | "embedded";
 export interface IContent {
     _uid?: Types.ObjectId;
     type: ContentTypes;
@@ -41,7 +41,7 @@ export const ContentSchema = new Schema({
     },
     source: {
         type: String,
-        enum: ["web", "telegram", "youtube"],
+        enum: ["web", "telegram", "youtube", "embedded"],
         required: true
     },
     tgData: {

@@ -324,6 +324,8 @@ function processCommands(bot, tgData) {
     });
 }
 function yt_id(url) {
+    if (!url.match(/^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/))
+        return undefined;
     const r = url.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/);
     return r ? r[1] : undefined;
 }
@@ -351,36 +353,29 @@ function yt_video_data(yt_video_id) {
     });
 }
 function processURLs(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     return __awaiter(this, void 0, void 0, function* () {
         // looking for URL
-        const URLs = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.entities) === null || _b === void 0 ? void 0 : _b.filter(v => v.type == "url");
-        if (!URLs || !URLs.length)
-            return false;
-        console.log(`url(s) found: ${(_c = tgData.message) === null || _c === void 0 ? void 0 : _c.text}`);
-        for (let [i, u] of Object.entries(URLs)) {
-            const url_name = (_e = (_d = tgData.message) === null || _d === void 0 ? void 0 : _d.text) === null || _e === void 0 ? void 0 : _e.substring(u.offset, u.offset + u.length);
-            console.log(`${colours_1.default.fg.green}Processing URL = '${url_name}'${colours_1.default.reset}`);
-            const ytId = yt_id(url_name);
-            if (ytId) {
-                console.log(`YOUTUBE content found: videoId = '${ytId}'`);
-                const data = (yield yt_video_data(ytId)).data;
-                // !! need error handling
-                //console.log(data.items);
-                let org = yield getOrganizationByTgUser(bot, tgData);
-                if (org) {
-                    for (let [i, ytVi] of Object.entries(data.items)) {
-                        let snippet = ytVi.snippet;
-                        console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
+        let org = yield getOrganizationByTgUser(bot, tgData);
+        const media_props = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.split(':');
+        const media_type = media_props ? media_props[0] : undefined;
+        const media_lang = media_props ? media_props[1] : undefined;
+        const media_name = media_props ? media_props[2] : undefined;
+        const media_desc = media_props ? media_props[3] : undefined;
+        const URLs = (_d = (_c = tgData.message) === null || _c === void 0 ? void 0 : _c.entities) === null || _d === void 0 ? void 0 : _d.filter(v => v.type == "url");
+        if (!URLs || !URLs.length) {
+            switch (media_type) {
+                case 'text':
+                    console.log(`Text found: Name = '${media_name}', lang = '${media_lang}'`);
+                    if (org) {
                         let ic = {
-                            organizationid: (_f = org.json) === null || _f === void 0 ? void 0 : _f._id,
-                            url: url_name,
-                            type: "video",
-                            source: "youtube",
-                            name: snippet.title,
-                            tags: snippet.tags,
-                            description: snippet.description,
-                            language: snippet.defaultAudioLanguage,
+                            organizationid: (_e = org.json) === null || _e === void 0 ? void 0 : _e._id,
+                            type: "text",
+                            source: "embedded",
+                            name: media_name,
+                            tags: [],
+                            description: media_desc,
+                            language: media_lang,
                             blocked: false,
                             created: new Date(),
                             restrictions: []
@@ -390,19 +385,90 @@ function processURLs(bot, tgData) {
                         let content = new content_1.default(undefined, ic);
                         yield content.save();
                         const msg = `New content added`;
-                        bot.sendMessage((_g = tgData.message) === null || _g === void 0 ? void 0 : _g.chat.id, msg, { disable_notification: true });
+                        bot.sendMessage((_f = tgData.message) === null || _f === void 0 ? void 0 : _f.chat.id, msg, { disable_notification: true });
                     }
-                }
-                else {
-                    const msg = `Role 'manage_content' expected`;
-                    bot.sendMessage((_h = tgData.message) === null || _h === void 0 ? void 0 : _h.chat.id, msg);
-                }
+                    return true;
+                default:
+                    return false;
             }
-            else {
-                console.log(`Couldn't recognize known domain: ${url_name}`);
+        }
+        console.log(`url(s) found: ${(_g = tgData.message) === null || _g === void 0 ? void 0 : _g.text}`);
+        for (let [i, u] of Object.entries(URLs)) {
+            const url_name = (_j = (_h = tgData.message) === null || _h === void 0 ? void 0 : _h.text) === null || _j === void 0 ? void 0 : _j.substring(u.offset, u.offset + u.length);
+            console.log(`${colours_1.default.fg.green}Processing URL = '${url_name}'${colours_1.default.reset}`);
+            switch (media_type) {
+                case 'img':
+                    console.log(`Image found: Name = '${media_name}', lang = '${media_lang}'`);
+                    if (org) {
+                        let ic = {
+                            organizationid: (_k = org.json) === null || _k === void 0 ? void 0 : _k._id,
+                            url: url_name,
+                            type: "image",
+                            source: "web",
+                            name: media_name,
+                            tags: [],
+                            description: media_desc,
+                            language: media_lang,
+                            blocked: false,
+                            created: new Date(),
+                            restrictions: []
+                        };
+                        if (!ic.language)
+                            ic.language = 'en';
+                        let content = new content_1.default(undefined, ic);
+                        yield content.save();
+                        const msg = `New content added`;
+                        bot.sendMessage((_l = tgData.message) === null || _l === void 0 ? void 0 : _l.chat.id, msg, { disable_notification: true });
+                    }
+                    break;
+                default:
+                    const ytId = yt_id(url_name);
+                    if (ytId) {
+                        console.log(`YOUTUBE content found: videoId = '${ytId}'`);
+                        const data = (yield yt_video_data(ytId)).data;
+                        // !! need error handling
+                        //console.log(data.items);
+                        if (org) {
+                            for (let [i, ytVi] of Object.entries(data.items)) {
+                                let snippet = ytVi.snippet;
+                                console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
+                                let ic = {
+                                    organizationid: (_m = org.json) === null || _m === void 0 ? void 0 : _m._id,
+                                    url: url_name,
+                                    type: "video",
+                                    source: "youtube",
+                                    name: snippet.title,
+                                    tags: snippet.tags,
+                                    description: snippet.description,
+                                    language: snippet.defaultAudioLanguage,
+                                    blocked: false,
+                                    created: new Date(),
+                                    restrictions: []
+                                };
+                                if (!ic.language)
+                                    ic.language = 'en';
+                                let content = new content_1.default(undefined, ic);
+                                yield content.save();
+                                const msg = `New content added`;
+                                bot.sendMessage((_o = tgData.message) === null || _o === void 0 ? void 0 : _o.chat.id, msg, { disable_notification: true });
+                            }
+                        }
+                        else {
+                            const msg = `Role 'manage_content' expected`;
+                            bot.sendMessage((_p = tgData.message) === null || _p === void 0 ? void 0 : _p.chat.id, msg);
+                        }
+                    }
+                    else {
+                        console.log(`Couldn't recognize known domain: ${url_name}`);
+                    }
             }
         }
         return true;
+    });
+}
+function processMedia(bot, tgData) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return false;
     });
 }
 function getOrganizationByTgUser(bot, tgData) {
@@ -469,7 +535,7 @@ function addContent(bot, tgData) {
         if (!content) {
             let ic = {
                 organizationid: (_h = org.json) === null || _h === void 0 ? void 0 : _h._id,
-                type: "memes",
+                type: "image",
                 source: "telegram",
                 name: ((_j = tgData.message) === null || _j === void 0 ? void 0 : _j.caption) ? (_k = tgData.message) === null || _k === void 0 ? void 0 : _k.caption : '',
                 tags: [],

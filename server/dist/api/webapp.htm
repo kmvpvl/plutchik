@@ -134,6 +134,9 @@ control-panel-vector {
 .content {
     overflow: hidden;
 }
+quota {
+    font-size: xx-large;
+}
 </style>
 </head>
 <body>
@@ -421,11 +424,24 @@ function getnext(){
                     $('emotion[emotional-vector]').removeAttr('disabled');
                     break;
                 case 'web':
-                    if (data.content.type == 'image') {
-                        $(".content").html(`<img width="100%" height="auto" src="${data.content.url}"></img>`);
-                        $('emotion[emotional-vector]').removeAttr('disabled');
-                        break;
+                    switch (data.content.type) {
+                        case 'image':
+                            $(".content").html(`<img width="100%" height="auto" src="${data.content.url}"></img>`);
+                            $('emotion[emotional-vector]').removeAttr('disabled');
+                            break;
+                        default:
+                            ;
                     }
+                case 'embedded':
+                    switch (data.content.type) {
+                        case 'text':
+                            $(".content").html(`<quota>${data.content.description}</quota>`);
+                            $('emotion[emotional-vector]').removeAttr('disabled');
+                            break;
+                        default:
+                            ;
+                    }
+                    break;
                 default:
                     $(".content").html(`Unfortunatelly there have unknown content type. Url: ${data.content.url}. You can assess this content item, or get next`);
                     ;
