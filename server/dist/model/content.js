@@ -31,7 +31,7 @@ exports.ContentSchema = new mongoose_1.Schema({
     },
     source: {
         type: String,
-        enum: ["web", "telegram", "youtube"],
+        enum: ["web", "telegram", "youtube", "embedded"],
         required: true
     },
     tgData: {
