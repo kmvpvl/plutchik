@@ -5,7 +5,7 @@ import PlutchikError from "./error";
 import { MLStringSchema } from "./mlstring";
 import PlutchikProto from "./plutchikproto";
 
-export type ContentTypes = "text" | "memes" | "audio" | "video";
+export type ContentTypes = "text" | "image" | "audio" | "video";
 export type SourceType = "web" | "telegram" | "youtube";
 export interface IContent {
     _uid?: Types.ObjectId;
