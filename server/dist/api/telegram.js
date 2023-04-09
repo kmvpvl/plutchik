@@ -353,28 +353,55 @@ function yt_video_data(yt_video_id) {
     });
 }
 function processURLs(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     return __awaiter(this, void 0, void 0, function* () {
         // looking for URL
-        const URLs = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.entities) === null || _b === void 0 ? void 0 : _b.filter(v => v.type == "url");
-        if (!URLs || !URLs.length)
-            return false;
-        console.log(`url(s) found: ${(_c = tgData.message) === null || _c === void 0 ? void 0 : _c.text}`);
+        let org = yield getOrganizationByTgUser(bot, tgData);
+        const media_props = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.split(':');
+        const media_type = media_props ? media_props[0] : undefined;
+        const media_lang = media_props ? media_props[1] : undefined;
+        const media_name = media_props ? media_props[2] : undefined;
+        const media_desc = media_props ? media_props[3] : undefined;
+        const URLs = (_d = (_c = tgData.message) === null || _c === void 0 ? void 0 : _c.entities) === null || _d === void 0 ? void 0 : _d.filter(v => v.type == "url");
+        if (!URLs || !URLs.length) {
+            switch (media_type) {
+                case 'text':
+                    console.log(`Text found: Name = '${media_name}', lang = '${media_lang}'`);
+                    if (org) {
+                        let ic = {
+                            organizationid: (_e = org.json) === null || _e === void 0 ? void 0 : _e._id,
+                            type: "text",
+                            source: "embedded",
+                            name: media_name,
+                            tags: [],
+                            description: media_desc,
+                            language: media_lang,
+                            blocked: false,
+                            created: new Date(),
+                            restrictions: []
+                        };
+                        if (!ic.language)
+                            ic.language = 'en';
+                        let content = new content_1.default(undefined, ic);
+                        yield content.save();
+                        const msg = `New content added`;
+                        bot.sendMessage((_f = tgData.message) === null || _f === void 0 ? void 0 : _f.chat.id, msg, { disable_notification: true });
+                    }
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        console.log(`url(s) found: ${(_g = tgData.message) === null || _g === void 0 ? void 0 : _g.text}`);
         for (let [i, u] of Object.entries(URLs)) {
-            const url_name = (_e = (_d = tgData.message) === null || _d === void 0 ? void 0 : _d.text) === null || _e === void 0 ? void 0 : _e.substring(u.offset, u.offset + u.length);
+            const url_name = (_j = (_h = tgData.message) === null || _h === void 0 ? void 0 : _h.text) === null || _j === void 0 ? void 0 : _j.substring(u.offset, u.offset + u.length);
             console.log(`${colours_1.default.fg.green}Processing URL = '${url_name}'${colours_1.default.reset}`);
-            const media_props = (_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.text) === null || _g === void 0 ? void 0 : _g.split(':');
-            const media_type = media_props ? media_props[0] : undefined;
-            let org = yield getOrganizationByTgUser(bot, tgData);
             switch (media_type) {
                 case 'img':
-                    const media_lang = media_props ? media_props[1] : undefined;
-                    const media_name = media_props ? media_props[2] : undefined;
-                    const media_desc = media_props ? media_props[3] : undefined;
                     console.log(`Image found: Name = '${media_name}', lang = '${media_lang}'`);
                     if (org) {
                         let ic = {
-                            organizationid: (_h = org.json) === null || _h === void 0 ? void 0 : _h._id,
+                            organizationid: (_k = org.json) === null || _k === void 0 ? void 0 : _k._id,
                             url: url_name,
                             type: "image",
                             source: "web",
@@ -391,7 +418,7 @@ function processURLs(bot, tgData) {
                         let content = new content_1.default(undefined, ic);
                         yield content.save();
                         const msg = `New content added`;
-                        bot.sendMessage((_j = tgData.message) === null || _j === void 0 ? void 0 : _j.chat.id, msg, { disable_notification: true });
+                        bot.sendMessage((_l = tgData.message) === null || _l === void 0 ? void 0 : _l.chat.id, msg, { disable_notification: true });
                     }
                     break;
                 default:
@@ -406,7 +433,7 @@ function processURLs(bot, tgData) {
                                 let snippet = ytVi.snippet;
                                 console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
                                 let ic = {
-                                    organizationid: (_k = org.json) === null || _k === void 0 ? void 0 : _k._id,
+                                    organizationid: (_m = org.json) === null || _m === void 0 ? void 0 : _m._id,
                                     url: url_name,
                                     type: "video",
                                     source: "youtube",
@@ -423,12 +450,12 @@ function processURLs(bot, tgData) {
                                 let content = new content_1.default(undefined, ic);
                                 yield content.save();
                                 const msg = `New content added`;
-                                bot.sendMessage((_l = tgData.message) === null || _l === void 0 ? void 0 : _l.chat.id, msg, { disable_notification: true });
+                                bot.sendMessage((_o = tgData.message) === null || _o === void 0 ? void 0 : _o.chat.id, msg, { disable_notification: true });
                             }
                         }
                         else {
                             const msg = `Role 'manage_content' expected`;
-                            bot.sendMessage((_m = tgData.message) === null || _m === void 0 ? void 0 : _m.chat.id, msg);
+                            bot.sendMessage((_p = tgData.message) === null || _p === void 0 ? void 0 : _p.chat.id, msg);
                         }
                     }
                     else {

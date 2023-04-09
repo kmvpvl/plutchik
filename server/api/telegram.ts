@@ -307,20 +307,48 @@ async function yt_video_data(yt_video_id: string) {
 
 async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
     // looking for URL
+    let org = await getOrganizationByTgUser(bot, tgData);
+    const media_props = tgData.message?.text?.split(':');
+    const media_type = media_props?media_props[0]:undefined;
+    const media_lang = media_props?media_props[1]:undefined;
+    const media_name = media_props?media_props[2]:undefined;
+    const media_desc = media_props?media_props[3]:undefined;
+    
     const URLs = tgData.message?.entities?.filter(v => v.type == "url");
-    if (!URLs || !(URLs as any).length) return false;
+    if (!URLs || !(URLs as any).length) {
+        switch(media_type){
+            case 'text':
+                console.log(`Text found: Name = '${media_name}', lang = '${media_lang}'`);
+                if (org) {
+                    let ic: IContent = {
+                        organizationid: org.json?._id,
+                        type: "text",
+                        source: "embedded",
+                        name: media_name as string,
+                        tags:[],
+                        description: media_desc as string,
+                        language:media_lang as string,
+                        blocked: false,
+                        created: new Date(),
+                        restrictions:[]
+                    };
+                    if (!ic.language) ic.language = 'en';
+                    let content = new Content(undefined, ic);
+                    await content.save();
+                    const msg = `New content added`;
+                    bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
+                }
+                return true;
+            default:
+                return false;
+            }
+    }
     console.log(`url(s) found: ${tgData.message?.text}`);
     for (let [i, u] of Object.entries(URLs)) {
         const url_name = tgData.message?.text?.substring(u.offset, u.offset + u.length);
         console.log(`${colours.fg.green}Processing URL = '${url_name}'${colours.reset}`);
-        const media_props = tgData.message?.text?.split(':');
-        const media_type = media_props?media_props[0]:undefined;
-        let org = await getOrganizationByTgUser(bot, tgData);
         switch (media_type) {
             case 'img':
-                const media_lang = media_props?media_props[1]:undefined;
-                const media_name = media_props?media_props[2]:undefined;
-                const media_desc = media_props?media_props[3]:undefined;
                 console.log(`Image found: Name = '${media_name}', lang = '${media_lang}'`);
                 if (org) {
                     let ic: IContent = {
@@ -381,6 +409,7 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                     console.log(`Couldn't recognize known domain: ${url_name}`);
                 }
         }
+
     }
     return true;
 }
