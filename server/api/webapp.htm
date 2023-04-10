@@ -29,6 +29,8 @@ body {
     grid-template-rows: auto auto auto 1fr;
     margin: 0;
     padding: 2px;
+    color: var(--tg-theme-text-color);
+    background-color: var(--tg-theme-bg-color);
 }
 debuginfo {
     display: none;
@@ -79,7 +81,7 @@ debuginfo.small {
   fill:transparent;
   stroke-width: 1px;
   opacity: 0.5;
-  stroke: black;
+  stroke: var(--tg-theme-text-color);
 }
 .disabled{
   fill:silver;
@@ -259,6 +261,15 @@ function yt_id(url) {
     return r?r[1]:undefined;
 }
 
+const assess = new Map([
+    ['en', 'Assess']
+    ,['ru', 'Оценить']
+    ,['de', 'Bewerten']
+    ,['es', 'Evaluar']
+    ,['uk', 'Оцінити']
+]);
+
+
 const emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
 const ml_emotions = new Map([
     ['en', new Map([
@@ -351,7 +362,6 @@ let tg = window.Telegram.WebApp;
 $('debuginfo').on('click', ()=>{
     $('debuginfo').toggleClass('small');
 });
-tg.MainButton.text = "ASSESS";
 tg.MainButton.show();
 function init() {
     for (let i in $('emotion[emotional-vector]')) {
@@ -367,6 +377,7 @@ function renderFlower(){
 }
 function render(lang = 'en') {
     renderFlower();
+    tg.MainButton.text = assess.get(lang)?assess.get(lang):assess.get('en');
     $('.vector-header').text(myEmotions.get(lang)?myEmotions.get(lang):myEmotions.get('en'));
     for (const [i, ob] of Object.entries(emotion_objects)) {
         ob.lang = lang;
