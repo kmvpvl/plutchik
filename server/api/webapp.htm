@@ -135,9 +135,14 @@ control-panel-vector {
 }
 .content {
     overflow: hidden;
+    text-align: center;
 }
 quota {
     font-size: xx-large;
+}
+.fit-img {
+    max-width: 100%;
+    max-height: 100%;
 }
 </style>
 </head>
@@ -437,7 +442,7 @@ function getnext(){
                 case 'web':
                     switch (data.content.type) {
                         case 'image':
-                            $(".content").html(`<img width="100%" height="auto" src="${data.content.url}"></img>`);
+                            $(".content").html(`<img class="fit-img" src="${data.content.url}"></img>`);
                             $('emotion[emotional-vector]').removeAttr('disabled');
                             break;
                         default:
