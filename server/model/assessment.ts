@@ -27,7 +27,16 @@ export const AssessmentSchema = new Schema({
     uid: {type: Types.ObjectId, required: false},
     organizationid: Types.ObjectId,
     cid: Types.ObjectId,
-    vector: Map <String, Number>,
+    vector: {
+        joy: {type: Number, required: false},
+        trust: {type: Number, required: false},
+        fear: {type: Number, required: false},
+        surprise: {type: Number, required: false},
+        disgust: {type: Number, required: false},
+        sadness: {type: Number, required: false},
+        anger: {type: Number, required: false},
+        anticipation: {type: Number, required: false}
+    },
     tags: {type: Array<String>, required: false},
     rating: {type: Number, required: false},
     created: Date
