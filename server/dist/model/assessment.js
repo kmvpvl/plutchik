@@ -21,7 +21,16 @@ exports.AssessmentSchema = new mongoose_1.Schema({
     uid: { type: mongoose_1.Types.ObjectId, required: false },
     organizationid: mongoose_1.Types.ObjectId,
     cid: mongoose_1.Types.ObjectId,
-    vector: (Map),
+    vector: {
+        joy: { type: Number, required: false },
+        trust: { type: Number, required: false },
+        fear: { type: Number, required: false },
+        surprise: { type: Number, required: false },
+        disgust: { type: Number, required: false },
+        sadness: { type: Number, required: false },
+        anger: { type: Number, required: false },
+        anticipation: { type: Number, required: false }
+    },
     tags: { type: (Array), required: false },
     rating: { type: Number, required: false },
     created: Date
