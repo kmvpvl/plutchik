@@ -65,6 +65,13 @@ const set_language = new Map([
     ['es', 'Elegir lenguaje'],
     ['de', 'Sprache einstellen']
 ]);
+const set_age = new Map([
+    ['en', 'Set my age'],
+    ['uk', 'Встановити мій вік'],
+    ['ru', 'Ввести мой возраст'],
+    ['es', 'establecer mi edad'],
+    ['de', 'Stellen Sie mein Alter ein']
+]);
 const choose_language = new Map([
     ['en', 'Choose language'],
     ['uk', 'Виберіть мову'],
@@ -79,6 +86,33 @@ const language_changed = new Map([
     ['es', 'Idioma cambiado'],
     ['de', 'Sprache geändert']
 ]);
+const enter_age = new Map([
+    ['en', 'Enter your age'],
+    ['uk', 'Введіть свій вік'],
+    ['ru', 'Введите свой возраст'],
+    ['es', 'Introduzca su edad'],
+    ['de', 'Gebe Dein Alter ein']
+]);
+function notANumber(lang) {
+    switch (lang) {
+        case 'de': return 'Das Alter muss eine ganze Zahl sein';
+        case 'es': return 'La edad debe ser un número entero.';
+        case 'ru': return 'Возраст должен быть целым числом';
+        case 'uk': return 'Вік має бути цілим числом';
+        case 'en':
+        default: return 'The age must be a whole number';
+    }
+}
+function ageSet(lang) {
+    switch (lang) {
+        case 'de': return 'Das Alter wurde erfolgreich eingestellt';
+        case 'es': return 'La edad se ha fijado con éxito';
+        case 'ru': return 'Возраст установлен успешно';
+        case 'uk': return 'Вік поставив вдало';
+        case 'en':
+        default: return 'The age has set successfully';
+    }
+}
 function tg_bot_start_menu(lang) {
     return {
         reply_markup: {
@@ -113,6 +147,11 @@ function tg_bot_settings_menu(lang) {
                         text: 'Set my location',
                         callback_data: 'set_location'
                     }*/
+                    ,
+                    {
+                        text: set_age.get(lang) ? set_age.get(lang) : set_age.get('en'),
+                        callback_data: 'set_age'
+                    }
                 ],
                 [
                     {
@@ -161,7 +200,7 @@ const tg_bot_set_language_menu = {
     }
 };
 function telegram(c, req, res, bot) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram function${colours_1.default.reset}`);
         const tgData = req.body;
@@ -186,7 +225,10 @@ function telegram(c, req, res, bot) {
                         yield (u === null || u === void 0 ? void 0 : u.changeNativeLanguage(lang));
                         bot.sendMessage((_j = (_h = tgData.callback_query) === null || _h === void 0 ? void 0 : _h.message) === null || _j === void 0 ? void 0 : _j.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_k = u === null || u === void 0 ? void 0 : u.json) === null || _k === void 0 ? void 0 : _k.nativelanguage));
                         break;
-                    default: bot.sendMessage((_m = (_l = tgData.callback_query) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_o = u === null || u === void 0 ? void 0 : u.json) === null || _o === void 0 ? void 0 : _o.nativelanguage));
+                    case 'set_age':
+                        menuSetAge(bot, (_m = (_l = tgData.callback_query) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m.chat.id, u);
+                        break;
+                    default: bot.sendMessage((_p = (_o = tgData.callback_query) === null || _o === void 0 ? void 0 : _o.message) === null || _p === void 0 ? void 0 : _p.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_q = u === null || u === void 0 ? void 0 : u.json) === null || _q === void 0 ? void 0 : _q.nativelanguage));
                 }
                 return res.status(200).json("OK");
             }
@@ -194,11 +236,31 @@ function telegram(c, req, res, bot) {
                 return res.status(400).json(e);
             }
         }
-        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_q = (_p = tgData.message) === null || _p === void 0 ? void 0 : _p.from) === null || _q === void 0 ? void 0 : _q.id}'${colours_1.default.reset}; chat_id = '${(_r = tgData.message) === null || _r === void 0 ? void 0 : _r.chat.id}'`);
+        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_s = (_r = tgData.message) === null || _r === void 0 ? void 0 : _r.from) === null || _s === void 0 ? void 0 : _s.id}'${colours_1.default.reset}; chat_id = '${(_t = tgData.message) === null || _t === void 0 ? void 0 : _t.chat.id}'`);
+        const u = yield getUserByTgUserId((_v = (_u = tgData.message) === null || _u === void 0 ? void 0 : _u.from) === null || _v === void 0 ? void 0 : _v.id);
+        if ((_w = u === null || u === void 0 ? void 0 : u.json) === null || _w === void 0 ? void 0 : _w.awaitcommanddata) {
+            switch ((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.awaitcommanddata) {
+                case 'set_age':
+                    const age = parseInt((_y = tgData.message) === null || _y === void 0 ? void 0 : _y.text);
+                    if (isNaN(age)) {
+                        bot.sendMessage((_z = tgData.message) === null || _z === void 0 ? void 0 : _z.chat.id, notANumber((_0 = u === null || u === void 0 ? void 0 : u.json) === null || _0 === void 0 ? void 0 : _0.nativelanguage));
+                    }
+                    else {
+                        yield u.setAge(age);
+                        yield u.setAwaitCommandData();
+                        bot.sendMessage((_1 = tgData.message) === null || _1 === void 0 ? void 0 : _1.chat.id, ageSet((_2 = u === null || u === void 0 ? void 0 : u.json) === null || _2 === void 0 ? void 0 : _2.nativelanguage), tg_bot_start_menu((_3 = u === null || u === void 0 ? void 0 : u.json) === null || _3 === void 0 ? void 0 : _3.nativelanguage));
+                    }
+                    return res.status(200).json("OK");
+                    break;
+                default:
+                    yield u.setAwaitCommandData();
+                    return res.status(200).json("OK");
+            }
+        }
         try {
             if (!(yield processCommands(bot, tgData))
                 && !(yield processURLs(bot, tgData))) {
-                bot.sendMessage((_s = tgData.message) === null || _s === void 0 ? void 0 : _s.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
+                bot.sendMessage((_4 = tgData.message) === null || _4 === void 0 ? void 0 : _4.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
             }
             ;
             return res.status(200).json("OK");
@@ -332,6 +394,11 @@ function yt_id(url) {
 function menuSetLanguage(bot, chat_id, user) {
     var _a, _b;
     bot.sendMessage(chat_id, choose_language.get((_a = user.json) === null || _a === void 0 ? void 0 : _a.nativelanguage) ? choose_language.get((_b = user.json) === null || _b === void 0 ? void 0 : _b.nativelanguage) : choose_language.get('en'), tg_bot_set_language_menu);
+}
+function menuSetAge(bot, chat_id, user) {
+    var _a, _b;
+    bot.sendMessage(chat_id, enter_age.get((_a = user.json) === null || _a === void 0 ? void 0 : _a.nativelanguage) ? enter_age.get((_b = user.json) === null || _b === void 0 ? void 0 : _b.nativelanguage) : enter_age.get('en'));
+    user.setAwaitCommandData("set_age");
 }
 function yt_video_data(yt_video_id) {
     return __awaiter(this, void 0, void 0, function* () {
