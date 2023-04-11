@@ -23,12 +23,14 @@ exports.UserSchema = new mongoose_1.Schema({
     organizationid: { type: mongoose_1.Types.ObjectId, require: false },
     tguserid: { type: Number, require: false },
     birthdate: { type: Date, require: false },
+    birthdateapproximately: { type: Boolean, require: false },
     nativelanguage: { type: String, require: false },
     secondlanguages: { type: (Array), require: false },
     location: { type: String, require: false },
     gender: { type: String, require: false },
     maritalstatus: { type: String, require: false },
     features: { type: String, require: false },
+    awaitcommanddata: { type: String, require: false },
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -82,7 +84,7 @@ class User extends plutchikproto_1.default {
             yield this.checkData();
             yield _super.save.call(this);
             if (this.id) {
-                yield exports.mongoUsers.findByIdAndUpdate(this.id, this.data);
+                yield exports.mongoUsers.findByIdAndUpdate(this.id, this.data, { overwrite: true });
                 console.log(`User data was successfully updated. User id = '${this.id}'`);
             }
             else {
@@ -123,6 +125,29 @@ class User extends plutchikproto_1.default {
             yield this.checkData();
             if (this.data)
                 this.data.nativelanguage = lang;
+            yield this.save();
+        });
+    }
+    setAge(age) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data) {
+                let d = new Date();
+                d.setFullYear(d.getFullYear() - age);
+                this.data.birthdate = d;
+                this.data.birthdateapproximately = true;
+            }
+            yield this.save();
+        });
+    }
+    setAwaitCommandData(cmd) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data) {
+                this.data.awaitcommanddata = cmd;
+                if (!cmd)
+                    delete this.data.awaitcommanddata;
+            }
             yield this.save();
         });
     }
