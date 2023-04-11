@@ -33,6 +33,14 @@ const set_language: Map<string, string> = new Map([
     ,['de', 'Sprache einstellen']
 ]);
 
+const set_age: Map<string, string> = new Map([
+    ['en', 'Set my age']
+    ,['uk', 'Встановити мій вік']
+    ,['ru', 'Ввести мой возраст']
+    ,['es', 'establecer mi edad']
+    ,['de', 'Stellen Sie mein Alter ein']
+]);
+
 const choose_language: Map<string, string> = new Map([
     ['en', 'Choose language']
     ,['uk', 'Виберіть мову']
@@ -48,6 +56,36 @@ const language_changed: Map<string, string> = new Map([
     ,['es', 'Idioma cambiado']
     ,['de', 'Sprache geändert']
 ]);
+
+const enter_age: Map<string, string> = new Map([
+    ['en', 'Enter your age']
+    ,['uk', 'Введіть свій вік']
+    ,['ru', 'Введите свой возраст']
+    ,['es', 'Introduzca su edad']
+    ,['de', 'Gebe Dein Alter ein']
+]);
+
+function notANumber(lang: string) {
+    switch(lang) {
+        case 'de': return 'Das Alter muss eine ganze Zahl sein';
+        case 'es': return 'La edad debe ser un número entero.';
+        case 'ru': return 'Возраст должен быть целым числом';
+        case 'uk': return 'Вік має бути цілим числом';
+        case 'en':
+        default: return 'The age must be a whole number';
+    }
+}
+
+function ageSet(lang: string) {
+    switch(lang) {
+        case 'de': return 'Das Alter wurde erfolgreich eingestellt';
+        case 'es': return 'La edad se ha fijado con éxito';
+        case 'ru': return 'Возраст установлен успешно';
+        case 'uk': return 'Вік поставив вдало';
+        case 'en':
+        default: return 'The age has set successfully';
+    }
+}
 
 function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
     return  {
@@ -83,6 +121,10 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                         text: 'Set my location',
                         callback_data: 'set_location'
                     }*/
+                    ,{
+                        text: set_age.get(lang)?set_age.get(lang) as string:set_age.get('en') as string,
+                        callback_data: 'set_age'
+                    }
                 ]
                 ,[
                     {
@@ -155,6 +197,10 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     await u?.changeNativeLanguage(lang);
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, language_changed.get(lang)?language_changed.get(lang) as string:language_changed.get('en') as string, tg_bot_start_menu(u?.json?.nativelanguage as string));
                     break;
+                case 'set_age':
+                    menuSetAge(bot, tgData.callback_query?.message?.chat.id as number, u as User);
+                    break;
+                
                 default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu(u?.json?.nativelanguage as string));
             }
             return res.status(200).json("OK");
@@ -163,6 +209,27 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
         }
     }
     console.log(`${colours.fg.blue}Telegram userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${tgData.message?.chat.id}'`);
+
+    const u = await getUserByTgUserId(tgData.message?.from?.id as number);
+    if (u?.json?.awaitcommanddata){
+        switch(u?.json?.awaitcommanddata) {
+            case 'set_age':
+                const age = parseInt(tgData.message?.text as string);
+                if (isNaN(age)) {
+                    bot.sendMessage(tgData.message?.chat.id as number, notANumber(u?.json?.nativelanguage as string));
+                } else {
+                    await u.setAge(age);
+                    await u.setAwaitCommandData();
+                    bot.sendMessage(tgData.message?.chat.id as number, ageSet(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
+                }
+                return res.status(200).json("OK");
+                break;
+
+            default:
+                await u.setAwaitCommandData();
+                return res.status(200).json("OK");
+        }
+    }
     try{
         if (
             !await processCommands(bot, tgData) 
@@ -286,6 +353,11 @@ function yt_id(url: string): string|undefined {
 
 function menuSetLanguage(bot: TelegramBot, chat_id: number, user: User){
     bot.sendMessage(chat_id, choose_language.get(user.json?.nativelanguage as string)?choose_language.get(user.json?.nativelanguage as string) as string:choose_language.get('en') as string, tg_bot_set_language_menu);
+}
+
+function menuSetAge(bot: TelegramBot, chat_id: number, user: User){
+    bot.sendMessage(chat_id, enter_age.get(user.json?.nativelanguage as string)?enter_age.get(user.json?.nativelanguage as string) as string:enter_age.get('en') as string);
+    user.setAwaitCommandData("set_age");
 }
 
 async function yt_video_data(yt_video_id: string) {

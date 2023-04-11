@@ -12,6 +12,7 @@ export interface IUser {
     tguserid?: number;
     organizationid?: Types.ObjectId;
     birthdate?: Date;
+    birthdateapproximately?: boolean;
     nativelanguage?: string;
     secondlanguages?: Array<string>,
     location?: string;
@@ -21,6 +22,7 @@ export interface IUser {
     blocked: boolean;
     created: Date;
     changed?: Date;
+    awaitcommanddata?: string;
     history?: Array<any>;
 }
 
@@ -28,12 +30,14 @@ export const UserSchema = new Schema({
     organizationid: {type: Types.ObjectId, require: false},
     tguserid: {type: Number, require: false},
     birthdate: {type: Date, require: false},
+    birthdateapproximately: {type: Boolean, require: false},
     nativelanguage: {type: String, require: false},
     secondlanguages: {type: Array<string>, require: false},
     location: {type: String, require: false},
     gender: {type: String, require: false},
     maritalstatus: {type: String, require: false},
     features: {type: String, require: false},
+    awaitcommanddata: {type: String, require: false},
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -71,7 +75,7 @@ export default class User extends PlutchikProto<IUser> {
         await this.checkData();
         await super.save();
         if (this.id){
-            await mongoUsers.findByIdAndUpdate(this.id, this.data);
+            await mongoUsers.findByIdAndUpdate(this.id, this.data, {overwrite:true});
             console.log(`User data was successfully updated. User id = '${this.id}'`);
         } else { 
             const userInserted = await mongoUsers.insertMany([this.data]);
@@ -106,6 +110,26 @@ export default class User extends PlutchikProto<IUser> {
     public async changeNativeLanguage(lang:string) {
         await this.checkData();
         if (this.data) this.data.nativelanguage = lang;
+        await this.save();
+    }
+
+    public async setAge(age: number) {
+        await this.checkData();
+        if (this.data) {
+            let d = new Date();
+            d.setFullYear(d.getFullYear() - age);
+            this.data.birthdate = d;
+            this.data.birthdateapproximately = true;
+        }
+        await this.save();
+    }
+
+    public async setAwaitCommandData(cmd?: string) {
+        await this.checkData();
+        if (this.data) {
+            this.data.awaitcommanddata = cmd;
+            if (!cmd) delete this.data.awaitcommanddata;
+        }
         await this.save();
     }
 
