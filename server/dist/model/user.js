@@ -151,6 +151,15 @@ class User extends plutchikproto_1.default {
             yield this.save();
         });
     }
+    deleteTgUser() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data) {
+                this.data.tguserid = -1;
+            }
+            yield this.save();
+        });
+    }
     nextContentItem(language, source_type) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {

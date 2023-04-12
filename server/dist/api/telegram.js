@@ -93,6 +93,16 @@ const enter_age = new Map([
     ['es', 'Introduzca su edad'],
     ['de', 'Gebe Dein Alter ein']
 ]);
+function choose_delete_way(lang) {
+    switch (lang) {
+        case 'de': return 'Wir bedauern sehr, dass Sie uns verlassen. Bitte wählen Sie eine Methode zum Löschen Ihrer Daten';
+        case 'es': return 'Lamentamos mucho que nos dejes. Seleccione un método para eliminar sus datos';
+        case 'ru': return 'Нам очень жаль, что вы покидаете нас. Пожалуйста, выберите способ удаления ваших данных';
+        case 'uk': return 'Нам дуже шкода, що ви залишаєте нас. Будь ласка, виберіть спосіб видалення ваших даних';
+        case 'en':
+        default: return 'We are very sorry that you are leaving us. Please select a method for deleting your data';
+    }
+}
 function notANumber(lang) {
     switch (lang) {
         case 'de': return 'Das Alter muss eine ganze Zahl sein';
@@ -113,6 +123,56 @@ function ageSet(lang) {
         default: return 'The age has set successfully';
     }
 }
+function deleteMyAccount(lang) {
+    switch (lang) {
+        case 'de': return 'mein Konto löschen';
+        case 'es': return 'borrar mi cuenta';
+        case 'ru': return 'Удалить мои данные';
+        case 'uk': return 'видалити мої дані';
+        case 'en':
+        default: return 'Delete my account';
+    }
+}
+function accountDeleted(lang) {
+    switch (lang) {
+        case 'de': return 'Ihr Konto wurde erfolgreich gelöscht. Um fortzufahren, geben Sie /start ein';
+        case 'es': return 'Su cuenta eliminada con éxito. Para reanudar escriba /start';
+        case 'ru': return 'Ваша учетная запись удалена успешно. Чтобы возобновить введите /start';
+        case 'uk': return 'Ваш обліковий запис успішно видалено. Щоб відновити, введіть /start';
+        case 'en':
+        default: return 'Your accaunt deleted successfully. To resume type /start';
+    }
+}
+function userNotFound(lang) {
+    switch (lang) {
+        case 'de': return 'Entschuldigung, Ihr Konto wurde nicht gefunden. Drücke /start';
+        case 'es': return 'Lo sentimos, no se encontró su cuenta. Presiona /start';
+        case 'ru': return 'Ваша учетная запись не найдена. Чтобы возобновить введите /start';
+        case 'uk': return 'Вибачте, ваш обліковий запис не знайдено. Натисніть /start';
+        case 'en':
+        default: return 'Sorry, your account not found. Press /start';
+    }
+}
+function deleteMyAccountA(lang) {
+    switch (lang) {
+        case 'de': return 'Lassen Sie Bewertungen anonym. Nur Konto löschen';
+        case 'es': return 'Dejar evaluaciones anónimas. Eliminar cuenta solamente';
+        case 'ru': return 'Оценки оставить анонимно. Удалить только учетную запись';
+        case 'uk': return 'Залиште оцінки анонімними. Видалити лише обліковий запис';
+        case 'en':
+        default: return 'Leave assessments anonymous. Delete account only';
+    }
+}
+function deleteMyAccountB(lang) {
+    switch (lang) {
+        case 'de': return 'Alles löschen';
+        case 'es': return 'Eliminar todos';
+        case 'ru': return 'Удалить всё';
+        case 'uk': return 'Видалити все';
+        case 'en':
+        default: return 'Delete all';
+    }
+}
 function tg_bot_start_menu(lang) {
     return {
         reply_markup: {
@@ -127,6 +187,26 @@ function tg_bot_start_menu(lang) {
                     {
                         text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
                         callback_data: 'settings'
+                    }
+                ]
+            ]
+        }
+    };
+}
+;
+function tg_bot_set_delete_menu(lang) {
+    return {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: deleteMyAccountA(lang),
+                        callback_data: 'delete_my_account_a'
+                    }
+                ], [
+                    {
+                        text: deleteMyAccountB(lang),
+                        callback_data: 'delete_my_account_b'
                     }
                 ]
             ]
@@ -151,6 +231,11 @@ function tg_bot_settings_menu(lang) {
                     {
                         text: set_age.get(lang) ? set_age.get(lang) : set_age.get('en'),
                         callback_data: 'set_age'
+                    }
+                ], [
+                    {
+                        text: deleteMyAccount(lang),
+                        callback_data: 'delete_account'
                     }
                 ],
                 [
@@ -200,20 +285,24 @@ const tg_bot_set_language_menu = {
     }
 };
 function telegram(c, req, res, bot) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram function${colours_1.default.reset}`);
         const tgData = req.body;
         if (tgData.callback_query) {
             try {
                 const u = yield getUserByTgUserId(tgData.callback_query.from.id);
+                if (!u) {
+                    bot.sendMessage((_b = (_a = tgData.callback_query) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.chat.id, userNotFound(tgData.callback_query.from.language_code));
+                    return res.status(200).json("User not found");
+                }
                 console.log(`Callback command '${tgData.callback_query.data}'`);
                 switch (tgData.callback_query.data) {
                     case 'settings':
-                        bot.sendMessage((_b = (_a = tgData.callback_query) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.chat.id, my_settings.get((_c = u === null || u === void 0 ? void 0 : u.json) === null || _c === void 0 ? void 0 : _c.nativelanguage) ? my_settings.get((_d = u === null || u === void 0 ? void 0 : u.json) === null || _d === void 0 ? void 0 : _d.nativelanguage) : my_settings.get('en'), tg_bot_settings_menu((_e = u === null || u === void 0 ? void 0 : u.json) === null || _e === void 0 ? void 0 : _e.nativelanguage));
+                        bot.sendMessage((_d = (_c = tgData.callback_query) === null || _c === void 0 ? void 0 : _c.message) === null || _d === void 0 ? void 0 : _d.chat.id, my_settings.get((_e = u === null || u === void 0 ? void 0 : u.json) === null || _e === void 0 ? void 0 : _e.nativelanguage) ? my_settings.get((_f = u === null || u === void 0 ? void 0 : u.json) === null || _f === void 0 ? void 0 : _f.nativelanguage) : my_settings.get('en'), tg_bot_settings_menu((_g = u === null || u === void 0 ? void 0 : u.json) === null || _g === void 0 ? void 0 : _g.nativelanguage));
                         break;
                     case 'set_language':
-                        menuSetLanguage(bot, (_g = (_f = tgData.callback_query) === null || _f === void 0 ? void 0 : _f.message) === null || _g === void 0 ? void 0 : _g.chat.id, u);
+                        menuSetLanguage(bot, (_j = (_h = tgData.callback_query) === null || _h === void 0 ? void 0 : _h.message) === null || _j === void 0 ? void 0 : _j.chat.id, u);
                         break;
                     case 'set_language_en':
                     case 'set_language_uk':
@@ -223,12 +312,20 @@ function telegram(c, req, res, bot) {
                         const lang = tgData.callback_query.data.split('_')[2];
                         console.log(`Changing user's language to '${lang}'`);
                         yield (u === null || u === void 0 ? void 0 : u.changeNativeLanguage(lang));
-                        bot.sendMessage((_j = (_h = tgData.callback_query) === null || _h === void 0 ? void 0 : _h.message) === null || _j === void 0 ? void 0 : _j.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_k = u === null || u === void 0 ? void 0 : u.json) === null || _k === void 0 ? void 0 : _k.nativelanguage));
+                        bot.sendMessage((_l = (_k = tgData.callback_query) === null || _k === void 0 ? void 0 : _k.message) === null || _l === void 0 ? void 0 : _l.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_m = u === null || u === void 0 ? void 0 : u.json) === null || _m === void 0 ? void 0 : _m.nativelanguage));
                         break;
                     case 'set_age':
-                        menuSetAge(bot, (_m = (_l = tgData.callback_query) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m.chat.id, u);
+                        menuSetAge(bot, (_p = (_o = tgData.callback_query) === null || _o === void 0 ? void 0 : _o.message) === null || _p === void 0 ? void 0 : _p.chat.id, u);
                         break;
-                    default: bot.sendMessage((_p = (_o = tgData.callback_query) === null || _o === void 0 ? void 0 : _o.message) === null || _p === void 0 ? void 0 : _p.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_q = u === null || u === void 0 ? void 0 : u.json) === null || _q === void 0 ? void 0 : _q.nativelanguage));
+                    case 'delete_account':
+                        menuDeleteAccount(bot, (_r = (_q = tgData.callback_query) === null || _q === void 0 ? void 0 : _q.message) === null || _r === void 0 ? void 0 : _r.chat.id, u);
+                        break;
+                    case 'delete_my_account_a':
+                    case 'delete_my_account_b':
+                        yield u.deleteTgUser();
+                        bot.sendMessage((_t = (_s = tgData.callback_query) === null || _s === void 0 ? void 0 : _s.message) === null || _t === void 0 ? void 0 : _t.chat.id, accountDeleted((_u = u === null || u === void 0 ? void 0 : u.json) === null || _u === void 0 ? void 0 : _u.nativelanguage));
+                        break;
+                    default: bot.sendMessage((_w = (_v = tgData.callback_query) === null || _v === void 0 ? void 0 : _v.message) === null || _w === void 0 ? void 0 : _w.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.nativelanguage));
                 }
                 return res.status(200).json("OK");
             }
@@ -236,19 +333,19 @@ function telegram(c, req, res, bot) {
                 return res.status(400).json(e);
             }
         }
-        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_s = (_r = tgData.message) === null || _r === void 0 ? void 0 : _r.from) === null || _s === void 0 ? void 0 : _s.id}'${colours_1.default.reset}; chat_id = '${(_t = tgData.message) === null || _t === void 0 ? void 0 : _t.chat.id}'`);
-        const u = yield getUserByTgUserId((_v = (_u = tgData.message) === null || _u === void 0 ? void 0 : _u.from) === null || _v === void 0 ? void 0 : _v.id);
-        if ((_w = u === null || u === void 0 ? void 0 : u.json) === null || _w === void 0 ? void 0 : _w.awaitcommanddata) {
-            switch ((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.awaitcommanddata) {
+        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_z = (_y = tgData.message) === null || _y === void 0 ? void 0 : _y.from) === null || _z === void 0 ? void 0 : _z.id}'${colours_1.default.reset}; chat_id = '${(_0 = tgData.message) === null || _0 === void 0 ? void 0 : _0.chat.id}'`);
+        const u = yield getUserByTgUserId((_2 = (_1 = tgData.message) === null || _1 === void 0 ? void 0 : _1.from) === null || _2 === void 0 ? void 0 : _2.id);
+        if ((_3 = u === null || u === void 0 ? void 0 : u.json) === null || _3 === void 0 ? void 0 : _3.awaitcommanddata) {
+            switch ((_4 = u === null || u === void 0 ? void 0 : u.json) === null || _4 === void 0 ? void 0 : _4.awaitcommanddata) {
                 case 'set_age':
-                    const age = parseInt((_y = tgData.message) === null || _y === void 0 ? void 0 : _y.text);
+                    const age = parseInt((_5 = tgData.message) === null || _5 === void 0 ? void 0 : _5.text);
                     if (isNaN(age)) {
-                        bot.sendMessage((_z = tgData.message) === null || _z === void 0 ? void 0 : _z.chat.id, notANumber((_0 = u === null || u === void 0 ? void 0 : u.json) === null || _0 === void 0 ? void 0 : _0.nativelanguage));
+                        bot.sendMessage((_6 = tgData.message) === null || _6 === void 0 ? void 0 : _6.chat.id, notANumber((_7 = u === null || u === void 0 ? void 0 : u.json) === null || _7 === void 0 ? void 0 : _7.nativelanguage));
                     }
                     else {
                         yield u.setAge(age);
                         yield u.setAwaitCommandData();
-                        bot.sendMessage((_1 = tgData.message) === null || _1 === void 0 ? void 0 : _1.chat.id, ageSet((_2 = u === null || u === void 0 ? void 0 : u.json) === null || _2 === void 0 ? void 0 : _2.nativelanguage), tg_bot_start_menu((_3 = u === null || u === void 0 ? void 0 : u.json) === null || _3 === void 0 ? void 0 : _3.nativelanguage));
+                        bot.sendMessage((_8 = tgData.message) === null || _8 === void 0 ? void 0 : _8.chat.id, ageSet((_9 = u === null || u === void 0 ? void 0 : u.json) === null || _9 === void 0 ? void 0 : _9.nativelanguage), tg_bot_start_menu((_10 = u === null || u === void 0 ? void 0 : u.json) === null || _10 === void 0 ? void 0 : _10.nativelanguage));
                     }
                     return res.status(200).json("OK");
                     break;
@@ -260,7 +357,7 @@ function telegram(c, req, res, bot) {
         try {
             if (!(yield processCommands(bot, tgData))
                 && !(yield processURLs(bot, tgData))) {
-                bot.sendMessage((_4 = tgData.message) === null || _4 === void 0 ? void 0 : _4.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
+                bot.sendMessage((_11 = tgData.message) === null || _11 === void 0 ? void 0 : _11.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
             }
             ;
             return res.status(200).json("OK");
@@ -399,6 +496,10 @@ function menuSetAge(bot, chat_id, user) {
     var _a, _b;
     bot.sendMessage(chat_id, enter_age.get((_a = user.json) === null || _a === void 0 ? void 0 : _a.nativelanguage) ? enter_age.get((_b = user.json) === null || _b === void 0 ? void 0 : _b.nativelanguage) : enter_age.get('en'));
     user.setAwaitCommandData("set_age");
+}
+function menuDeleteAccount(bot, chat_id, user) {
+    var _a, _b;
+    bot.sendMessage(chat_id, choose_delete_way((_a = user.json) === null || _a === void 0 ? void 0 : _a.nativelanguage), tg_bot_set_delete_menu((_b = user.json) === null || _b === void 0 ? void 0 : _b.nativelanguage));
 }
 function yt_video_data(yt_video_id) {
     return __awaiter(this, void 0, void 0, function* () {

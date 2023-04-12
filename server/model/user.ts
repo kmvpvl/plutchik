@@ -132,6 +132,13 @@ export default class User extends PlutchikProto<IUser> {
         }
         await this.save();
     }
+    public async deleteTgUser(){
+        await this.checkData();
+        if (this.data) {
+            this.data.tguserid = -1;
+        }
+        await this.save();
+    }
 
     public async nextContentItem(language?: string, source_type?: SourceType): Promise <IContent>{
         //this.checkData();
