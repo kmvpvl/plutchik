@@ -65,6 +65,17 @@ const enter_age: Map<string, string> = new Map([
     ,['de', 'Gebe Dein Alter ein']
 ]);
 
+function choose_delete_way(lang: string) {
+    switch(lang) {
+        case 'de': return 'Wir bedauern sehr, dass Sie uns verlassen. Bitte wählen Sie eine Methode zum Löschen Ihrer Daten';
+        case 'es': return 'Lamentamos mucho que nos dejes. Seleccione un método para eliminar sus datos';
+        case 'ru': return 'Нам очень жаль, что вы покидаете нас. Пожалуйста, выберите способ удаления ваших данных';
+        case 'uk': return 'Нам дуже шкода, що ви залишаєте нас. Будь ласка, виберіть спосіб видалення ваших даних';
+        case 'en':
+        default: return 'We are very sorry that you are leaving us. Please select a method for deleting your data';
+    }
+}
+
 function notANumber(lang: string) {
     switch(lang) {
         case 'de': return 'Das Alter muss eine ganze Zahl sein';
@@ -76,7 +87,7 @@ function notANumber(lang: string) {
     }
 }
 
-function ageSet(lang: string) {
+function ageSet(lang: string):string {
     switch(lang) {
         case 'de': return 'Das Alter wurde erfolgreich eingestellt';
         case 'es': return 'La edad se ha fijado con éxito';
@@ -86,7 +97,60 @@ function ageSet(lang: string) {
         default: return 'The age has set successfully';
     }
 }
+function deleteMyAccount(lang: string):string {
+    switch(lang) {
+        case 'de': return 'mein Konto löschen';
+        case 'es': return 'borrar mi cuenta';
+        case 'ru': return 'Удалить мои данные';
+        case 'uk': return 'видалити мої дані';
+        case 'en':
+        default: return 'Delete my account';
+    }
+}
 
+function accountDeleted(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Ihr Konto wurde erfolgreich gelöscht. Um fortzufahren, geben Sie /start ein';
+        case 'es': return 'Su cuenta eliminada con éxito. Para reanudar escriba /start';
+        case 'ru': return 'Ваша учетная запись удалена успешно. Чтобы возобновить введите /start';
+        case 'uk': return 'Ваш обліковий запис успішно видалено. Щоб відновити, введіть /start';
+        case 'en':
+        default: return 'Your accaunt deleted successfully. To resume type /start';
+    }
+}
+
+function userNotFound(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Entschuldigung, Ihr Konto wurde nicht gefunden. Drücke /start';
+        case 'es': return 'Lo sentimos, no se encontró su cuenta. Presiona /start';
+        case 'ru': return 'Ваша учетная запись не найдена. Чтобы возобновить введите /start';
+        case 'uk': return 'Вибачте, ваш обліковий запис не знайдено. Натисніть /start';
+        case 'en':
+        default: return 'Sorry, your account not found. Press /start';
+    }
+}
+
+function deleteMyAccountA(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Lassen Sie Bewertungen anonym. Nur Konto löschen';
+        case 'es': return 'Dejar evaluaciones anónimas. Eliminar cuenta solamente';
+        case 'ru': return 'Оценки оставить анонимно. Удалить только учетную запись';
+        case 'uk': return 'Залиште оцінки анонімними. Видалити лише обліковий запис';
+        case 'en':
+        default: return 'Leave assessments anonymous. Delete account only';
+    }
+}
+
+function deleteMyAccountB(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Alles löschen';
+        case 'es': return 'Eliminar todos';
+        case 'ru': return 'Удалить всё';
+        case 'uk': return 'Видалити все';
+        case 'en':
+        default: return 'Delete all';
+    }
+}
 function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
     return  {
         reply_markup: {
@@ -101,6 +165,26 @@ function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
                     ,{
                         text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
                         callback_data: 'settings'
+                    }
+                ]
+            ]
+        }
+    }
+};
+
+function tg_bot_set_delete_menu(lang: string):TelegramBot.SendMessageOptions {
+    return {
+        reply_markup: {
+            inline_keyboard:[
+                [
+                    {
+                        text: deleteMyAccountA(lang),
+                        callback_data: 'delete_my_account_a'
+                    }
+                ],[
+                    {
+                        text: deleteMyAccountB(lang),
+                        callback_data: 'delete_my_account_b'
                     }
                 ]
             ]
@@ -124,6 +208,11 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                     ,{
                         text: set_age.get(lang)?set_age.get(lang) as string:set_age.get('en') as string,
                         callback_data: 'set_age'
+                    }
+                ],[
+                    {
+                        text: deleteMyAccount(lang),
+                        callback_data: 'delete_account'
                     }
                 ]
                 ,[
@@ -178,6 +267,10 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     if (tgData.callback_query){
         try {
             const u = await getUserByTgUserId(tgData.callback_query.from.id as number);
+            if (!u) {
+                bot.sendMessage(tgData.callback_query?.message?.chat.id as number, userNotFound(tgData.callback_query.from.language_code as string));
+                return res.status(200).json("User not found");
+            }
 
             console.log(`Callback command '${tgData.callback_query.data}'`);
             switch(tgData.callback_query.data) {
@@ -199,6 +292,15 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     break;
                 case 'set_age':
                     menuSetAge(bot, tgData.callback_query?.message?.chat.id as number, u as User);
+                    break;
+                
+                case 'delete_account':
+                    menuDeleteAccount(bot, tgData.callback_query?.message?.chat.id as number, u as User);
+                    break;
+                case 'delete_my_account_a':
+                case 'delete_my_account_b':
+                    await u.deleteTgUser();
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, accountDeleted(u?.json?.nativelanguage as string));
                     break;
                 
                 default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu(u?.json?.nativelanguage as string));
@@ -358,6 +460,10 @@ function menuSetLanguage(bot: TelegramBot, chat_id: number, user: User){
 function menuSetAge(bot: TelegramBot, chat_id: number, user: User){
     bot.sendMessage(chat_id, enter_age.get(user.json?.nativelanguage as string)?enter_age.get(user.json?.nativelanguage as string) as string:enter_age.get('en') as string);
     user.setAwaitCommandData("set_age");
+}
+
+function menuDeleteAccount(bot: TelegramBot, chat_id: number, user: User){
+    bot.sendMessage(chat_id, choose_delete_way(user.json?.nativelanguage as string), tg_bot_set_delete_menu(user.json?.nativelanguage as string));
 }
 
 async function yt_video_data(yt_video_id: string) {
