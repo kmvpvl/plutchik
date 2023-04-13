@@ -19,6 +19,7 @@ const content_1 = require("./content");
 const error_1 = __importDefault(require("./error"));
 const organization_1 = require("./organization");
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
+const assessment_1 = require("./assessment");
 exports.UserSchema = new mongoose_1.Schema({
     organizationid: { type: mongoose_1.Types.ObjectId, require: false },
     tguserid: { type: Number, require: false },
@@ -199,6 +200,226 @@ class User extends plutchikproto_1.default {
             if (!v.length)
                 throw new error_1.default("user:nonextcontent", `userid = '${this.id}';`);
             return v[0];
+        });
+    }
+    observeAssessments() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const ret = {
+                ownVector: {},
+                othersVector: {}
+            };
+            yield this.checkData();
+            if (this.id) {
+                const own = yield assessment_1.mongoAssessments.aggregate([
+                    {
+                        '$match': {
+                            'uid': this.id
+                        }
+                    }, {
+                        '$lookup': {
+                            'from': 'assessments',
+                            'let': {
+                                'cid': '$cid',
+                                'uid': '$uid'
+                            },
+                            'pipeline': [{
+                                    '$match': {
+                                        '$expr': {
+                                            '$and': [
+                                                {
+                                                    '$eq': [
+                                                        '$cid', '$$cid'
+                                                    ]
+                                                }, {
+                                                    '$ne': [
+                                                        '$uid', '$$uid'
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }],
+                            'as': 'result'
+                        }
+                    }, {
+                        '$project': {
+                            '_id': 1,
+                            'vector': 1,
+                            'result_size': {
+                                '$size': '$result'
+                            }
+                        }
+                    }, {
+                        '$match': {
+                            'result_size': {
+                                '$gt': 0
+                            }
+                        }
+                    }, {
+                        '$group': {
+                            '_id': '1',
+                            'joy': {
+                                '$avg': {
+                                    '$toDouble': '$vector.joy'
+                                }
+                            },
+                            'trust': {
+                                '$avg': {
+                                    '$toDouble': '$vector.trust'
+                                }
+                            },
+                            'fear': {
+                                '$avg': {
+                                    '$toDouble': '$vector.fear'
+                                }
+                            },
+                            'surprise': {
+                                '$avg': {
+                                    '$toDouble': '$vector.surprise'
+                                }
+                            },
+                            'sadness': {
+                                '$avg': {
+                                    '$toDouble': '$vector.sadness'
+                                }
+                            },
+                            'disgust': {
+                                '$avg': {
+                                    '$toDouble': '$vector.disgust'
+                                }
+                            },
+                            'anger': {
+                                '$avg': {
+                                    '$toDouble': '$vector.anger'
+                                }
+                            },
+                            'anticipation': {
+                                '$avg': {
+                                    '$toDouble': '$vector.anticipation'
+                                }
+                            },
+                            'count': {
+                                '$sum': 1
+                            }
+                        }
+                    }, {
+                        '$project': {
+                            '_id': 0
+                        }
+                    }
+                ]);
+                ret.ownVector = own[0];
+                const others = yield assessment_1.mongoAssessments.aggregate([
+                    {
+                        '$match': {
+                            'uid': this.id
+                        }
+                    }, {
+                        '$lookup': {
+                            'from': 'assessments',
+                            'let': {
+                                'cid': '$cid',
+                                'uid': '$uid'
+                            },
+                            'pipeline': [
+                                {
+                                    '$match': {
+                                        '$expr': {
+                                            '$and': [
+                                                {
+                                                    '$eq': [
+                                                        '$cid', '$$cid'
+                                                    ]
+                                                }, {
+                                                    '$ne': [
+                                                        '$uid', '$$uid'
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            'as': 'result'
+                        }
+                    }, {
+                        '$project': {
+                            'vector': 1,
+                            'result': 1,
+                            'result_size': {
+                                '$size': '$result'
+                            }
+                        }
+                    }, {
+                        '$match': {
+                            'result_size': {
+                                '$gt': 0
+                            }
+                        }
+                    }, {
+                        '$unwind': {
+                            'path': '$result'
+                        }
+                    }, {
+                        '$replaceRoot': {
+                            'newRoot': '$result'
+                        }
+                    }, {
+                        '$group': {
+                            '_id': '1',
+                            'joy': {
+                                '$avg': {
+                                    '$toDouble': '$vector.joy'
+                                }
+                            },
+                            'trust': {
+                                '$avg': {
+                                    '$toDouble': '$vector.trust'
+                                }
+                            },
+                            'fear': {
+                                '$avg': {
+                                    '$toDouble': '$vector.fear'
+                                }
+                            },
+                            'surprise': {
+                                '$avg': {
+                                    '$toDouble': '$vector.surprise'
+                                }
+                            },
+                            'sadness': {
+                                '$avg': {
+                                    '$toDouble': '$vector.sadness'
+                                }
+                            },
+                            'disgust': {
+                                '$avg': {
+                                    '$toDouble': '$vector.disgust'
+                                }
+                            },
+                            'anger': {
+                                '$avg': {
+                                    '$toDouble': '$vector.anger'
+                                }
+                            },
+                            'anticipation': {
+                                '$avg': {
+                                    '$toDouble': '$vector.anticipation'
+                                }
+                            },
+                            'count': {
+                                '$sum': 1
+                            }
+                        }
+                    }, {
+                        '$project': {
+                            '_id': 0
+                        }
+                    }
+                ]);
+                ret.othersVector = others[0];
+            }
+            return ret;
         });
     }
 }

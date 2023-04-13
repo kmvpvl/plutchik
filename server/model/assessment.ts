@@ -3,21 +3,23 @@ import colours from "./colours";
 import PlutchikError from "./error";
 import PlutchikProto from "./plutchikproto";
 
+export interface IVector {
+    joy?: number;
+    trust?: number;
+    fear?: number;
+    surprise?: number;
+    disgust?: number;
+    sadness?: number;
+    anger?: number;
+    anticipation?: number;
+} 
+
 export interface IAssessment {
     _id?: Types.ObjectId; // uniq ID of assessment
     uid?: Types.ObjectId; // user ID, required but may be undefined. userid posted by security schema of call
     organizationid: Types.ObjectId;
     cid: Types.ObjectId; // content ID
-    vector: {
-        joy?: number;
-        trust?: number;
-        fear?: number;
-        surprise?: number;
-        disgust?: number;
-        sadness?: number;
-        anger?: number;
-        anticipation?: number;
-    },
+    vector: IVector,
     tags?: Array<string>; // tags from user
     rating?: number; // value of assessed content item for match with others
     created?: Date;
