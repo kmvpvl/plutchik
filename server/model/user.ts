@@ -5,6 +5,7 @@ import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
 import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
 import PlutchikProto from "./plutchikproto";
+import { IVector, mongoAssessments } from "./assessment";
 
 export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match";
 export interface IUser {
@@ -24,6 +25,11 @@ export interface IUser {
     changed?: Date;
     awaitcommanddata?: string;
     history?: Array<any>;
+}
+
+interface IObserveAssessments {
+    ownVector: IVector;
+    othersVector: IVector;
 }
 
 export const UserSchema = new Schema({
@@ -176,5 +182,224 @@ export default class User extends PlutchikProto<IUser> {
         }]);
         if (!v.length) throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';`)
         return v[0];
+    }
+
+    public async observeAssessments():Promise<IObserveAssessments> {
+        const ret: IObserveAssessments = {
+            ownVector: {},
+            othersVector:{}
+        };
+        await this.checkData();
+        if (this.id) {
+            const own = await mongoAssessments.aggregate([
+                {
+                    '$match': {
+                    'uid': this.id}
+                }, {
+                    '$lookup': {
+                        'from': 'assessments', 
+                        'let': {
+                            'cid': '$cid', 
+                            'uid': '$uid'
+                        }, 
+                        'pipeline': [{
+                            '$match': {
+                                '$expr': {
+                                    '$and': [
+                                    {
+                                        '$eq': [
+                                            '$cid', '$$cid'
+                                        ]
+                                    }, {
+                                        '$ne': [
+                                            '$uid', '$$uid'
+                                        ]
+                                    }
+                                    ]
+                                }
+                            }
+                        }], 
+                        'as': 'result'
+                    }
+                }, {
+                    '$project': {
+                        '_id': 1, 
+                        'vector': 1, 
+                        'result_size': {
+                            '$size': '$result'
+                        }
+                    }
+                }, {
+                    '$match': {
+                        'result_size': {
+                            '$gt': 0
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '1', 
+                        'joy': {
+                            '$avg': {
+                                '$toDouble': '$vector.joy'
+                            }
+                        }, 
+                        'trust': {
+                            '$avg': {
+                                '$toDouble': '$vector.trust'
+                            }
+                        }, 
+                        'fear': {
+                            '$avg': {
+                                '$toDouble': '$vector.fear'
+                            }
+                        }, 
+                        'surprise': {
+                            '$avg': {
+                                '$toDouble': '$vector.surprise'
+                            }
+                        }, 
+                        'sadness': {
+                            '$avg': {
+                                '$toDouble': '$vector.sadness'
+                            }
+                        }, 
+                        'disgust': {
+                            '$avg': {
+                                '$toDouble': '$vector.disgust'
+                            }
+                        }, 
+                        'anger': {
+                            '$avg': {
+                                '$toDouble': '$vector.anger'
+                            }
+                        }, 
+                        'anticipation': {
+                            '$avg': {
+                                '$toDouble': '$vector.anticipation'
+                            }
+                        }, 
+                        'count': {
+                            '$sum': 1
+                        }
+                    }
+                },{
+                    '$project':{
+                        '_id':0
+                    }
+                }
+            ]);
+            ret.ownVector = own[0];
+
+            const others = await mongoAssessments.aggregate([
+                {
+                    '$match': {
+                    'uid': this.id
+                    }
+                }, {
+                    '$lookup': {
+                    'from': 'assessments', 
+                    'let': {
+                        'cid': '$cid', 
+                        'uid': '$uid'
+                    }, 
+                    'pipeline': [
+                        {
+                        '$match': {
+                            '$expr': {
+                            '$and': [
+                                {
+                                '$eq': [
+                                    '$cid', '$$cid'
+                                ]
+                                }, {
+                                '$ne': [
+                                    '$uid', '$$uid'
+                                ]
+                                }
+                            ]
+                            }
+                        }
+                        }
+                    ], 
+                    'as': 'result'
+                    }
+                }, {
+                    '$project': {
+                    'vector': 1, 
+                    'result': 1, 
+                    'result_size': {
+                        '$size': '$result'
+                    }
+                    }
+                }, {
+                    '$match': {
+                    'result_size': {
+                        '$gt': 0
+                    }
+                    }
+                }, {
+                    '$unwind': {
+                    'path': '$result'
+                    }
+                }, {
+                    '$replaceRoot': {
+                    'newRoot': '$result'
+                    }
+                }, {
+                    '$group': {
+                    '_id': '1', 
+                    'joy': {
+                        '$avg': {
+                        '$toDouble': '$vector.joy'
+                        }
+                    }, 
+                    'trust': {
+                        '$avg': {
+                        '$toDouble': '$vector.trust'
+                        }
+                    }, 
+                    'fear': {
+                        '$avg': {
+                        '$toDouble': '$vector.fear'
+                        }
+                    }, 
+                    'surprise': {
+                        '$avg': {
+                        '$toDouble': '$vector.surprise'
+                        }
+                    }, 
+                    'sadness': {
+                        '$avg': {
+                        '$toDouble': '$vector.sadness'
+                        }
+                    }, 
+                    'disgust': {
+                        '$avg': {
+                        '$toDouble': '$vector.disgust'
+                        }
+                    }, 
+                    'anger': {
+                        '$avg': {
+                        '$toDouble': '$vector.anger'
+                        }
+                    }, 
+                    'anticipation': {
+                        '$avg': {
+                        '$toDouble': '$vector.anticipation'
+                        }
+                    }, 
+                    'count': {
+                        '$sum': 1
+                    }
+                    }
+                }, {
+                    '$project': {
+                    '_id': 0
+                    }
+                }
+            ]);
+            ret.othersVector = others[0];
+        }
+        return ret;
     }
 }

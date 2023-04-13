@@ -605,6 +605,11 @@ paths:
           required: false
           schema:
             type: number
+        - in: query
+          name: insights
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
