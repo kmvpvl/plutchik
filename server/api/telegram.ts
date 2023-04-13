@@ -504,6 +504,7 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                         source: "embedded",
                         name: media_name as string,
                         tags:[],
+                        tgData: tgData,
                         description: media_desc as string,
                         language:media_lang as string,
                         blocked: false,
@@ -535,6 +536,7 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                         type: "image",
                         source: "web",
                         name: media_name as string,
+                        tgData: tgData,
                         tags:[],
                         description: media_desc as string,
                         language:media_lang as string,
@@ -569,6 +571,7 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                                 tags:snippet.tags,
                                 description:snippet.description,
                                 language:snippet.defaultAudioLanguage,
+                                tgData:tgData,
                                 blocked: false,
                                 created: new Date(),
                                 restrictions:[]
@@ -620,59 +623,3 @@ async function getOrganizationByTgUser(bot: TelegramBot, tgData: TelegramBot.Upd
     return;
 }
 
-async function addContent(bot: TelegramBot, tgData: TelegramBot.Update){
-    PlutchikProto.connectMongo();
-    const perms: Array<IOrganization> = await mongoOrgs.aggregate([
-        {
-            "$match": {
-                "keys.tgUserId": tgData.message?.from?.id 
-            }
-        }
-    ]);
-
-    let org: Organization | undefined;
-    console.log(`Organization keys found for user:`);
-    for (const i in perms){
-        org = new Organization(undefined, perms[i]);
-        const ikey = await org.checkTgUserId(tgData.message?.from?.id as number);
-
-        console.log(`${colours.fg.blue}found: organizationid = '${perms[i]._id}'; roles = '${ikey.roles}'${colours.reset}`);
-        if (!Organization.checkRoles(ikey.roles, "manage_content")) {
-            const msg = `Role 'manage_content' expected`;
-            bot.sendMessage(tgData.message?.chat.id as number, msg);
-            //return res.status(200).json(msg);
-        }
-    }
-    let content: Content | undefined;
-    if (tgData.message?.media_group_id) {
-        const cc = await mongoContent.aggregate([{
-            "$match": {
-                "tgData.media_group_id":{
-                    $eq: tgData.message?.media_group_id
-                }
-            }
-        }]);
-        if (cc.length) content = new Content(undefined, cc[0]);
-    }
-    if (!org) throw new PlutchikError("organization:notfound", `Unexpected situation`);
-    if (!content) {
-        let ic: IContent = {
-            organizationid: org.json?._id,
-            type: "image",
-            source: "telegram",
-            name: tgData.message?.caption?tgData.message?.caption:'',
-            tags:[],
-            description:'',
-            language:'',
-            tgData: [],
-            blocked: false,
-            created: new Date(),
-            restrictions:[]
-        }
-        content = new Content(undefined, ic);
-    }
-    const mc = content.json;
-    mc?.tgData?.push(tgData.message as TelegramBot.Message);
-    await content.load(mc);
-    await content.save();
-}
