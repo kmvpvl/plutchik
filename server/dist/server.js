@@ -106,9 +106,6 @@ api.registerSecurityHandler('PlutchikAuthUserId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthSessionToken', checkSecurity);
 exports.app = (0, express_1.default)();
 const bot = new node_telegram_bot_api_1.default(plutchikproto_1.settings.tg_bot_authtoken);
-bot.on('photo', msg => {
-    (0, telegram_1.onPhoto)(bot, msg);
-});
 if (plutchikproto_1.settings.tg_web_hook_server) {
     bot.setWebHook(`${plutchikproto_1.settings.tg_web_hook_server}/telegram`);
     bot.setMyCommands([

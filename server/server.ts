@@ -14,7 +14,7 @@ import organizationkeyslist from './api/organizationkeyslist';
 import removeorganizationkey from './api/removeorganizationkey';
 import createorganization from './api/createorganization';
 import organizationinfo from './api/organizationinfo';
-import telegram, { onPhoto, webapp } from './api/telegram';
+import telegram, { webapp } from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import {settings} from "./model/plutchikproto";
 import fs from 'fs';
@@ -72,9 +72,6 @@ api.registerSecurityHandler('PlutchikAuthSessionToken',  checkSecurity);
 
 export const app: Application = express();
 const bot = new TelegramBot(settings.tg_bot_authtoken);
-bot.on('photo', msg => {
-    onPhoto(bot, msg);
-});
 if (settings.tg_web_hook_server) {
     bot.setWebHook(`${settings.tg_web_hook_server}/telegram`);
     bot.setMyCommands([

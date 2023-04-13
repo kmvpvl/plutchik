@@ -17,6 +17,17 @@ const assess_new_content: Map<string, string> = new Map([
     ,['de', 'Emotionen bewerten']
 ]);
 
+function insights(lang: string) {
+    switch(lang) {
+        case 'de': return 'Einblicke';
+        case 'es': return 'Perspectivas';
+        case 'ru': return 'Инсайты';
+        case 'uk': return 'Інсайти';
+        case 'en':
+        default: return 'Insights';
+    }
+}
+
 const my_settings: Map<string, string> = new Map([
     ['en', 'My settings']
     ,['uk', 'Мої налаштування']
@@ -163,6 +174,13 @@ function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
                         }
                     }
                     ,{
+                        text: insights(lang),
+                        web_app: {
+                            url: `${settings.tg_web_hook_server}/telegram?insights`
+                        }
+                    }
+                ],[
+                    {
                         text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
                         callback_data: 'settings'
                     }
@@ -345,14 +363,6 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     }
 }
 
-export async function onPhoto(bot: TelegramBot, msg: TelegramBot.Message) {
-    const ph = msg.photo?.pop();
-    if (ph){
-        const filename = await bot.downloadFile(ph.file_id, "./images/");
-        bot.sendMessage(msg.chat.id, `downloaded ${filename}`);
-    }
-} 
-
 export async function webapp(c: any, req: Request, res: Response, bot: TelegramBot) {
     console.log(`${colours.fg.green}API: telegram webapp${colours.reset}`);
     let user: User | undefined;
@@ -371,12 +381,24 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         return res.status(404).json({result: 'FAIL', description: 'User not found'});
                     }
                     break;
+                case 'observe':
+                    user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    if (user) {
+                        const org = new Organization(user.json?.organizationid);
+                        await org.load();
+                        const ob = await user.observeAssessments();
+                        return res.status(200).json({observe: ob, user: user.json});
+                    }
+                    break;
                 default:
                     return res.status(404).json({result: 'FAIL', description: 'Unknown command'});
             }
             return res.status(200).json('OK');
         } else 
-            return res.sendFile("webapp.htm", {root: __dirname});
+            if (req.query ['insights'] === '')
+                return res.sendFile("insights.htm", {root: __dirname});
+            else 
+                return res.sendFile("assess.htm", {root: __dirname});
     } catch(e: any) {
         switch (e.code as ErrorCode) {
             case "user:nonextcontent":

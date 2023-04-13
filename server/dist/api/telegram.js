@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.webapp = exports.onPhoto = void 0;
+exports.webapp = void 0;
 const colours_1 = __importDefault(require("../model/colours"));
 const organization_1 = __importStar(require("../model/organization"));
 const plutchikproto_1 = __importStar(require("../model/plutchikproto"));
@@ -50,6 +50,16 @@ const assess_new_content = new Map([
     ['es', 'Evaluar emociones'],
     ['de', 'Emotionen bewerten']
 ]);
+function insights(lang) {
+    switch (lang) {
+        case 'de': return 'Einblicke';
+        case 'es': return 'Perspectivas';
+        case 'ru': return 'Инсайты';
+        case 'uk': return 'Інсайти';
+        case 'en':
+        default: return 'Insights';
+    }
+}
 const my_settings = new Map([
     ['en', 'My settings'],
     ['uk', 'Мої налаштування'],
@@ -183,6 +193,13 @@ function tg_bot_start_menu(lang) {
                             url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
                         }
                     },
+                    {
+                        text: insights(lang),
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                        }
+                    }
+                ], [
                     {
                         text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
                         callback_data: 'settings'
@@ -367,19 +384,8 @@ function telegram(c, req, res, bot) {
     });
 }
 exports.default = telegram;
-function onPhoto(bot, msg) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        const ph = (_a = msg.photo) === null || _a === void 0 ? void 0 : _a.pop();
-        if (ph) {
-            const filename = yield bot.downloadFile(ph.file_id, "./images/");
-            bot.sendMessage(msg.chat.id, `downloaded ${filename}`);
-        }
-    });
-}
-exports.onPhoto = onPhoto;
 function webapp(c, req, res, bot) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram webapp${colours_1.default.reset}`);
         let user;
@@ -399,13 +405,24 @@ function webapp(c, req, res, bot) {
                             return res.status(404).json({ result: 'FAIL', description: 'User not found' });
                         }
                         break;
+                    case 'observe':
+                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        if (user) {
+                            const org = new organization_1.default((_d = user.json) === null || _d === void 0 ? void 0 : _d.organizationid);
+                            yield org.load();
+                            const ob = yield user.observeAssessments();
+                            return res.status(200).json({ observe: ob, user: user.json });
+                        }
+                        break;
                     default:
                         return res.status(404).json({ result: 'FAIL', description: 'Unknown command' });
                 }
                 return res.status(200).json('OK');
             }
+            else if (req.query['insights'] === '')
+                return res.sendFile("insights.htm", { root: __dirname });
             else
-                return res.sendFile("webapp.htm", { root: __dirname });
+                return res.sendFile("assess.htm", { root: __dirname });
         }
         catch (e) {
             switch (e.code) {
