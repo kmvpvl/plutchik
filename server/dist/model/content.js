@@ -35,8 +35,8 @@ exports.ContentSchema = new mongoose_1.Schema({
         required: true
     },
     tgData: {
-        type: Array,
-        required: function () { return this.source === 'telegram'; },
+        type: Object,
+        required: false
     },
     tags: (Array),
     restrictions: (Array),

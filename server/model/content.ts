@@ -11,7 +11,7 @@ export interface IContent {
     _uid?: Types.ObjectId;
     type: ContentTypes;
     source: SourceType;
-    tgData?: Array<TelegramBot.Message>;
+    tgData?: TelegramBot.Update;
     url?: string;
     name: string;
     tags: Array<string>;
@@ -45,8 +45,8 @@ export const ContentSchema = new Schema({
         required: true
     },
     tgData: {
-        type: Array, 
-        required: function() {return this.source === 'telegram';},
+        type: Object, 
+        required: false
     },
     tags: Array<string>,
     restrictions: Array<string>,

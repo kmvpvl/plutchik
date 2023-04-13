@@ -36,11 +36,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.webapp = exports.onPhoto = void 0;
-const error_1 = __importDefault(require("../model/error"));
 const colours_1 = __importDefault(require("../model/colours"));
 const organization_1 = __importStar(require("../model/organization"));
 const plutchikproto_1 = __importStar(require("../model/plutchikproto"));
-const content_1 = __importStar(require("../model/content"));
+const content_1 = __importDefault(require("../model/content"));
 const user_1 = __importStar(require("../model/user"));
 const googleapis_1 = require("googleapis");
 const mongoose_1 = require("mongoose");
@@ -542,6 +541,7 @@ function processURLs(bot, tgData) {
                             source: "embedded",
                             name: media_name,
                             tags: [],
+                            tgData: tgData,
                             description: media_desc,
                             language: media_lang,
                             blocked: false,
@@ -574,6 +574,7 @@ function processURLs(bot, tgData) {
                             type: "image",
                             source: "web",
                             name: media_name,
+                            tgData: tgData,
                             tags: [],
                             description: media_desc,
                             language: media_lang,
@@ -609,6 +610,7 @@ function processURLs(bot, tgData) {
                                     tags: snippet.tags,
                                     description: snippet.description,
                                     language: snippet.defaultAudioLanguage,
+                                    tgData: tgData,
                                     blocked: false,
                                     created: new Date(),
                                     restrictions: []
@@ -661,64 +663,5 @@ function getOrganizationByTgUser(bot, tgData) {
             }
         }
         return;
-    });
-}
-function addContent(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
-    return __awaiter(this, void 0, void 0, function* () {
-        plutchikproto_1.default.connectMongo();
-        const perms = yield organization_1.mongoOrgs.aggregate([
-            {
-                "$match": {
-                    "keys.tgUserId": (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.from) === null || _b === void 0 ? void 0 : _b.id
-                }
-            }
-        ]);
-        let org;
-        console.log(`Organization keys found for user:`);
-        for (const i in perms) {
-            org = new organization_1.default(undefined, perms[i]);
-            const ikey = yield org.checkTgUserId((_d = (_c = tgData.message) === null || _c === void 0 ? void 0 : _c.from) === null || _d === void 0 ? void 0 : _d.id);
-            console.log(`${colours_1.default.fg.blue}found: organizationid = '${perms[i]._id}'; roles = '${ikey.roles}'${colours_1.default.reset}`);
-            if (!organization_1.default.checkRoles(ikey.roles, "manage_content")) {
-                const msg = `Role 'manage_content' expected`;
-                bot.sendMessage((_e = tgData.message) === null || _e === void 0 ? void 0 : _e.chat.id, msg);
-                //return res.status(200).json(msg);
-            }
-        }
-        let content;
-        if ((_f = tgData.message) === null || _f === void 0 ? void 0 : _f.media_group_id) {
-            const cc = yield content_1.mongoContent.aggregate([{
-                    "$match": {
-                        "tgData.media_group_id": {
-                            $eq: (_g = tgData.message) === null || _g === void 0 ? void 0 : _g.media_group_id
-                        }
-                    }
-                }]);
-            if (cc.length)
-                content = new content_1.default(undefined, cc[0]);
-        }
-        if (!org)
-            throw new error_1.default("organization:notfound", `Unexpected situation`);
-        if (!content) {
-            let ic = {
-                organizationid: (_h = org.json) === null || _h === void 0 ? void 0 : _h._id,
-                type: "image",
-                source: "telegram",
-                name: ((_j = tgData.message) === null || _j === void 0 ? void 0 : _j.caption) ? (_k = tgData.message) === null || _k === void 0 ? void 0 : _k.caption : '',
-                tags: [],
-                description: '',
-                language: '',
-                tgData: [],
-                blocked: false,
-                created: new Date(),
-                restrictions: []
-            };
-            content = new content_1.default(undefined, ic);
-        }
-        const mc = content.json;
-        (_l = mc === null || mc === void 0 ? void 0 : mc.tgData) === null || _l === void 0 ? void 0 : _l.push(tgData.message);
-        yield content.load(mc);
-        yield content.save();
     });
 }
