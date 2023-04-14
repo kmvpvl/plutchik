@@ -347,7 +347,7 @@ export default class User extends PlutchikProto<IUser> {
                     }
                 }, {
                     '$group': {
-                    '_id': '1', 
+                    '_id': '$cid', 
                     'joy': {
                         '$avg': {
                         '$toDouble': '$vector.joy'
@@ -392,6 +392,53 @@ export default class User extends PlutchikProto<IUser> {
                         '$sum': 1
                     }
                     }
+                }, {
+                    '$group': {
+                        _id: "1",
+                        joy: {
+                          $avg: {
+                            $toDouble: "$joy",
+                          },
+                        },
+                        trust: {
+                          $avg: {
+                            $toDouble: "$trust",
+                          },
+                        },
+                        fear: {
+                          $avg: {
+                            $toDouble: "$fear",
+                          },
+                        },
+                        surprise: {
+                          $avg: {
+                            $toDouble: "$surprise",
+                          },
+                        },
+                        sadness: {
+                          $avg: {
+                            $toDouble: "$sadness",
+                          },
+                        },
+                        disgust: {
+                          $avg: {
+                            $toDouble: "$disgust",
+                          },
+                        },
+                        anger: {
+                          $avg: {
+                            $toDouble: "$anger",
+                          },
+                        },
+                        anticipation: {
+                          $avg: {
+                            $toDouble: "$anticipation",
+                          },
+                        },
+                        count: {
+                          $sum: "$count",
+                        },
+                      } 
                 }, {
                     '$project': {
                     '_id': 0
