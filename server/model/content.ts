@@ -27,6 +27,23 @@ export interface IContent {
     changed?: Date;
 }
 
+export interface IContentGroup {
+    _uid?: Types.ObjectId;
+    name: string;
+    items: Array<Types.ObjectId>;
+    tags: Array<string>;
+    description: string;
+    language: string;
+    restrictions: Array<string>;
+    organizationid?: Types.ObjectId;
+    foruseronlyidref?: Types.ObjectId;
+    blocked: boolean;
+    expired?: Date;
+    validfrom?: Date;
+    created: Date;
+    changed?: Date;
+}
+
 export const ContentSchema = new Schema({
     organizationid: {type: Types.ObjectId, required: false},
     foruseronlyidref: {type: Types.ObjectId, required: false},
@@ -57,7 +74,24 @@ export const ContentSchema = new Schema({
     changed: Date,
     history: Array<any>
 });
+export const ContentGroupSchema = new Schema({
+    organizationid: {type: Types.ObjectId, required: false},
+    foruseronlyidref: {type: Types.ObjectId, required: false},
+    name: {type: String, required: true},
+    items: {type: Array<Types.ObjectId>, required: true},
+    description: {type: String, required: true},
+    language: {type: String, required: true},
+    tags: Array<string>,
+    restrictions: Array<string>,
+    blocked: Boolean,
+    expired: {type: Date, required: false},
+    validfrom: {type: Date, required: false},
+    created: Date,
+    changed: Date,
+    history: Array<any>
+});
 export const mongoContent = model<IContent>('contents', ContentSchema);
+export const mongoContentGroup = model<IContentGroup>('groups', ContentGroupSchema);
 
 export default class Content extends PlutchikProto<IContent> {
     public async load(data?: IContent) {
@@ -96,6 +130,47 @@ export default class Content extends PlutchikProto<IContent> {
             this.id = contentInserted[0]._id;
             this.load(contentInserted[0]);
             console.log(`New content was created. ${colours.fg.blue}Cid = '${this.id}'${colours.reset}`);
+        }
+    }
+}
+
+export class ContentGroup extends PlutchikProto<IContentGroup> {
+    public async load(data?: IContentGroup) {
+        PlutchikProto.connectMongo();
+        if (!data) {
+            const g = await mongoContentGroup.aggregate([
+                {
+                    '$match': {
+                        '_id': this.id
+                    } 
+                }
+            ]);
+            if (1 != g.length) throw new PlutchikError("group:notfound", `id = '${this.id}'`)
+            await super.load(g[0]);
+        } else {
+            await super.load(data);
+        }
+    }
+    protected async checkData(): Promise<void> {
+        if (!this.data) throw new PlutchikError("group:notloaded", `gid = '${this.id}'`);
+    }
+    public async block(block: boolean = true) {
+        await this.checkData();
+        if (this.data) this.data.blocked = block;
+        await this.save();
+    }
+    public async save() {
+        PlutchikProto.connectMongo();
+        await this.checkData();
+        await super.save();
+        if (this.id){
+            await mongoContentGroup.findByIdAndUpdate(this.id, this.data);
+            console.log(`Group data was successfully updated. Group id = '${this.id}'`);
+        } else { 
+            const groupInserted = await mongoContentGroup.insertMany([this.data]);
+            this.id = groupInserted[0]._id;
+            this.load(groupInserted[0]);
+            console.log(`New group was created. ${colours.fg.blue}gid = '${this.id}'${colours.reset}`);
         }
     }
 }

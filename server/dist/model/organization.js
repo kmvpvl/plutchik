@@ -18,6 +18,7 @@ const error_1 = __importDefault(require("./error"));
 const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 const ts_md5_1 = require("ts-md5");
 const colours_1 = __importDefault(require("./colours"));
+const content_1 = require("./content");
 exports.DEFAULT_SESSION_DURATION = 30;
 exports.SessionTokenSchema = new mongoose_1.Schema({
     organizationidref: mongoose_1.Types.ObjectId,
@@ -184,6 +185,49 @@ class Organization extends plutchikproto_1.default {
                 this.load(orgInserted[0]);
                 console.log(`New organization was created. ${colours_1.default.fg.blue}Org id = '${this.id}'${colours_1.default.reset}`);
             }
+        });
+    }
+    getFirstLettersOfContentItems() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            const letters = yield content_1.mongoContent.aggregate([
+                {
+                    '$match': {
+                        'organizationid': this.id
+                    }
+                }, {
+                    '$project': {
+                        'l': {
+                            '$substrCP': [
+                                '$name', 0, 1
+                            ]
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$l',
+                        'count': {
+                            '$sum': 1
+                        }
+                    }
+                }, {
+                    '$sort': {
+                        '_id': 1
+                    }
+                }
+            ]);
+            return letters;
+        });
+    }
+    getContentItems() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            const ci = yield content_1.mongoContent.aggregate([
+                { '$match': {
+                        'organizationid': this.id
+                    } }
+            ]);
+            return ci;
         });
     }
 }

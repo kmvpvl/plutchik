@@ -182,7 +182,7 @@ function deleteMyAccountB(lang) {
         default: return 'Delete all';
     }
 }
-function tg_bot_start_menu(lang) {
+function tg_bot_start_menu(lang, manage = false) {
     return {
         reply_markup: {
             inline_keyboard: [
@@ -197,6 +197,13 @@ function tg_bot_start_menu(lang) {
                         text: insights(lang),
                         web_app: {
                             url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                        }
+                    }
+                ], [
+                    {
+                        text: `Content management`,
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?content`
                         }
                     }
                 ], [
@@ -230,6 +237,30 @@ function tg_bot_set_delete_menu(lang) {
     };
 }
 ;
+function tg_bot_set_location_menu(lang) {
+    return {
+        reply_markup: {
+            keyboard: [[
+                    {
+                        text: "Send location",
+                        request_location: true
+                    },
+                    {
+                        text: assess_new_content.get(lang) ? assess_new_content.get(lang) : assess_new_content.get('en'),
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
+                        }
+                    },
+                    {
+                        text: insights(lang),
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                        }
+                    }
+                ]]
+        }
+    };
+}
 function tg_bot_settings_menu(lang) {
     return {
         reply_markup: {
@@ -256,8 +287,16 @@ function tg_bot_settings_menu(lang) {
                 ],
                 [
                     {
-                        text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
-                        callback_data: 'settings'
+                        text: assess_new_content.get(lang) ? assess_new_content.get(lang) : assess_new_content.get('en'),
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
+                        }
+                    },
+                    {
+                        text: insights(lang),
+                        web_app: {
+                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                        }
                     }
                 ]
             ]
@@ -301,7 +340,7 @@ const tg_bot_set_language_menu = {
     }
 };
 function telegram(c, req, res, bot) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram function${colours_1.default.reset}`);
         const tgData = req.body;
@@ -341,7 +380,10 @@ function telegram(c, req, res, bot) {
                         yield u.deleteTgUser();
                         bot.sendMessage((_t = (_s = tgData.callback_query) === null || _s === void 0 ? void 0 : _s.message) === null || _t === void 0 ? void 0 : _t.chat.id, accountDeleted((_u = u === null || u === void 0 ? void 0 : u.json) === null || _u === void 0 ? void 0 : _u.nativelanguage));
                         break;
-                    default: bot.sendMessage((_w = (_v = tgData.callback_query) === null || _v === void 0 ? void 0 : _v.message) === null || _w === void 0 ? void 0 : _w.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.nativelanguage));
+                    case 'set_location':
+                        bot.sendMessage((_w = (_v = tgData.callback_query) === null || _v === void 0 ? void 0 : _v.message) === null || _w === void 0 ? void 0 : _w.chat.id, 'get location', tg_bot_set_location_menu((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.nativelanguage));
+                        break;
+                    default: bot.sendMessage((_z = (_y = tgData.callback_query) === null || _y === void 0 ? void 0 : _y.message) === null || _z === void 0 ? void 0 : _z.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_0 = u === null || u === void 0 ? void 0 : u.json) === null || _0 === void 0 ? void 0 : _0.nativelanguage));
                 }
                 return res.status(200).json("OK");
             }
@@ -349,19 +391,19 @@ function telegram(c, req, res, bot) {
                 return res.status(400).json(e);
             }
         }
-        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_z = (_y = tgData.message) === null || _y === void 0 ? void 0 : _y.from) === null || _z === void 0 ? void 0 : _z.id}'${colours_1.default.reset}; chat_id = '${(_0 = tgData.message) === null || _0 === void 0 ? void 0 : _0.chat.id}'`);
-        const u = yield getUserByTgUserId((_2 = (_1 = tgData.message) === null || _1 === void 0 ? void 0 : _1.from) === null || _2 === void 0 ? void 0 : _2.id);
-        if ((_3 = u === null || u === void 0 ? void 0 : u.json) === null || _3 === void 0 ? void 0 : _3.awaitcommanddata) {
-            switch ((_4 = u === null || u === void 0 ? void 0 : u.json) === null || _4 === void 0 ? void 0 : _4.awaitcommanddata) {
+        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_2 = (_1 = tgData.message) === null || _1 === void 0 ? void 0 : _1.from) === null || _2 === void 0 ? void 0 : _2.id}'${colours_1.default.reset}; chat_id = '${(_3 = tgData.message) === null || _3 === void 0 ? void 0 : _3.chat.id}'`);
+        const u = yield getUserByTgUserId((_5 = (_4 = tgData.message) === null || _4 === void 0 ? void 0 : _4.from) === null || _5 === void 0 ? void 0 : _5.id);
+        if ((_6 = u === null || u === void 0 ? void 0 : u.json) === null || _6 === void 0 ? void 0 : _6.awaitcommanddata) {
+            switch ((_7 = u === null || u === void 0 ? void 0 : u.json) === null || _7 === void 0 ? void 0 : _7.awaitcommanddata) {
                 case 'set_age':
-                    const age = parseInt((_5 = tgData.message) === null || _5 === void 0 ? void 0 : _5.text);
+                    const age = parseInt((_8 = tgData.message) === null || _8 === void 0 ? void 0 : _8.text);
                     if (isNaN(age)) {
-                        bot.sendMessage((_6 = tgData.message) === null || _6 === void 0 ? void 0 : _6.chat.id, notANumber((_7 = u === null || u === void 0 ? void 0 : u.json) === null || _7 === void 0 ? void 0 : _7.nativelanguage));
+                        bot.sendMessage((_9 = tgData.message) === null || _9 === void 0 ? void 0 : _9.chat.id, notANumber((_10 = u === null || u === void 0 ? void 0 : u.json) === null || _10 === void 0 ? void 0 : _10.nativelanguage));
                     }
                     else {
                         yield u.setAge(age);
                         yield u.setAwaitCommandData();
-                        bot.sendMessage((_8 = tgData.message) === null || _8 === void 0 ? void 0 : _8.chat.id, ageSet((_9 = u === null || u === void 0 ? void 0 : u.json) === null || _9 === void 0 ? void 0 : _9.nativelanguage), tg_bot_start_menu((_10 = u === null || u === void 0 ? void 0 : u.json) === null || _10 === void 0 ? void 0 : _10.nativelanguage));
+                        bot.sendMessage((_11 = tgData.message) === null || _11 === void 0 ? void 0 : _11.chat.id, ageSet((_12 = u === null || u === void 0 ? void 0 : u.json) === null || _12 === void 0 ? void 0 : _12.nativelanguage), tg_bot_start_menu((_13 = u === null || u === void 0 ? void 0 : u.json) === null || _13 === void 0 ? void 0 : _13.nativelanguage));
                     }
                     return res.status(200).json("OK");
                     break;
@@ -373,7 +415,7 @@ function telegram(c, req, res, bot) {
         try {
             if (!(yield processCommands(bot, tgData))
                 && !(yield processURLs(bot, tgData))) {
-                bot.sendMessage((_11 = tgData.message) === null || _11 === void 0 ? void 0 : _11.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
+                bot.sendMessage((_14 = tgData.message) === null || _14 === void 0 ? void 0 : _14.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
             }
             ;
             return res.status(200).json("OK");
@@ -385,7 +427,7 @@ function telegram(c, req, res, bot) {
 }
 exports.default = telegram;
 function webapp(c, req, res, bot) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram webapp${colours_1.default.reset}`);
         let user;
@@ -414,6 +456,17 @@ function webapp(c, req, res, bot) {
                             return res.status(200).json({ observe: ob, user: user.json });
                         }
                         break;
+                    case 'manage_content':
+                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        if (user) {
+                            const org = new organization_1.default((_e = user.json) === null || _e === void 0 ? void 0 : _e.organizationid);
+                            yield org.load();
+                            const letters = yield org.getFirstLettersOfContentItems();
+                            const st = yield org.checkAndUpdateSessionToken((_f = user.json) === null || _f === void 0 ? void 0 : _f._id, ["manage_content"]);
+                            const ci = yield org.getContentItems();
+                            return res.status(200).json({ org: org.json, user: user.json, letters: letters, items: ci, sessiontoken: st });
+                        }
+                        break;
                     default:
                         return res.status(404).json({ result: 'FAIL', description: 'Unknown command' });
                 }
@@ -421,6 +474,8 @@ function webapp(c, req, res, bot) {
             }
             else if (req.query['insights'] === '')
                 return res.sendFile("insights.htm", { root: __dirname });
+            else if (req.query['content'] === '')
+                return res.sendFile("content.htm", { root: __dirname });
             else
                 return res.sendFile("assess.htm", { root: __dirname });
         }
