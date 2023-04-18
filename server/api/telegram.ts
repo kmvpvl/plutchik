@@ -179,14 +179,14 @@ function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.Se
                             url: `${settings.tg_web_hook_server}/telegram?insights`
                         }
                     }
-                ],[
+                ],manage?[
                     {
                         text: `Content management`,
                         web_app: {
                             url: `${settings.tg_web_hook_server}/telegram?content`
                         }
                     }
-                ],[
+                ]: [],[
                     {
                         text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
                         callback_data: 'settings'
@@ -496,8 +496,18 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
         const u = await getUserByTgUserId(tgData.message?.from?.id as number);
         switch (command_name) {
             case '/start': 
-                if (u){
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(u.json?.nativelanguage?u.json?.nativelanguage:'en') as string, tg_bot_start_menu(u.json?.nativelanguage as string));
+                 if (u){
+                    //
+                    const org = new Organization(u.json?.organizationid);
+                    await org.load();
+                    let isContentManageRole = false;
+                    try {
+                        const key = await org.checkTgUserId(tgData.message?.from?.id as number);
+                        isContentManageRole = Organization.checkRoles(key.roles, "manage_content");
+                    } catch(e) {
+                        isContentManageRole = false;
+                    }
+                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(u.json?.nativelanguage?u.json?.nativelanguage:'en') as string, tg_bot_start_menu(u.json?.nativelanguage as string, isContentManageRole));
                 } else {
                     const user = new User(undefined, {
                         organizationid: new Types.ObjectId('63c0e7dad80176886c22129d'),
