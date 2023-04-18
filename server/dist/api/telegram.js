@@ -199,14 +199,14 @@ function tg_bot_start_menu(lang, manage = false) {
                             url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
                         }
                     }
-                ], [
+                ], manage ? [
                     {
                         text: `Content management`,
                         web_app: {
                             url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?content`
                         }
                     }
-                ], [
+                ] : [], [
                     {
                         text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
                         callback_data: 'settings'
@@ -512,7 +512,7 @@ const tgWelcome = new Map([
     ['de', 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.']
 ]);
 function processCommands(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
     return __awaiter(this, void 0, void 0, function* () {
         // looking for bot-command from user
         const commands = (_b = (_a = tgData.message) === null || _a === void 0 ? void 0 : _a.entities) === null || _b === void 0 ? void 0 : _b.filter(v => v.type == "bot_command");
@@ -526,27 +526,38 @@ function processCommands(bot, tgData) {
             switch (command_name) {
                 case '/start':
                     if (u) {
-                        bot.sendMessage((_h = tgData.message) === null || _h === void 0 ? void 0 : _h.chat.id, tgWelcome.get(((_j = u.json) === null || _j === void 0 ? void 0 : _j.nativelanguage) ? (_k = u.json) === null || _k === void 0 ? void 0 : _k.nativelanguage : 'en'), tg_bot_start_menu((_l = u.json) === null || _l === void 0 ? void 0 : _l.nativelanguage));
+                        //
+                        const org = new organization_1.default((_h = u.json) === null || _h === void 0 ? void 0 : _h.organizationid);
+                        yield org.load();
+                        let isContentManageRole = false;
+                        try {
+                            const key = yield org.checkTgUserId((_k = (_j = tgData.message) === null || _j === void 0 ? void 0 : _j.from) === null || _k === void 0 ? void 0 : _k.id);
+                            isContentManageRole = organization_1.default.checkRoles(key.roles, "manage_content");
+                        }
+                        catch (e) {
+                            isContentManageRole = false;
+                        }
+                        bot.sendMessage((_l = tgData.message) === null || _l === void 0 ? void 0 : _l.chat.id, tgWelcome.get(((_m = u.json) === null || _m === void 0 ? void 0 : _m.nativelanguage) ? (_o = u.json) === null || _o === void 0 ? void 0 : _o.nativelanguage : 'en'), tg_bot_start_menu((_p = u.json) === null || _p === void 0 ? void 0 : _p.nativelanguage, isContentManageRole));
                     }
                     else {
                         const user = new user_1.default(undefined, {
                             organizationid: new mongoose_1.Types.ObjectId('63c0e7dad80176886c22129d'),
-                            tguserid: (_o = (_m = tgData.message) === null || _m === void 0 ? void 0 : _m.from) === null || _o === void 0 ? void 0 : _o.id,
-                            nativelanguage: (_q = (_p = tgData.message) === null || _p === void 0 ? void 0 : _p.from) === null || _q === void 0 ? void 0 : _q.language_code,
+                            tguserid: (_r = (_q = tgData.message) === null || _q === void 0 ? void 0 : _q.from) === null || _r === void 0 ? void 0 : _r.id,
+                            nativelanguage: (_t = (_s = tgData.message) === null || _s === void 0 ? void 0 : _s.from) === null || _t === void 0 ? void 0 : _t.language_code,
                             blocked: false,
                             created: new Date()
                         });
                         yield user.save();
-                        bot.sendMessage((_r = tgData.message) === null || _r === void 0 ? void 0 : _r.chat.id, tgWelcome.get(((_s = user.json) === null || _s === void 0 ? void 0 : _s.nativelanguage) ? (_t = user.json) === null || _t === void 0 ? void 0 : _t.nativelanguage : 'en'), tg_bot_start_menu((_u = user.json) === null || _u === void 0 ? void 0 : _u.nativelanguage));
+                        bot.sendMessage((_u = tgData.message) === null || _u === void 0 ? void 0 : _u.chat.id, tgWelcome.get(((_v = user.json) === null || _v === void 0 ? void 0 : _v.nativelanguage) ? (_w = user.json) === null || _w === void 0 ? void 0 : _w.nativelanguage : 'en'), tg_bot_start_menu((_x = user.json) === null || _x === void 0 ? void 0 : _x.nativelanguage));
                     }
                     break;
                 case '/getnext':
                     break;
                 case '/set_language':
-                    menuSetLanguage(bot, (_v = tgData.message) === null || _v === void 0 ? void 0 : _v.chat.id, u);
+                    menuSetLanguage(bot, (_y = tgData.message) === null || _y === void 0 ? void 0 : _y.chat.id, u);
                     break;
                 default:
-                    bot.sendMessage((_w = tgData.message) === null || _w === void 0 ? void 0 : _w.chat.id, `'${command_name}' is unknoun command. Check spelling`);
+                    bot.sendMessage((_z = tgData.message) === null || _z === void 0 ? void 0 : _z.chat.id, `'${command_name}' is unknoun command. Check spelling`);
                     return false;
             }
         }
