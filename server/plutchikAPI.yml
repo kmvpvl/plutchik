@@ -610,6 +610,11 @@ paths:
           required: false
           schema:
             type: string
+        - in: query
+          name: content
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK

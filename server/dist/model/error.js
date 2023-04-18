@@ -20,6 +20,8 @@ class PlutchikError extends Error {
             ["user:nonextcontent", "User has done all assessments"],
             ["content:notfound", "Content id not found"],
             ["content:notloaded", "Content id not loaded"],
+            ["group:notfound", "Content group id not found"],
+            ["group:notloaded", "Content group id not loaded"],
             ["assessment:notfound", "assessment id not found"],
             ["assessment:notloaded", "assessment id not loaded"],
         ]);

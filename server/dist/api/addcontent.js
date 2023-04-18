@@ -17,20 +17,38 @@ const colours_1 = __importDefault(require("../model/colours"));
 const content_1 = __importDefault(require("../model/content"));
 const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
+const user_1 = __importDefault(require("../model/user"));
 function addcontent(c, req, res) {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
-        const organizationid = req.headers["organizationid"];
+        let organizationid = req.headers["organizationid"];
         const organizationkey = req.headers["organizationkey"];
-        console.log(`${colours_1.default.fg.green}API: addcontent function${colours_1.default.reset}\n ${colours_1.default.fg.blue}Parameters: organizationid = '${organizationid}'; organizationkey = '${organizationkey}'${colours_1.default.reset}`);
+        const userid = req.headers["userid"];
+        const sessiontoken = req.headers["sessiontoken"];
+        console.log(`${colours_1.default.fg.green}API: addcontent function${colours_1.default.reset}\n ${colours_1.default.fg.blue}Parameters: organizationid = '${organizationid}'; organizationkey = '${organizationkey}'; user_id = '${userid}'; sessiontoken = '${sessiontoken}'${colours_1.default.reset}`);
         console.log(`${colours_1.default.fg.blue}contentinfo = '${JSON.stringify(req.body.contentinfo)}'${colours_1.default.reset}`);
         try {
+            let user = new user_1.default(new mongoose_1.Types.ObjectId(userid));
+            if (!organizationid) {
+                yield user.load();
+                organizationid = (_b = (_a = user.json) === null || _a === void 0 ? void 0 : _a.organizationid) === null || _b === void 0 ? void 0 : _b.toString();
+            }
             const org = new organization_1.default(new mongoose_1.Types.ObjectId(organizationid));
             yield org.load();
-            // Checking organization key
-            const roles = yield org.checkKeyAndGetRoles(new mongoose_1.Types.ObjectId(organizationkey));
-            console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
-            if (!organization_1.default.checkRoles(roles, "manage_content"))
-                throw new error_1.default("forbidden:rolerequiered", `manage_content role was expected`);
+            if (organizationkey) {
+                // Checking organization key
+                const roles = yield org.checkKeyAndGetRoles(new mongoose_1.Types.ObjectId(organizationkey));
+                console.log(`${colours_1.default.fg.blue}roles = '${roles}'${colours_1.default.reset}`);
+                if (!organization_1.default.checkRoles(roles, "manage_content"))
+                    throw new error_1.default("forbidden:rolerequiered", `manage_content role was expected`);
+            }
+            else {
+                //check session token roles
+                const checkST = yield user.checkSessionToken(new mongoose_1.Types.ObjectId(sessiontoken));
+                console.log(`Checking session token successful. Roles = ${colours_1.default.fg.blue}${checkST}${colours_1.default.reset}`);
+                if (!organization_1.default.checkRoles(checkST, "manage_content"))
+                    throw new error_1.default("forbidden:rolerequiered", `manage_content role was expected`);
+            }
             req.body.contentinfo.organizationid = new mongoose_1.Types.ObjectId(organizationid);
             const cid = req.body.contentinfo._id;
             let content;

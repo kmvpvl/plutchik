@@ -162,7 +162,7 @@ function deleteMyAccountB(lang: string):string {
         default: return 'Delete all';
     }
 }
-function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
+function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.SendMessageOptions {
     return  {
         reply_markup: {
             inline_keyboard:[
@@ -177,6 +177,13 @@ function tg_bot_start_menu(lang: string):TelegramBot.SendMessageOptions {
                         text: insights(lang),
                         web_app: {
                             url: `${settings.tg_web_hook_server}/telegram?insights`
+                        }
+                    }
+                ],[
+                    {
+                        text: `Content management`,
+                        web_app: {
+                            url: `${settings.tg_web_hook_server}/telegram?content`
                         }
                     }
                 ],[
@@ -210,6 +217,31 @@ function tg_bot_set_delete_menu(lang: string):TelegramBot.SendMessageOptions {
     }
 };
 
+function tg_bot_set_location_menu(lang: string):TelegramBot.SendMessageOptions {
+    return {
+        reply_markup: {
+            keyboard: [[
+                {
+                    text: "Send location",
+                    request_location: true
+                }
+                ,{
+                    text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
+                    web_app: {
+                        url: `${settings.tg_web_hook_server}/telegram`
+                    }
+                }
+                ,{
+                    text: insights(lang),
+                    web_app: {
+                        url: `${settings.tg_web_hook_server}/telegram?insights`
+                    }
+                }
+        ]]
+        }
+    };
+}
+
 function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
     return {
         reply_markup: {
@@ -235,8 +267,16 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                 ]
                 ,[
                     {
-                        text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
-                        callback_data: 'settings'
+                        text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
+                        web_app: {
+                            url: `${settings.tg_web_hook_server}/telegram`
+                        }
+                    }
+                    ,{
+                        text: insights(lang),
+                        web_app: {
+                            url: `${settings.tg_web_hook_server}/telegram?insights`
+                        }
                     }
                 ]
             ]
@@ -320,6 +360,10 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     await u.deleteTgUser();
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, accountDeleted(u?.json?.nativelanguage as string));
                     break;
+
+                case 'set_location':
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, 'get location', tg_bot_set_location_menu(u?.json?.nativelanguage as string));
+                    break;
                 
                 default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu(u?.json?.nativelanguage as string));
             }
@@ -390,6 +434,17 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         return res.status(200).json({observe: ob, user: user.json});
                     }
                     break;
+                case 'manage_content':
+                    user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    if (user) {
+                        const org = new Organization(user.json?.organizationid);
+                        await org.load();
+                        const letters = await org.getFirstLettersOfContentItems();
+                        const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["manage_content"]);
+                        const ci = await org.getContentItems();
+                        return res.status(200).json({org: org.json, user: user.json, letters: letters, items: ci, sessiontoken: st});
+                    }
+                    break;
                 default:
                     return res.status(404).json({result: 'FAIL', description: 'Unknown command'});
             }
@@ -397,6 +452,8 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
         } else 
             if (req.query ['insights'] === '')
                 return res.sendFile("insights.htm", {root: __dirname});
+            else if (req.query ['content'] === '')
+                return res.sendFile("content.htm", {root: __dirname});
             else 
                 return res.sendFile("assess.htm", {root: __dirname});
     } catch(e: any) {

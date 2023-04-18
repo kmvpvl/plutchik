@@ -6,6 +6,7 @@ import {Md5} from 'ts-md5';
 import { RoleType } from "./user";
 import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
+import { IContent, mongoContent } from "./content";
 
 export const DEFAULT_SESSION_DURATION = 30;
 
@@ -174,5 +175,44 @@ export default class Organization extends PlutchikProto <IOrganization>{
             this.load(orgInserted[0]);
             console.log(`New organization was created. ${colours.fg.blue}Org id = '${this.id}'${colours.reset}`);
         }
+    }
+    public async getFirstLettersOfContentItems(): Promise<Array<string>> {
+        await this.checkData();
+        const letters = await mongoContent.aggregate([
+            {
+              '$match': {
+                'organizationid': this.id
+              }
+            }, {
+              '$project': {
+                'l': {
+                  '$substrCP': [
+                    '$name', 0, 1
+                  ]
+                }
+              }
+            }, {
+              '$group': {
+                '_id': '$l', 
+                'count': {
+                  '$sum': 1
+                }
+              }
+            }, {
+              '$sort': {
+                '_id': 1
+              }
+            }
+          ]);
+        return letters;
+    }
+    public async getContentItems(): Promise<Array<IContent>> {
+        await this.checkData();
+        const ci = await mongoContent.aggregate([
+            {'$match': {
+                'organizationid': this.id
+            }}
+        ]);
+        return ci;
     }
 }
