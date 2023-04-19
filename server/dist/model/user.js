@@ -171,7 +171,8 @@ class User extends plutchikproto_1.default {
                         'language': {
                             '$regex': language ? language : (_a = this.json) === null || _a === void 0 ? void 0 : _a.nativelanguage,
                             '$options': 'i'
-                        }
+                        },
+                        'blocked': false
                     }
                 }, { $lookup: {
                         from: "assessments",

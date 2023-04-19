@@ -497,7 +497,8 @@ function getUserByTgUserId(tg_user_id) {
         plutchikproto_1.default.connectMongo();
         const ou = yield user_1.mongoUsers.aggregate([{
                 '$match': {
-                    'tguserid': tg_user_id
+                    'tguserid': tg_user_id,
+                    'blocked': false
                 }
             }]);
         if (ou.length)
