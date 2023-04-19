@@ -196,6 +196,16 @@ class User extends plutchikproto_1.default {
                         result: [],
                     },
                 }, {
+                    $addFields: {
+                        'rand': {
+                            $rand: {}
+                        }
+                    }
+                }, {
+                    $sort: {
+                        'rand': 1
+                    }
+                }, {
                     $limit: 1,
                 }]);
             if (!v.length)
