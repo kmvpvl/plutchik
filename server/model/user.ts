@@ -178,6 +178,16 @@ export default class User extends PlutchikProto<IUser> {
           $match: {
             result: [],
           },
+        }, {
+            $addFields: {
+                'rand': {
+                    $rand: {}
+                }
+            }
+        }, {
+            $sort: {
+                'rand': 1
+            }
         },{
           $limit: 1,
         }]);
