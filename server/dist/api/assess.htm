@@ -144,6 +144,33 @@ quota {
     max-width: 100%;
     max-height: 100%;
 }
+
+div.info, div.error {
+    position: absolute;
+    width: 80%;
+    height: auto;
+    min-height: fit-content;
+    max-height: fit-content;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+    border-radius: 5px;
+    padding: 20px;
+}
+div.info {
+    border: darkgreen 1px solid;
+    background-color:lightgreen;
+    color: darkgreen;
+}
+div.error {
+    border: darkred 1px solid;
+    background-color:lightcoral;
+    color: darkred;
+}
+
 </style>
 </head>
 <body>
@@ -176,6 +203,18 @@ quota {
 </control-panel>
 <div></div>
 <script>
+function displayInfo(text) {
+    $('body').append(`<div class="info">${text}</div>`);
+    setTimeout(()=>$('div.info').remove(), 1500);
+}
+
+function displayError(text) {
+    $('body').append(`<div class="error">${text}</div>`);
+    $('div.error').on('click', ()=>{
+        $('div.error').remove();
+    });
+}
+
 class EmotionRange {
     constructor (jQueryElement, emotion, lang = 'en') {
         this.lang = lang;
@@ -420,11 +459,11 @@ tg.MainButton.onClick(()=>{
             render();
             getnext();
         } else {
-            $('.content').text(status);
+            displayError(`Error status = '${status}'`);
         }
     })
     .fail((xhr, status, errorObj)=>{
-        $('.content').text(xhr.status);
+        displayError(`Error status = '${xhr.status}'`);
     });
 });
 function getnext(){
