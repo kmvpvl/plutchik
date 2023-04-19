@@ -154,7 +154,8 @@ export default class User extends PlutchikProto<IUser> {
                 'language': {
                     '$regex': language?language:this.json?.nativelanguage, 
                     '$options': 'i'
-                }
+                },
+                'blocked': false
             }
         },{$lookup: {
             from: "assessments",
