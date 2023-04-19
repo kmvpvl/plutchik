@@ -35,6 +35,7 @@ function organizationinfo(c, req, res) {
                 {
                     '$match': {
                         'organizationid': (_a = org.json) === null || _a === void 0 ? void 0 : _a._id,
+                        'blocked': false
                     }
                 }, {
                     '$count': 'count'
@@ -44,6 +45,7 @@ function organizationinfo(c, req, res) {
                 {
                     '$match': {
                         'organizationid': (_b = org.json) === null || _b === void 0 ? void 0 : _b._id,
+                        'blocked': false
                     }
                 }, {
                     '$count': 'count'

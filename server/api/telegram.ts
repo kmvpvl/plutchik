@@ -471,7 +471,8 @@ async function getUserByTgUserId(tg_user_id: number): Promise<User | undefined> 
     PlutchikProto.connectMongo();
     const ou = await mongoUsers.aggregate([{
         '$match': {
-            'tguserid': tg_user_id
+            'tguserid': tg_user_id,
+            'blocked': false
         }
     }]);
     if (ou.length) return new User(undefined, ou[0]);

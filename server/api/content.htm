@@ -149,6 +149,31 @@ body {
 input.wide {
     width: 100%;
 }
+div.info, div.error {
+    position: absolute;
+    width: 80%;
+    height: auto;
+    min-height: fit-content;
+    max-height: fit-content;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+    border-radius: 5px;
+    padding: 20px;
+}
+div.info {
+    border: darkgreen 1px solid;
+    background-color:lightgreen;
+    color: darkgreen;
+}
+div.error {
+    border: darkred 1px solid;
+    background-color:lightcoral;
+    color: darkred;
+}
 </style>
 </head>
 <body>
@@ -160,9 +185,6 @@ input.wide {
 </div>
 <div class="filters-n-content">
     <div class="filters-by-letter">
-        <span class="filter-letter">A</span>
-        <span class="filter-letter">A</span>
-        <span class="filter-letter">A</span>
     </div>
     <div class="content-management-block">
         <div class="filters">Show
@@ -172,8 +194,8 @@ input.wide {
             <input type="checkbox" id="chk-texts">Texts
         </div>
         <div class="content-controls">
-            <button>Block</button>
-            <button id="btn-save">Save</button>
+            <button action="btn-block">Block</button>
+            <button action="btn-save">Save</button>
         </div>
         <div class="content">
             <div class="content-area">Content</div>
@@ -199,12 +221,24 @@ input.wide {
     </div>
 </div>
 <div class="footer">
-    <button>Block</button>
-    <button id="btn-save">Save</button>
+    <button action="btn-block">Block</button>
+    <button action="btn-save">Save</button>
 </div>
 <script>
 let tg = window.Telegram.WebApp;
 let loadedData = undefined;
+
+function displayInfo(text) {
+    $('body').append(`<div class="info">${text}</div>`);
+    setTimeout(()=>$('div.info').remove(), 1500);
+}
+
+function displayError(text) {
+    $('body').append(`<div class="error">${text}</div>`);
+    $('div.error').on('click', ()=>{
+        $('div.error').remove();
+    });
+}
 
 function yt_id(url) {
     const r = url.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/);
@@ -306,6 +340,7 @@ function selectItem(id) {
     $('#inp-url').val(ci.url);
     $('#inp-language').val(ci.language);
     $('#inp-cid').val(id);
+    $('button[action="btn-block"]').text(ci.blocked?'Unblock':'Block');
 }
 
 function init() {
@@ -332,18 +367,12 @@ function init() {
                 selectItem(event.currentTarget.attributes['cid'].value);
             });
             $('.header').html(`${data.org.name} - ${data.items.length} content items`);
+        } else {
+            displayError(`not fail but status = '${status}'`);
         }
     })
     .fail((xhr, status, errorObj)=>{
-        switch(xhr.status) {
-                case 404: 
-                    $('.content-area').html(`<div class="nocontent"><span>${thatsAll.get(xhr.responseJSON.user.nativelanguage)}</span><button onclick="getnext();">${pressToNew.get(xhr.responseJSON.user.nativelanguage)}</button></div>`);
-                    render(xhr.responseJSON.user.nativelanguage);
-                    break;
-                default:
-
-            }
-        //$('.content').text(xhr.status);
+        displayError(`fail status = '${xhr.status}'`);
     });
 }
 init();
@@ -351,7 +380,7 @@ render();
 function render() {
 }
 tg.expand();
-$('#btn-save').on('click', (e)=>{
+$('button[action="btn-save"]').on('click', (e)=>{
     $.ajaxSetup({
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
@@ -360,23 +389,48 @@ $('#btn-save').on('click', (e)=>{
         }
     });
     const ci = loadedData.items.filter((el)=>el._id == $('#inp-cid').val())[0];
+    ci.name = $('#inp-name').val();
+    ci.description = $('#inp-description').val();
+    ci.url = $('#inp-url').val();
+    ci.language = $('#inp-language').val();
     $.post(`addcontent`, JSON.stringify({
             "contentinfo": ci
         }), (data, status, xhdr)=>{
         if ('success' == status) {
-            ci.name = $('#inp-name').val();
-            ci.description = $('#inp-description').val();
-            ci.url = $('#inp-url').val();
-            ci.language = $('#inp-language').val();
+            // ok
+            selectItem(ci._id);
+            displayInfo('Changes saved');
         } else {
-            $('.content').text(status);
+            displayError(`not fail but status = '${status}'`);
         }
     })
     .fail((xhr, status, errorObj)=>{
-        $('.content').text(xhr.status);
+        displayError(`fail status = '${xhr.status}'`);
     });
 });
 $('#chk-all').on('change', ()=>$('.nav-item').show());
+$('button[action="btn-block"]').on('click', ()=>{
+    $.ajaxSetup({
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'userid': loadedData.user._id,
+            'sessiontoken': loadedData.sessiontoken
+        }
+    });
+    const ci = loadedData.items.filter((el)=>el._id == $('#inp-cid').val())[0];
+    $.get(`${ci.blocked?'un':''}blockcontent/${ci._id}`, (data, status, xhdr)=>{
+        if ('success' == status) {
+            ci.blocked = !ci.blocked;
+            selectItem(ci._id);
+            displayInfo('Changes saved');
+        } else {
+            displayError(`not fail but status = '${status}'`);
+        }
+    })
+    .fail((xhr, status, errorObj)=>{
+        displayError(`fail status = '${xhr.status}'`);
+    });
+})
 </script>
 </body>
 </html>

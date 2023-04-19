@@ -24,6 +24,7 @@ export default async function organizationinfo(c: any, req: Request, res: Respon
             {
                 '$match': {
                     'organizationid': org.json?._id,
+                    'blocked': false
                 }
             }, {
                 '$count': 'count'
@@ -34,6 +35,7 @@ export default async function organizationinfo(c: any, req: Request, res: Respon
             {
                 '$match': {
                     'organizationid': org.json?._id,
+                    'blocked': false
                 }
             }, {
                 '$count': 'count'
