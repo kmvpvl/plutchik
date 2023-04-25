@@ -141,6 +141,15 @@ class User extends plutchikproto_1.default {
             yield this.save();
         });
     }
+    setGender(gender) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data) {
+                this.data.gender = gender;
+            }
+            yield this.save();
+        });
+    }
     setAwaitCommandData(cmd) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkData();
