@@ -130,6 +130,14 @@ export default class User extends PlutchikProto<IUser> {
         await this.save();
     }
 
+    public async setGender(gender?: string) {
+        await this.checkData();
+        if (this.data) {
+            this.data.gender = gender;
+        }
+        await this.save();
+    }
+
     public async setAwaitCommandData(cmd?: string) {
         await this.checkData();
         if (this.data) {
