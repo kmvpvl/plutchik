@@ -60,6 +60,17 @@ const choose_language: Map<string, string> = new Map([
     ,['de', 'Sprache wählen']
 ]);
 
+function set_gender(lang: string) {
+    switch(lang) {
+        case 'de': return 'Mein Geschlecht';
+        case 'es': return 'Mi género';
+        case 'ru': return 'Мой пол';
+        case 'uk': return 'Моя стать';
+        case 'en':
+        default: return 'My gender';
+    }
+}
+
 const language_changed: Map<string, string> = new Map([
     ['en', 'Language was changed']
     ,['uk', 'Мова змінена']
@@ -75,6 +86,17 @@ const enter_age: Map<string, string> = new Map([
     ,['es', 'Introduzca su edad']
     ,['de', 'Gebe Dein Alter ein']
 ]);
+
+function str_gender_changed(lang: string) {
+    switch(lang) {
+        case 'de': return 'Das Geschlecht wurde eingestellt';
+        case 'es': return 'Se ha cambiado el género';
+        case 'ru': return 'Пол установлен';
+        case 'uk': return 'Стать встановлено';
+        case 'en':
+        default: return 'Gender has been set';
+    }
+}
 
 function choose_delete_way(lang: string) {
     switch(lang) {
@@ -162,6 +184,18 @@ function deleteMyAccountB(lang: string):string {
         default: return 'Delete all';
     }
 }
+
+function choose_gender(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Wählen Sie ein Geschlecht aus der Liste aus';
+        case 'es': return 'Seleccione un género de la lista';
+        case 'ru': return 'Выберите пол из списка';
+        case 'uk': return 'Виберіть ґендер зі списку';
+        case 'en':
+        default: return 'Select a gender from the list';
+    }
+}
+
 function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.SendMessageOptions {
     return  {
         reply_markup: {
@@ -261,6 +295,10 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                     }
                 ],[
                     {
+                        text: set_gender(lang),
+                        callback_data: 'set_gender'
+                    },
+                    {
                         text: deleteMyAccount(lang),
                         callback_data: 'delete_account'
                     }
@@ -318,7 +356,62 @@ const tg_bot_set_language_menu:TelegramBot.SendMessageOptions = {
             ]
         ]
     }
-};
+}
+function tg_bot_set_gender_menu(lang: string): TelegramBot.SendMessageOptions{
+    function strMale (lang: string){
+        switch(lang) {
+            case 'de': return 'Männlich';
+            case 'es': return 'Masculina';
+            case 'ru': return 'Мужчина';
+            case 'uk': return 'Чоловік';
+            case 'en':
+            default: return 'Male';
+        }
+    }
+    function strFemale(lang: string){
+        switch(lang) {
+            case 'de': return 'Weiblich';
+            case 'es': return 'Femenina';
+            case 'ru': return 'Женщина';
+            case 'uk': return 'Жінка';
+            case 'en':
+            default: return 'Female';
+        }
+    }
+
+    function strOther(lang: string){
+        switch(lang) {
+            case 'de': return 'Anderes Geschlecht';
+            case 'es': return 'Otro género';
+            case 'ru': return 'Другой';
+            case 'uk': return 'Інша стать';
+            case 'en':
+            default: return 'FemOther genderale';
+        }
+    }
+    return     {
+        reply_markup: {
+        inline_keyboard:[
+            [
+                {
+                    text: strMale(lang),
+                    callback_data: 'set_gender_male'
+                },
+                {
+                    text: strFemale(lang),
+                    callback_data: 'set_gender_female'
+                }
+            ],
+            [
+                {
+                    text: strOther(lang),
+                    callback_data: 'set_gender_other'
+                }
+            ]
+        ]}
+    }
+
+}
 export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {
     console.log(`${colours.fg.green}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
@@ -334,6 +427,16 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
             switch(tgData.callback_query.data) {
                 case 'settings':
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, my_settings.get(u?.json?.nativelanguage as string)?my_settings.get(u?.json?.nativelanguage as string) as string:my_settings.get('en') as string, tg_bot_settings_menu(u?.json?.nativelanguage as string));
+                    break;
+                case 'set_gender':
+                    menuSetGender(bot, tgData.callback_query?.message?.chat.id as number, u as User);
+                    break;
+                case 'set_gender_male':
+                case 'set_gender_female':
+                case 'set_gender_other':
+                    const gender = tgData.callback_query.data.split('_')[2];
+                    u.setGender(gender);
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, str_gender_changed(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
                     break;
                 case 'set_language':
                     menuSetLanguage(bot, tgData.callback_query?.message?.chat.id as number, u as User);
@@ -550,6 +653,10 @@ function menuSetLanguage(bot: TelegramBot, chat_id: number, user: User){
 function menuSetAge(bot: TelegramBot, chat_id: number, user: User){
     bot.sendMessage(chat_id, enter_age.get(user.json?.nativelanguage as string)?enter_age.get(user.json?.nativelanguage as string) as string:enter_age.get('en') as string);
     user.setAwaitCommandData("set_age");
+}
+
+function menuSetGender(bot: TelegramBot, chat_id: number, user: User){
+    bot.sendMessage(chat_id, choose_gender(user.json?.nativelanguage as string), tg_bot_set_gender_menu(user.json?.nativelanguage as string));
 }
 
 function menuDeleteAccount(bot: TelegramBot, chat_id: number, user: User){
