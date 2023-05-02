@@ -75,7 +75,7 @@ export default class Assessment extends PlutchikProto<IAssessment> {
             console.log(`assessment data was successfully updated.  id = '${this.id}'`);
         } else { 
             const assessmentInserted = await mongoAssessments.insertMany([this.data]);
-            this.id = assessmentInserted[0]._id;
+            this.id = new Types.ObjectId(assessmentInserted[0]._id);
             this.load(assessmentInserted[0]);
             console.log(`New assessment was created. ${colours.fg.blue}Cid = '${this.id}'${colours.reset}`);
         }

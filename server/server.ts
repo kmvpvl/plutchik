@@ -18,7 +18,6 @@ import telegram, { webapp } from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import {settings} from "./model/plutchikproto";
 import fs from 'fs';
-import { language } from 'googleapis/build/src/apis/language';
 
 const PORT = process.env.PORT || 8000;
 

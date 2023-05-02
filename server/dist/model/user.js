@@ -90,7 +90,7 @@ class User extends plutchikproto_1.default {
             }
             else {
                 const userInserted = yield exports.mongoUsers.insertMany([this.data]);
-                this.id = userInserted[0]._id;
+                this.id = new mongoose_1.Types.ObjectId(userInserted[0]._id);
                 this.load(userInserted[0]);
                 console.log(`New user was created. ${colours_1.default.fg.blue}User id = '${this.id}'${colours_1.default.reset}`);
             }

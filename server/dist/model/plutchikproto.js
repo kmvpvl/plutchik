@@ -61,7 +61,7 @@ class PlutchikProto {
         if (data) {
             this.data = data;
             if (data["_id"])
-                this.id = data["_id"];
+                this.id = new mongoose_1.Types.ObjectId(data["_id"]);
         }
     }
     load(data) {
@@ -69,10 +69,13 @@ class PlutchikProto {
             if (data) {
                 this.data = data;
                 if (data["_id"])
-                    this.id = data["_id"];
+                    this.id = new mongoose_1.Types.ObjectId(data["_id"]);
             }
             yield this.checkData();
         });
+    }
+    get uid() {
+        return this.id;
     }
     static connectMongo() {
         let uri = exports.settings.mongouri;
