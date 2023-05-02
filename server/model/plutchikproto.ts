@@ -22,15 +22,18 @@ export default class PlutchikProto<T> {
 
         if (data) {
             this.data = data;
-            if((data as any)["_id"]) this.id = (data as any)["_id"];
+            if((data as any)["_id"]) this.id = new Types.ObjectId((data as any)["_id"]);
         }
     }
     public async load(data?: T) {
         if (data) {
             this.data = data;
-            if((data as any)["_id"]) this.id = (data as any)["_id"];
+            if((data as any)["_id"]) this.id = new Types.ObjectId((data as any)["_id"]);
         }
         await this.checkData();
+    }
+    public get uid():Types.ObjectId | undefined{
+        return this.id;
     }
     public static connectMongo(){
         let uri = settings.mongouri;

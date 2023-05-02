@@ -171,7 +171,7 @@ export default class Organization extends PlutchikProto <IOrganization>{
             console.log(`Organization data was successfully updated. Org id = '${this.id}'`);
         } else { 
             const orgInserted = await mongoOrgs.insertMany([this.data]);
-            this.id = orgInserted[0]._id;
+            this.id = new Types.ObjectId(orgInserted[0]._id);
             this.load(orgInserted[0]);
             console.log(`New organization was created. ${colours.fg.blue}Org id = '${this.id}'${colours.reset}`);
         }
@@ -211,6 +211,12 @@ export default class Organization extends PlutchikProto <IOrganization>{
         const ci = await mongoContent.aggregate([
             {'$match': {
                 'organizationid': this.id
+            }},
+            {'$lookup': {
+                from: "groups",
+                localField: "_id",
+                foreignField: "items",
+                as: "groups"
             }}
         ]);
         return ci;

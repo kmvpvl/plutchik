@@ -52,7 +52,7 @@ exports.ContentGroupSchema = new mongoose_1.Schema({
     foruseronlyidref: { type: mongoose_1.Types.ObjectId, required: false },
     name: { type: String, required: true },
     items: { type: (Array), required: true },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
     language: { type: String, required: true },
     tags: (Array),
     restrictions: (Array),
@@ -117,7 +117,7 @@ class Content extends plutchikproto_1.default {
             }
             else {
                 const contentInserted = yield exports.mongoContent.insertMany([this.data]);
-                this.id = contentInserted[0]._id;
+                this.id = new mongoose_1.Types.ObjectId(contentInserted[0]._id);
                 this.load(contentInserted[0]);
                 console.log(`New content was created. ${colours_1.default.fg.blue}Cid = '${this.id}'${colours_1.default.reset}`);
             }
@@ -163,6 +163,27 @@ class ContentGroup extends plutchikproto_1.default {
             yield this.save();
         });
     }
+    addItem(newItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data) {
+                const oldItems = this.data.items.filter((i) => i.equals(newItem));
+                if (!oldItems.length)
+                    this.data.items.push(newItem);
+            }
+            yield this.save();
+        });
+    }
+    removeItem(oldItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            if (this.data) {
+                const woItem = this.data.items.filter((i) => !i.equals(oldItem));
+                this.data.items = woItem;
+            }
+            yield this.save();
+        });
+    }
     save() {
         const _super = Object.create(null, {
             save: { get: () => super.save }
@@ -177,7 +198,7 @@ class ContentGroup extends plutchikproto_1.default {
             }
             else {
                 const groupInserted = yield exports.mongoContentGroup.insertMany([this.data]);
-                this.id = groupInserted[0]._id;
+                this.id = new mongoose_1.Types.ObjectId(groupInserted[0]._id);
                 this.load(groupInserted[0]);
                 console.log(`New group was created. ${colours_1.default.fg.blue}gid = '${this.id}'${colours_1.default.reset}`);
             }

@@ -85,7 +85,7 @@ export default class User extends PlutchikProto<IUser> {
             console.log(`User data was successfully updated. User id = '${this.id}'`);
         } else { 
             const userInserted = await mongoUsers.insertMany([this.data]);
-            this.id = userInserted[0]._id;
+            this.id = new Types.ObjectId(userInserted[0]._id);
             this.load(userInserted[0]);
             console.log(`New user was created. ${colours.fg.blue}User id = '${this.id}'${colours.reset}`);
         }
