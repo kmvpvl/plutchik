@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,19 +37,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("../model/colours"));
-const content_1 = __importDefault(require("../model/content"));
+const content_1 = __importStar(require("../model/content"));
 const error_1 = __importDefault(require("../model/error"));
 const organization_1 = __importDefault(require("../model/organization"));
 const user_1 = __importDefault(require("../model/user"));
 function addcontent(c, req, res) {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         let organizationid = req.headers["organizationid"];
         const organizationkey = req.headers["organizationkey"];
         const userid = req.headers["userid"];
         const sessiontoken = req.headers["sessiontoken"];
         console.log(`${colours_1.default.fg.green}API: addcontent function${colours_1.default.reset}\n ${colours_1.default.fg.blue}Parameters: organizationid = '${organizationid}'; organizationkey = '${organizationkey}'; user_id = '${userid}'; sessiontoken = '${sessiontoken}'${colours_1.default.reset}`);
-        console.log(`${colours_1.default.fg.blue}contentinfo = '${JSON.stringify(req.body.contentinfo)}'${colours_1.default.reset}`);
+        console.log(`${colours_1.default.fg.blue}contentinfo = '${JSON.stringify(req.body.contentinfo)}'; groups='${JSON.stringify(req.body.groups)}'${colours_1.default.reset}`);
         try {
             let user = new user_1.default(new mongoose_1.Types.ObjectId(userid));
             if (!organizationid) {
@@ -68,6 +91,48 @@ function addcontent(c, req, res) {
                 content = new content_1.default(undefined, req.body.contentinfo);
             }
             yield content.save();
+            //lets check all prev groups
+            let oldGroups = yield content_1.mongoContentGroup.aggregate([
+                { '$match': {
+                        'items': content.uid
+                    } },
+                { '$project': {
+                        '_id': 1
+                    } }
+            ]);
+            if (req.body.groups) {
+                for (const [i, g] of Object.entries(req.body.groups)) {
+                    const group = yield content_1.mongoContentGroup.aggregate([{
+                            '$match': {
+                                name: g
+                            }
+                        }]);
+                    if (group.length) {
+                        const og = new content_1.ContentGroup(undefined, group[0]);
+                        yield og.addItem(content.uid);
+                        // if this group is in list of oldGroup, delete it from oldGroups
+                        oldGroups = oldGroups.filter((el) => !new mongoose_1.Types.ObjectId(og.uid).equals(el._id));
+                    }
+                    else {
+                        const og = new content_1.ContentGroup(undefined, {
+                            name: g,
+                            items: [content.uid],
+                            tags: [],
+                            restrictions: [],
+                            language: (_c = content.json) === null || _c === void 0 ? void 0 : _c.language,
+                            blocked: false,
+                            created: new Date()
+                        });
+                        yield og.save();
+                    }
+                }
+            }
+            //must delete cid from any estimated group in oldGroups
+            for (const [i, g] of Object.entries(oldGroups)) {
+                const go = new content_1.ContentGroup(new mongoose_1.Types.ObjectId(g._id));
+                yield go.load();
+                yield go.removeItem(content.uid);
+            }
             return res.status(200).json(content.json);
         }
         catch (e) {

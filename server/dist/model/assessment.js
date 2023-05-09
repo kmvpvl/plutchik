@@ -80,7 +80,7 @@ class Assessment extends plutchikproto_1.default {
             }
             else {
                 const assessmentInserted = yield exports.mongoAssessments.insertMany([this.data]);
-                this.id = assessmentInserted[0]._id;
+                this.id = new mongoose_1.Types.ObjectId(assessmentInserted[0]._id);
                 this.load(assessmentInserted[0]);
                 console.log(`New assessment was created. ${colours_1.default.fg.blue}Cid = '${this.id}'${colours_1.default.reset}`);
             }

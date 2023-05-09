@@ -181,7 +181,7 @@ class Organization extends plutchikproto_1.default {
             }
             else {
                 const orgInserted = yield exports.mongoOrgs.insertMany([this.data]);
-                this.id = orgInserted[0]._id;
+                this.id = new mongoose_1.Types.ObjectId(orgInserted[0]._id);
                 this.load(orgInserted[0]);
                 console.log(`New organization was created. ${colours_1.default.fg.blue}Org id = '${this.id}'${colours_1.default.reset}`);
             }
@@ -225,6 +225,12 @@ class Organization extends plutchikproto_1.default {
             const ci = yield content_1.mongoContent.aggregate([
                 { '$match': {
                         'organizationid': this.id
+                    } },
+                { '$lookup': {
+                        from: "groups",
+                        localField: "_id",
+                        foreignField: "items",
+                        as: "groups"
                     } }
             ]);
             return ci;

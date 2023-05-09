@@ -340,6 +340,9 @@ function selectItem(id) {
     $('#inp-url').val(ci.url);
     $('#inp-language').val(ci.language);
     $('#inp-cid').val(id);
+    const arr_group = [];
+    ci.groups.forEach(el=>arr_group.push(el.name));
+    $('#inp-groups').val(arr_group.join(';'));
     $('button[action="btn-block"]').text(ci.blocked?'Unblock':'Block');
 }
 
@@ -394,7 +397,8 @@ $('button[action="btn-save"]').on('click', (e)=>{
     ci.url = $('#inp-url').val();
     ci.language = $('#inp-language').val();
     $.post(`addcontent`, JSON.stringify({
-            "contentinfo": ci
+            "contentinfo": ci,
+            "groups": $('#inp-groups').val().split(';')
         }), (data, status, xhdr)=>{
         if ('success' == status) {
             // ok
