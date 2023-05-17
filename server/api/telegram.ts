@@ -28,13 +28,27 @@ function insights(lang: string) {
     }
 }
 
-const my_settings: Map<string, string> = new Map([
-    ['en', 'My settings']
-    ,['uk', 'Мої налаштування']
-    ,['ru', 'Мои настройки']
-    ,['es', 'Mi configuración']
-    ,['de', 'Meine Einstellungen']
-]);
+function my_settings(lang: string){
+    switch(lang) {
+        case 'de': return 'Meine Einstellungen';
+        case 'es': return 'Mi configuración';
+        case 'ru': return 'Мои настройки';
+        case 'uk': return 'Мої налаштування';
+        case 'en':
+        default: return 'My settings';
+    }
+}
+
+function awareness(lang: string){
+    switch(lang) {
+        case 'de': return 'Hier ist, was wir bisher über Sie wissen';
+        case 'es': return 'Esto es lo que sabemos de ti hasta ahora';
+        case 'ru': return 'Вот что нам известно о Вас на данный момент';
+        case 'uk': return 'Ось що нам відомо про Вас на даний момент';
+        case 'en':
+        default: return "Here's what we know about you so far";
+    }
+}
 
 const set_language: Map<string, string> = new Map([
     ['en', 'Set language']
@@ -44,13 +58,16 @@ const set_language: Map<string, string> = new Map([
     ,['de', 'Sprache einstellen']
 ]);
 
-const set_age: Map<string, string> = new Map([
-    ['en', 'Set my age']
-    ,['uk', 'Встановити мій вік']
-    ,['ru', 'Ввести мой возраст']
-    ,['es', 'establecer mi edad']
-    ,['de', 'Stellen Sie mein Alter ein']
-]);
+function set_age(lang: string){
+    switch (lang) {
+        case 'es': return 'mi edad';
+        case 'de': return 'mein Alter ein';
+        case 'ru': return 'Мой возраст';
+        case 'uk': return 'Мій вік';
+        case 'en':
+        default: return 'Set my age';
+    }
+}
 
 const choose_language: Map<string, string> = new Map([
     ['en', 'Choose language']
@@ -270,7 +287,7 @@ function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.Se
                     }
                 ]: [],[
                     {
-                        text: my_settings.get(lang)?my_settings.get(lang) as string:my_settings.get('en') as string,
+                        text: my_settings(lang),
                         callback_data: 'settings'
                     }
                 ]
@@ -324,7 +341,18 @@ function tg_bot_set_location_menu(lang: string):TelegramBot.SendMessageOptions {
     };
 }
 
-function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
+function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageOptions {
+    const age = user.json?.birthdate? new Date().getFullYear() - user.json?.birthdate.getFullYear():'??';
+    let gender = '??';
+    switch(user.json?.gender) {
+        case 'male':  gender = strMale(lang);
+            break;
+        case 'female':  gender = strFemale(lang);
+        break;
+        case 'other':  gender = strOther(lang);
+            break;
+        default: gender = '??';
+    }
     return {
         reply_markup: {
             inline_keyboard:[
@@ -338,12 +366,12 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                         callback_data: 'set_location'
                     }*/
                     ,{
-                        text: set_age.get(lang)?set_age.get(lang) as string:set_age.get('en') as string,
+                        text: `${set_age(lang)}: ${age}`,
                         callback_data: 'set_age'
                     }
                 ],[
                     {
-                        text: set_gender(lang),
+                        text: `${set_gender(lang)}: ${gender}`,
                         callback_data: 'select_gender'
                     },
                     {
@@ -405,38 +433,39 @@ const tg_bot_set_language_menu:TelegramBot.SendMessageOptions = {
         ]
     }
 }
-function tg_bot_set_gender_menu(lang: string): TelegramBot.SendMessageOptions{
-    function strMale (lang: string){
-        switch(lang) {
-            case 'de': return 'Männlich';
-            case 'es': return 'Masculina';
-            case 'ru': return 'Мужчина';
-            case 'uk': return 'Чоловік';
-            case 'en':
-            default: return 'Male';
-        }
+function strMale (lang: string){
+    switch(lang) {
+        case 'de': return 'Männlich';
+        case 'es': return 'Masculina';
+        case 'ru': return 'Мужчина';
+        case 'uk': return 'Чоловік';
+        case 'en':
+        default: return 'Male';
     }
-    function strFemale(lang: string){
-        switch(lang) {
-            case 'de': return 'Weiblich';
-            case 'es': return 'Femenina';
-            case 'ru': return 'Женщина';
-            case 'uk': return 'Жінка';
-            case 'en':
-            default: return 'Female';
-        }
+}
+function strFemale(lang: string){
+    switch(lang) {
+        case 'de': return 'Weiblich';
+        case 'es': return 'Femenina';
+        case 'ru': return 'Женщина';
+        case 'uk': return 'Жінка';
+        case 'en':
+        default: return 'Female';
     }
+}
 
-    function strOther(lang: string){
-        switch(lang) {
-            case 'de': return 'Anderes Geschlecht';
-            case 'es': return 'Otro género';
-            case 'ru': return 'Другой';
-            case 'uk': return 'Інша стать';
-            case 'en':
-            default: return 'FemOther genderale';
-        }
+function strOther(lang: string){
+    switch(lang) {
+        case 'de': return 'Anderes Geschlecht';
+        case 'es': return 'Otro género';
+        case 'ru': return 'Другой';
+        case 'uk': return 'Інша стать';
+        case 'en':
+        default: return 'FemOther genderale';
     }
+}
+
+function tg_bot_set_gender_menu(lang: string): TelegramBot.SendMessageOptions{
     return     {
         reply_markup: {
         inline_keyboard:[
@@ -512,7 +541,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
 
             switch(cbcommand[0]) {
                 case 'settings':
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, my_settings.get(u?.json?.nativelanguage as string)?my_settings.get(u?.json?.nativelanguage as string) as string:my_settings.get('en') as string, tg_bot_settings_menu(u?.json?.nativelanguage as string));
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, awareness(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
                     break;
                 case 'select_gender':
                     menuSetGender(bot, tgData.callback_query?.message?.chat.id as number, u as User);
