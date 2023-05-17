@@ -60,13 +60,26 @@ function insights(lang) {
         default: return 'Insights';
     }
 }
-const my_settings = new Map([
-    ['en', 'My settings'],
-    ['uk', 'Мої налаштування'],
-    ['ru', 'Мои настройки'],
-    ['es', 'Mi configuración'],
-    ['de', 'Meine Einstellungen']
-]);
+function my_settings(lang) {
+    switch (lang) {
+        case 'de': return 'Meine Einstellungen';
+        case 'es': return 'Mi configuración';
+        case 'ru': return 'Мои настройки';
+        case 'uk': return 'Мої налаштування';
+        case 'en':
+        default: return 'My settings';
+    }
+}
+function awareness(lang) {
+    switch (lang) {
+        case 'de': return 'Hier ist, was wir bisher über Sie wissen';
+        case 'es': return 'Esto es lo que sabemos de ti hasta ahora';
+        case 'ru': return 'Вот что нам известно о Вас на данный момент';
+        case 'uk': return 'Ось що нам відомо про Вас на даний момент';
+        case 'en':
+        default: return "Here's what we know about you so far";
+    }
+}
 const set_language = new Map([
     ['en', 'Set language'],
     ['uk', 'Встановити мову'],
@@ -74,13 +87,16 @@ const set_language = new Map([
     ['es', 'Elegir lenguaje'],
     ['de', 'Sprache einstellen']
 ]);
-const set_age = new Map([
-    ['en', 'Set my age'],
-    ['uk', 'Встановити мій вік'],
-    ['ru', 'Ввести мой возраст'],
-    ['es', 'establecer mi edad'],
-    ['de', 'Stellen Sie mein Alter ein']
-]);
+function set_age(lang) {
+    switch (lang) {
+        case 'es': return 'mi edad';
+        case 'de': return 'mein Alter ein';
+        case 'ru': return 'Мой возраст';
+        case 'uk': return 'Мій вік';
+        case 'en':
+        default: return 'Set my age';
+    }
+}
 const choose_language = new Map([
     ['en', 'Choose language'],
     ['uk', 'Виберіть мову'],
@@ -283,7 +299,7 @@ function tg_bot_start_menu(lang, manage = false) {
                     }
                 ] : [], [
                     {
-                        text: my_settings.get(lang) ? my_settings.get(lang) : my_settings.get('en'),
+                        text: my_settings(lang),
                         callback_data: 'settings'
                     }
                 ]
@@ -336,7 +352,22 @@ function tg_bot_set_location_menu(lang) {
         }
     };
 }
-function tg_bot_settings_menu(lang) {
+function tg_bot_settings_menu(lang, user) {
+    var _a, _b, _c;
+    const age = ((_a = user.json) === null || _a === void 0 ? void 0 : _a.birthdate) ? new Date().getFullYear() - ((_b = user.json) === null || _b === void 0 ? void 0 : _b.birthdate.getFullYear()) : '??';
+    let gender = '??';
+    switch ((_c = user.json) === null || _c === void 0 ? void 0 : _c.gender) {
+        case 'male':
+            gender = strMale(lang);
+            break;
+        case 'female':
+            gender = strFemale(lang);
+            break;
+        case 'other':
+            gender = strOther(lang);
+            break;
+        default: gender = '??';
+    }
     return {
         reply_markup: {
             inline_keyboard: [
@@ -351,12 +382,12 @@ function tg_bot_settings_menu(lang) {
                     }*/
                     ,
                     {
-                        text: set_age.get(lang) ? set_age.get(lang) : set_age.get('en'),
+                        text: `${set_age(lang)}: ${age}`,
                         callback_data: 'set_age'
                     }
                 ], [
                     {
-                        text: set_gender(lang),
+                        text: `${set_gender(lang)}: ${gender}`,
                         callback_data: 'select_gender'
                     },
                     {
@@ -418,37 +449,37 @@ const tg_bot_set_language_menu = {
         ]
     }
 };
+function strMale(lang) {
+    switch (lang) {
+        case 'de': return 'Männlich';
+        case 'es': return 'Masculina';
+        case 'ru': return 'Мужчина';
+        case 'uk': return 'Чоловік';
+        case 'en':
+        default: return 'Male';
+    }
+}
+function strFemale(lang) {
+    switch (lang) {
+        case 'de': return 'Weiblich';
+        case 'es': return 'Femenina';
+        case 'ru': return 'Женщина';
+        case 'uk': return 'Жінка';
+        case 'en':
+        default: return 'Female';
+    }
+}
+function strOther(lang) {
+    switch (lang) {
+        case 'de': return 'Anderes Geschlecht';
+        case 'es': return 'Otro género';
+        case 'ru': return 'Другой';
+        case 'uk': return 'Інша стать';
+        case 'en':
+        default: return 'FemOther genderale';
+    }
+}
 function tg_bot_set_gender_menu(lang) {
-    function strMale(lang) {
-        switch (lang) {
-            case 'de': return 'Männlich';
-            case 'es': return 'Masculina';
-            case 'ru': return 'Мужчина';
-            case 'uk': return 'Чоловік';
-            case 'en':
-            default: return 'Male';
-        }
-    }
-    function strFemale(lang) {
-        switch (lang) {
-            case 'de': return 'Weiblich';
-            case 'es': return 'Femenina';
-            case 'ru': return 'Женщина';
-            case 'uk': return 'Жінка';
-            case 'en':
-            default: return 'Female';
-        }
-    }
-    function strOther(lang) {
-        switch (lang) {
-            case 'de': return 'Anderes Geschlecht';
-            case 'es': return 'Otro género';
-            case 'ru': return 'Другой';
-            case 'uk': return 'Інша стать';
-            case 'en':
-            default: return 'FemOther genderale';
-        }
-    }
     return {
         reply_markup: {
             inline_keyboard: [
@@ -503,7 +534,7 @@ function invitation_declined(lang) {
     }
 }
 function telegram(c, req, res, bot) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`${colours_1.default.fg.green}API: telegram function${colours_1.default.reset}`);
         const tgData = req.body;
@@ -520,27 +551,27 @@ function telegram(c, req, res, bot) {
                 const cbcommand = tgData.callback_query.data ? (_c = tgData.callback_query.data) === null || _c === void 0 ? void 0 : _c.split(':') : '';
                 switch (cbcommand[0]) {
                     case 'settings':
-                        bot.sendMessage((_e = (_d = tgData.callback_query) === null || _d === void 0 ? void 0 : _d.message) === null || _e === void 0 ? void 0 : _e.chat.id, my_settings.get((_f = u === null || u === void 0 ? void 0 : u.json) === null || _f === void 0 ? void 0 : _f.nativelanguage) ? my_settings.get((_g = u === null || u === void 0 ? void 0 : u.json) === null || _g === void 0 ? void 0 : _g.nativelanguage) : my_settings.get('en'), tg_bot_settings_menu((_h = u === null || u === void 0 ? void 0 : u.json) === null || _h === void 0 ? void 0 : _h.nativelanguage));
+                        bot.sendMessage((_e = (_d = tgData.callback_query) === null || _d === void 0 ? void 0 : _d.message) === null || _e === void 0 ? void 0 : _e.chat.id, awareness((_f = u === null || u === void 0 ? void 0 : u.json) === null || _f === void 0 ? void 0 : _f.nativelanguage), tg_bot_settings_menu((_g = u === null || u === void 0 ? void 0 : u.json) === null || _g === void 0 ? void 0 : _g.nativelanguage, u));
                         break;
                     case 'select_gender':
-                        menuSetGender(bot, (_k = (_j = tgData.callback_query) === null || _j === void 0 ? void 0 : _j.message) === null || _k === void 0 ? void 0 : _k.chat.id, u);
+                        menuSetGender(bot, (_j = (_h = tgData.callback_query) === null || _h === void 0 ? void 0 : _h.message) === null || _j === void 0 ? void 0 : _j.chat.id, u);
                         break;
                     case 'set_gender':
                         const gender = cbcommand[1];
                         u.setGender(gender);
-                        bot.sendMessage((_m = (_l = tgData.callback_query) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m.chat.id, str_gender_changed((_o = u === null || u === void 0 ? void 0 : u.json) === null || _o === void 0 ? void 0 : _o.nativelanguage), tg_bot_start_menu((_p = u === null || u === void 0 ? void 0 : u.json) === null || _p === void 0 ? void 0 : _p.nativelanguage));
+                        bot.sendMessage((_l = (_k = tgData.callback_query) === null || _k === void 0 ? void 0 : _k.message) === null || _l === void 0 ? void 0 : _l.chat.id, str_gender_changed((_m = u === null || u === void 0 ? void 0 : u.json) === null || _m === void 0 ? void 0 : _m.nativelanguage), tg_bot_start_menu((_o = u === null || u === void 0 ? void 0 : u.json) === null || _o === void 0 ? void 0 : _o.nativelanguage));
                         break;
                     case 'select_language':
-                        menuSetLanguage(bot, (_r = (_q = tgData.callback_query) === null || _q === void 0 ? void 0 : _q.message) === null || _r === void 0 ? void 0 : _r.chat.id, u);
+                        menuSetLanguage(bot, (_q = (_p = tgData.callback_query) === null || _p === void 0 ? void 0 : _p.message) === null || _q === void 0 ? void 0 : _q.chat.id, u);
                         break;
                     case 'set_language':
                         const lang = cbcommand[1];
                         console.log(`Changing user's language to '${lang}'`);
                         yield (u === null || u === void 0 ? void 0 : u.changeNativeLanguage(lang));
-                        bot.sendMessage((_t = (_s = tgData.callback_query) === null || _s === void 0 ? void 0 : _s.message) === null || _t === void 0 ? void 0 : _t.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_u = u === null || u === void 0 ? void 0 : u.json) === null || _u === void 0 ? void 0 : _u.nativelanguage));
+                        bot.sendMessage((_s = (_r = tgData.callback_query) === null || _r === void 0 ? void 0 : _r.message) === null || _s === void 0 ? void 0 : _s.chat.id, language_changed.get(lang) ? language_changed.get(lang) : language_changed.get('en'), tg_bot_start_menu((_t = u === null || u === void 0 ? void 0 : u.json) === null || _t === void 0 ? void 0 : _t.nativelanguage));
                         break;
                     case 'set_age':
-                        menuSetAge(bot, (_w = (_v = tgData.callback_query) === null || _v === void 0 ? void 0 : _v.message) === null || _w === void 0 ? void 0 : _w.chat.id, u);
+                        menuSetAge(bot, (_v = (_u = tgData.callback_query) === null || _u === void 0 ? void 0 : _u.message) === null || _v === void 0 ? void 0 : _v.chat.id, u);
                         break;
                     case 'accept_assignment':
                         console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
@@ -551,34 +582,34 @@ function telegram(c, req, res, bot) {
                             //sending message to psycologist
                             bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} accepted your invitation`);
                             //sending message to patient
-                            bot.sendMessage(tgData.callback_query.from.id, invitation_accepted((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.nativelanguage), tg_bot_start_menu((_y = u === null || u === void 0 ? void 0 : u.json) === null || _y === void 0 ? void 0 : _y.nativelanguage));
+                            bot.sendMessage(tgData.callback_query.from.id, invitation_accepted((_w = u === null || u === void 0 ? void 0 : u.json) === null || _w === void 0 ? void 0 : _w.nativelanguage), tg_bot_start_menu((_x = u === null || u === void 0 ? void 0 : u.json) === null || _x === void 0 ? void 0 : _x.nativelanguage));
                         }
                         else {
                             //something was wrong either from_user or content group
                             //sending message to psycologist
                             bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} couldn't accept your invitation. But tried. Group name = '${cbcommand[1]}'`);
                             //sending message to patient
-                            bot.sendMessage(tgData.callback_query.from.id, invitation_failed((_z = u === null || u === void 0 ? void 0 : u.json) === null || _z === void 0 ? void 0 : _z.nativelanguage), tg_bot_start_menu((_0 = u === null || u === void 0 ? void 0 : u.json) === null || _0 === void 0 ? void 0 : _0.nativelanguage));
+                            bot.sendMessage(tgData.callback_query.from.id, invitation_failed((_y = u === null || u === void 0 ? void 0 : u.json) === null || _y === void 0 ? void 0 : _y.nativelanguage), tg_bot_start_menu((_z = u === null || u === void 0 ? void 0 : u.json) === null || _z === void 0 ? void 0 : _z.nativelanguage));
                         }
                         break;
                     case 'decline_assignment':
                         console.log(`Decline assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
                         bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} declined your invitation. Group name = '${cbcommand[1]}'`);
                         //sending message to patient
-                        bot.sendMessage(tgData.callback_query.from.id, invitation_declined((_1 = u === null || u === void 0 ? void 0 : u.json) === null || _1 === void 0 ? void 0 : _1.nativelanguage), tg_bot_start_menu((_2 = u === null || u === void 0 ? void 0 : u.json) === null || _2 === void 0 ? void 0 : _2.nativelanguage));
+                        bot.sendMessage(tgData.callback_query.from.id, invitation_declined((_0 = u === null || u === void 0 ? void 0 : u.json) === null || _0 === void 0 ? void 0 : _0.nativelanguage), tg_bot_start_menu((_1 = u === null || u === void 0 ? void 0 : u.json) === null || _1 === void 0 ? void 0 : _1.nativelanguage));
                         break;
                     case 'delete_account':
-                        menuDeleteAccount(bot, (_4 = (_3 = tgData.callback_query) === null || _3 === void 0 ? void 0 : _3.message) === null || _4 === void 0 ? void 0 : _4.chat.id, u);
+                        menuDeleteAccount(bot, (_3 = (_2 = tgData.callback_query) === null || _2 === void 0 ? void 0 : _2.message) === null || _3 === void 0 ? void 0 : _3.chat.id, u);
                         break;
                     case 'delete_my_account_a':
                     case 'delete_my_account_b':
                         yield u.deleteTgUser();
-                        bot.sendMessage((_6 = (_5 = tgData.callback_query) === null || _5 === void 0 ? void 0 : _5.message) === null || _6 === void 0 ? void 0 : _6.chat.id, accountDeleted((_7 = u === null || u === void 0 ? void 0 : u.json) === null || _7 === void 0 ? void 0 : _7.nativelanguage));
+                        bot.sendMessage((_5 = (_4 = tgData.callback_query) === null || _4 === void 0 ? void 0 : _4.message) === null || _5 === void 0 ? void 0 : _5.chat.id, accountDeleted((_6 = u === null || u === void 0 ? void 0 : u.json) === null || _6 === void 0 ? void 0 : _6.nativelanguage));
                         break;
                     case 'set_location':
-                        bot.sendMessage((_9 = (_8 = tgData.callback_query) === null || _8 === void 0 ? void 0 : _8.message) === null || _9 === void 0 ? void 0 : _9.chat.id, 'get location', tg_bot_set_location_menu((_10 = u === null || u === void 0 ? void 0 : u.json) === null || _10 === void 0 ? void 0 : _10.nativelanguage));
+                        bot.sendMessage((_8 = (_7 = tgData.callback_query) === null || _7 === void 0 ? void 0 : _7.message) === null || _8 === void 0 ? void 0 : _8.chat.id, 'get location', tg_bot_set_location_menu((_9 = u === null || u === void 0 ? void 0 : u.json) === null || _9 === void 0 ? void 0 : _9.nativelanguage));
                         break;
-                    default: bot.sendMessage((_12 = (_11 = tgData.callback_query) === null || _11 === void 0 ? void 0 : _11.message) === null || _12 === void 0 ? void 0 : _12.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_13 = u === null || u === void 0 ? void 0 : u.json) === null || _13 === void 0 ? void 0 : _13.nativelanguage));
+                    default: bot.sendMessage((_11 = (_10 = tgData.callback_query) === null || _10 === void 0 ? void 0 : _10.message) === null || _11 === void 0 ? void 0 : _11.chat.id, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu((_12 = u === null || u === void 0 ? void 0 : u.json) === null || _12 === void 0 ? void 0 : _12.nativelanguage));
                 }
                 return res.status(200).json("OK");
             }
@@ -586,19 +617,19 @@ function telegram(c, req, res, bot) {
                 return res.status(400).json(e);
             }
         }
-        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_15 = (_14 = tgData.message) === null || _14 === void 0 ? void 0 : _14.from) === null || _15 === void 0 ? void 0 : _15.id}'${colours_1.default.reset}; chat_id = '${(_16 = tgData.message) === null || _16 === void 0 ? void 0 : _16.chat.id}'`);
-        const u = yield getUserByTgUserId((_18 = (_17 = tgData.message) === null || _17 === void 0 ? void 0 : _17.from) === null || _18 === void 0 ? void 0 : _18.id);
-        if ((_19 = u === null || u === void 0 ? void 0 : u.json) === null || _19 === void 0 ? void 0 : _19.awaitcommanddata) {
-            switch ((_20 = u === null || u === void 0 ? void 0 : u.json) === null || _20 === void 0 ? void 0 : _20.awaitcommanddata) {
+        console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_14 = (_13 = tgData.message) === null || _13 === void 0 ? void 0 : _13.from) === null || _14 === void 0 ? void 0 : _14.id}'${colours_1.default.reset}; chat_id = '${(_15 = tgData.message) === null || _15 === void 0 ? void 0 : _15.chat.id}'`);
+        const u = yield getUserByTgUserId((_17 = (_16 = tgData.message) === null || _16 === void 0 ? void 0 : _16.from) === null || _17 === void 0 ? void 0 : _17.id);
+        if ((_18 = u === null || u === void 0 ? void 0 : u.json) === null || _18 === void 0 ? void 0 : _18.awaitcommanddata) {
+            switch ((_19 = u === null || u === void 0 ? void 0 : u.json) === null || _19 === void 0 ? void 0 : _19.awaitcommanddata) {
                 case 'set_age':
-                    const age = parseInt((_21 = tgData.message) === null || _21 === void 0 ? void 0 : _21.text);
+                    const age = parseInt((_20 = tgData.message) === null || _20 === void 0 ? void 0 : _20.text);
                     if (isNaN(age)) {
-                        bot.sendMessage((_22 = tgData.message) === null || _22 === void 0 ? void 0 : _22.chat.id, notANumber((_23 = u === null || u === void 0 ? void 0 : u.json) === null || _23 === void 0 ? void 0 : _23.nativelanguage));
+                        bot.sendMessage((_21 = tgData.message) === null || _21 === void 0 ? void 0 : _21.chat.id, notANumber((_22 = u === null || u === void 0 ? void 0 : u.json) === null || _22 === void 0 ? void 0 : _22.nativelanguage));
                     }
                     else {
                         yield u.setAge(age);
                         yield u.setAwaitCommandData();
-                        bot.sendMessage((_24 = tgData.message) === null || _24 === void 0 ? void 0 : _24.chat.id, ageSet((_25 = u === null || u === void 0 ? void 0 : u.json) === null || _25 === void 0 ? void 0 : _25.nativelanguage), tg_bot_start_menu((_26 = u === null || u === void 0 ? void 0 : u.json) === null || _26 === void 0 ? void 0 : _26.nativelanguage));
+                        bot.sendMessage((_23 = tgData.message) === null || _23 === void 0 ? void 0 : _23.chat.id, ageSet((_24 = u === null || u === void 0 ? void 0 : u.json) === null || _24 === void 0 ? void 0 : _24.nativelanguage), tg_bot_start_menu((_25 = u === null || u === void 0 ? void 0 : u.json) === null || _25 === void 0 ? void 0 : _25.nativelanguage));
                     }
                     return res.status(200).json("OK");
                     break;
@@ -610,7 +641,7 @@ function telegram(c, req, res, bot) {
         try {
             if (!(yield processCommands(bot, tgData))
                 && !(yield processURLs(bot, tgData))) {
-                bot.sendMessage((_27 = tgData.message) === null || _27 === void 0 ? void 0 : _27.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
+                bot.sendMessage((_26 = tgData.message) === null || _26 === void 0 ? void 0 : _26.chat.id, `Sorry, i couldn't apply this content. Check spelling`);
             }
             ;
             return res.status(200).json("OK");
