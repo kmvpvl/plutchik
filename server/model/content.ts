@@ -20,6 +20,7 @@ export interface IContent {
     restrictions: Array<string>;
     organizationid?: Types.ObjectId;
     foruseronlyidref?: Types.ObjectId;
+    assignid?: Types.ObjectId;
     blocked: boolean;
     expired?: Date;
     validfrom?: Date;
@@ -189,4 +190,13 @@ export class ContentGroup extends PlutchikProto<IContentGroup> {
             console.log(`New group was created. ${colours.fg.blue}gid = '${this.id}'${colours.reset}`);
         }
     }
+}
+
+export async function findContentGroup(name: string): Promise<ContentGroup|undefined> {
+    const group = await mongoContentGroup.aggregate([{
+        '$match': {
+            name: name
+        }
+    }]);
+    return group.length?new ContentGroup(undefined, group[0]):undefined;
 }

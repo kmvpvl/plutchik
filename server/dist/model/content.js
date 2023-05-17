@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContentGroup = exports.mongoContentGroup = exports.mongoContent = exports.ContentGroupSchema = exports.ContentSchema = void 0;
+exports.findContentGroup = exports.ContentGroup = exports.mongoContentGroup = exports.mongoContent = exports.ContentGroupSchema = exports.ContentSchema = void 0;
 const mongoose_1 = require("mongoose");
 const colours_1 = __importDefault(require("./colours"));
 const error_1 = __importDefault(require("./error"));
@@ -206,3 +206,14 @@ class ContentGroup extends plutchikproto_1.default {
     }
 }
 exports.ContentGroup = ContentGroup;
+function findContentGroup(name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const group = yield exports.mongoContentGroup.aggregate([{
+                '$match': {
+                    name: name
+                }
+            }]);
+        return group.length ? new ContentGroup(undefined, group[0]) : undefined;
+    });
+}
+exports.findContentGroup = findContentGroup;

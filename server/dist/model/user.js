@@ -31,6 +31,7 @@ exports.UserSchema = new mongoose_1.Schema({
     gender: { type: String, require: false },
     maritalstatus: { type: String, require: false },
     features: { type: String, require: false },
+    assignedgroups: { type: Array, require: false },
     awaitcommanddata: { type: String, require: false },
     blocked: Boolean,
     created: Date,
@@ -170,7 +171,95 @@ class User extends plutchikproto_1.default {
             yield this.save();
         });
     }
-    nextContentItem(language, source_type) {
+    nextContentItemByAssign(groupid, assignid, bot) {
+        var _a, _b, _c, _d;
+        return __awaiter(this, void 0, void 0, function* () {
+            plutchikproto_1.default.connectMongo();
+            const v = yield content_1.mongoContentGroup.aggregate([
+                {
+                    '$match': {
+                        '_id': groupid
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'contents',
+                        'localField': 'items',
+                        'foreignField': '_id',
+                        'as': 'result'
+                    }
+                }, {
+                    '$unwind': '$result'
+                }, {
+                    '$replaceRoot': {
+                        'newRoot': '$result'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'assessments',
+                        'foreignField': 'cid',
+                        'localField': '_id',
+                        'pipeline': [{
+                                '$match': {
+                                    '$expr': { '$eq': [
+                                            '$assignid', assignid
+                                        ] }
+                                }
+                            }],
+                        'as': 'result'
+                    }
+                }, {
+                    '$match': {
+                        'result': []
+                    }
+                }, {
+                    '$addFields': {
+                        'rand': {
+                            '$rand': {}
+                        }
+                    }
+                }, {
+                    '$sort': {
+                        'rand': 1
+                    }
+                }, {
+                    '$limit': 1
+                }, {
+                    '$project': {
+                        'result': 0,
+                        'rand': 0
+                    }
+                }
+            ]);
+            if (!v.length) {
+                //let's close assignment of content grooup
+                (_b = (_a = this.data) === null || _a === void 0 ? void 0 : _a.assignedgroups) === null || _b === void 0 ? void 0 : _b.forEach(el => { if (el._id.equals(assignid))
+                    el.closed = true; });
+                yield this.save();
+                //let's notify all about finish of the assessment
+                const c = (_d = (_c = this.data) === null || _c === void 0 ? void 0 : _c.assignedgroups) === null || _d === void 0 ? void 0 : _d.filter(el => el._id.equals(assignid));
+                if (c)
+                    bot === null || bot === void 0 ? void 0 : bot.sendMessage(c[0].tguserid, `User ${this.uid} finished ${c[0]._id} assignment`);
+                throw new error_1.default("user:nonextcontent", `userid = '${this.id}';assignid='${assignid}';groupid='${groupid}'`);
+            }
+            //let's mark content item as asessed by assignment froup
+            v[0].assignid = assignid;
+            return v[0];
+        });
+    }
+    nextContentItem(bot, language, source_type) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            this.checkData();
+            const assigns = (_b = (_a = this.data) === null || _a === void 0 ? void 0 : _a.assignedgroups) === null || _b === void 0 ? void 0 : _b.filter((val) => !val.closed);
+            if (assigns === null || assigns === void 0 ? void 0 : assigns.length) {
+                return this.nextContentItemByAssign(assigns[0].groupid, assigns[0]._id, bot);
+            }
+            else {
+                return this.nextContentItemAll(language, source_type);
+            }
+        });
+    }
+    nextContentItemAll(language, source_type) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             //this.checkData();
@@ -487,6 +576,27 @@ class User extends plutchikproto_1.default {
                 ret.othersVector = others[0];
             }
             return ret;
+        });
+    }
+    assignContentGroup(from, group) {
+        var _a, _b, _c, _d, _e, _f;
+        return __awaiter(this, void 0, void 0, function* () {
+            this.checkData();
+            const a = {
+                _id: new mongoose_1.Types.ObjectId(),
+                userid: from.uid,
+                tguserid: (_a = from.json) === null || _a === void 0 ? void 0 : _a.tguserid,
+                groupid: group.uid,
+                assigndate: new Date(),
+                closed: false
+            };
+            if (this.data && !((_b = this.data) === null || _b === void 0 ? void 0 : _b.assignedgroups))
+                this.data.assignedgroups = [];
+            // let's check the same not closed group exists
+            const exists = (_d = (_c = this.data) === null || _c === void 0 ? void 0 : _c.assignedgroups) === null || _d === void 0 ? void 0 : _d.filter((val) => val.groupid.equals(group.uid));
+            if (!(exists === null || exists === void 0 ? void 0 : exists.length))
+                (_f = (_e = this.data) === null || _e === void 0 ? void 0 : _e.assignedgroups) === null || _f === void 0 ? void 0 : _f.push(a);
+            yield this.save();
         });
     }
 }
