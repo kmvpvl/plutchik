@@ -70,10 +70,14 @@ api.registerSecurityHandler('PlutchikAuthSessionToken',  checkSecurity);
 
 
 export const app: Application = express();
+app.use(express.json());
+app.use(morgan('tiny'));
+app.use(cors());
+
 const bot = new TelegramBot(settings.tg_bot_authtoken);
 if (settings.tg_web_hook_server) {
     bot.setWebHook(`${settings.tg_web_hook_server}/telegram`);
-    bot.setMyCommands([
+    /*bot.setMyCommands([
         {command: '/start', description:'Start', },
         {command: '/set_language', description:'Set language', },
     ], {language_code: 'en'});
@@ -92,12 +96,8 @@ if (settings.tg_web_hook_server) {
     bot.setMyCommands([
         {command: '/start', description:'Начать', },
         {command: '/set_language', description:'Установить язык', },
-    ], {language_code: 'ru'});
+    ], {language_code: 'ru'});*/
 };
-
-app.use(express.json());
-app.use(morgan('tiny'));
-app.use(cors());
 
 // use as express middleware
 app.use(async (req: Request, res: Response) => {
