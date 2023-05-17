@@ -21,6 +21,7 @@ exports.AssessmentSchema = new mongoose_1.Schema({
     uid: { type: mongoose_1.Types.ObjectId, required: false },
     organizationid: mongoose_1.Types.ObjectId,
     cid: mongoose_1.Types.ObjectId,
+    assignid: { type: mongoose_1.Types.ObjectId, required: false },
     vector: {
         joy: { type: Number, required: false },
         trust: { type: Number, required: false },

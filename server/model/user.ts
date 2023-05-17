@@ -1,13 +1,25 @@
 import { Schema, Types, model } from "mongoose";
 import colours from "./colours";
-import { IContent, mongoContent, SourceType } from "./content";
+import { ContentGroup, IContent, mongoContent, mongoContentGroup, SourceType } from "./content";
 import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
 import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
 import PlutchikProto from "./plutchikproto";
 import { IVector, mongoAssessments } from "./assessment";
+import TelegramBot from "node-telegram-bot-api";
 
-export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match";
+export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match"|"offer_group";
+
+export interface IAssign {
+    _id: Types.ObjectId;
+    userid: Types.ObjectId;
+    tguserid?: number;
+    groupid: Types.ObjectId;
+    assigndate: Date;
+    acceptdecline?: boolean;
+    closed: boolean;
+}
+
 export interface IUser {
     _id?: Types.ObjectId;
     tguserid?: number;
@@ -20,6 +32,7 @@ export interface IUser {
     gender?: string;
     maritalstatus?: string;
     features?: string;
+    assignedgroups?: Array<IAssign>;
     blocked: boolean;
     created: Date;
     changed?: Date;
@@ -43,6 +56,7 @@ export const UserSchema = new Schema({
     gender: {type: String, require: false},
     maritalstatus: {type: String, require: false},
     features: {type: String, require: false},
+    assignedgroups: {type: Array, require: false},
     awaitcommanddata: {type: String, require: false},
     blocked: Boolean,
     created: Date,
@@ -154,7 +168,88 @@ export default class User extends PlutchikProto<IUser> {
         await this.save();
     }
 
-    public async nextContentItem(language?: string, source_type?: SourceType): Promise <IContent>{
+    public async nextContentItemByAssign (groupid: Types.ObjectId, assignid: Types.ObjectId, bot?: TelegramBot): Promise<IContent> {
+        PlutchikProto.connectMongo();
+        const v = await mongoContentGroup.aggregate([
+            {
+                '$match': {
+                    '_id': groupid
+                }
+            }, {
+                '$lookup': {
+                    'from': 'contents', 
+                    'localField': 'items', 
+                    'foreignField': '_id', 
+                    'as': 'result'
+                }
+            }, {
+                '$unwind': '$result'
+            }, {
+                '$replaceRoot': {
+                    'newRoot': '$result'
+                  }
+            }, {
+                '$lookup': {
+                    'from': 'assessments', 
+                    'foreignField': 'cid', 
+                    'localField': '_id', 
+                    'pipeline': [{
+                        '$match': {
+                            '$expr': {'$eq': [
+                                '$assignid', assignid
+                            ]}
+                        }
+                    }], 
+                    'as': 'result'
+                  }
+            }, {
+                  '$match': {
+                    'result': []
+                  }
+            }, {
+                  '$addFields': {
+                    'rand': {
+                      '$rand': {}
+                    }
+                  }
+            }, {
+                '$sort': {
+                    'rand': 1
+                }
+            },{
+                '$limit': 1
+            }, {
+                '$project': {
+                    'result':0,
+                    'rand': 0
+                }
+            }
+        ]);
+        if (!v.length) {
+            //let's close assignment of content grooup
+            this.data?.assignedgroups?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true});
+            await this.save();
+            //let's notify all about finish of the assessment
+            const c = this.data?.assignedgroups?.filter(el=>el._id.equals(assignid));
+
+            if (c) bot?.sendMessage(c[0].tguserid as number, `User ${this.uid} finished ${c[0]._id} assignment`);
+            throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';assignid='${assignid}';groupid='${groupid}'`);
+        }
+        //let's mark content item as asessed by assignment froup
+        v[0].assignid = assignid;
+        return v[0];
+    }
+    public async nextContentItem(bot?: TelegramBot, language?: string, source_type?: SourceType): Promise <IContent>{
+        this.checkData();
+        const assigns = this.data?.assignedgroups?.filter((val)=>!val.closed);
+        if (assigns?.length) {
+            return this.nextContentItemByAssign(assigns[0].groupid, assigns[0]._id, bot);
+        } else {
+            return this.nextContentItemAll(language, source_type);
+        }
+    }
+
+    public async nextContentItemAll(language?: string, source_type?: SourceType): Promise <IContent>{
         //this.checkData();
         PlutchikProto.connectMongo();
         const v = await mongoContent.aggregate([{
@@ -467,5 +562,22 @@ export default class User extends PlutchikProto<IUser> {
             ret.othersVector = others[0];
         }
         return ret;
+    }
+
+    public async assignContentGroup(from: User, group: ContentGroup) {
+        this.checkData();
+        const a: IAssign = {
+            _id: new Types.ObjectId(),
+            userid: from.uid as Types.ObjectId,
+            tguserid: from.json?.tguserid,
+            groupid: group.uid as Types.ObjectId,
+            assigndate: new Date(),
+            closed: false
+        }
+        if (this.data && !this.data?.assignedgroups)this.data.assignedgroups = [];
+        // let's check the same not closed group exists
+        const exists = this.data?.assignedgroups?.filter((val)=>val.groupid.equals(group.uid as Types.ObjectId));
+        if (!exists?.length) this.data?.assignedgroups?.push(a);
+        await this.save();
     }
 }
