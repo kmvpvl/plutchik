@@ -481,6 +481,7 @@ $('button[action="assess"]').on('click', ()=>{
     $.post(`addassessment`, JSON.stringify({
             "assessmentinfo": {
                 "cid": JSON.parse($('#content').text())._id,
+                "assignid":JSON.parse($('#content').text()).assignid,
                 "vector": getEmotionalVector()
             }
         }), (data, status, xhdr)=>{

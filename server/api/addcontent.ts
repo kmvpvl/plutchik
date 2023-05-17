@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
-import Content, { ContentGroup, mongoContentGroup } from '../model/content';
+import Content, { ContentGroup, findContentGroup, mongoContentGroup } from '../model/content';
 import PlutchikError, { ErrorCode } from '../model/error';
 import Organization from '../model/organization';
 import User from '../model/user';
@@ -64,18 +64,13 @@ export default async function addcontent(c: any, req: Request, res: Response) {
         ]);
         if (req.body.groups) {
             for (const [i, g] of Object.entries(req.body.groups)){
-                const group = await mongoContentGroup.aggregate([{
-                    '$match': {
-                        name: g
-                    }
-                }]);
-                if (group.length) {
-                    const og = new ContentGroup(undefined, group[0]);
+                let og: ContentGroup | undefined = await findContentGroup(g as string);
+                if (og) {
                     await og.addItem(content.uid as Types.ObjectId);
                     // if this group is in list of oldGroup, delete it from oldGroups
-                    oldGroups = oldGroups.filter((el)=>!new Types.ObjectId(og.uid).equals(el._id));
+                    oldGroups = oldGroups.filter((el)=>!new Types.ObjectId((og as ContentGroup).uid).equals(el._id));
                 } else {
-                    const og: ContentGroup = new ContentGroup(undefined, {
+                    og = new ContentGroup(undefined, {
                         name: g as string,
                         items:[content.uid as Types.ObjectId],
                         tags:[],

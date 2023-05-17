@@ -102,19 +102,14 @@ function addcontent(c, req, res) {
             ]);
             if (req.body.groups) {
                 for (const [i, g] of Object.entries(req.body.groups)) {
-                    const group = yield content_1.mongoContentGroup.aggregate([{
-                            '$match': {
-                                name: g
-                            }
-                        }]);
-                    if (group.length) {
-                        const og = new content_1.ContentGroup(undefined, group[0]);
+                    let og = yield (0, content_1.findContentGroup)(g);
+                    if (og) {
                         yield og.addItem(content.uid);
                         // if this group is in list of oldGroup, delete it from oldGroups
                         oldGroups = oldGroups.filter((el) => !new mongoose_1.Types.ObjectId(og.uid).equals(el._id));
                     }
                     else {
-                        const og = new content_1.ContentGroup(undefined, {
+                        og = new content_1.ContentGroup(undefined, {
                             name: g,
                             items: [content.uid],
                             tags: [],

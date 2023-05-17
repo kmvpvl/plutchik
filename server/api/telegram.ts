@@ -4,7 +4,7 @@ import colours from "../model/colours";
 import TelegramBot from 'node-telegram-bot-api';
 import Organization, { IOrganization, mongoOrgs } from '../model/organization';
 import PlutchikProto, { settings } from '../model/plutchikproto';
-import Content, { IContent, mongoContent } from '../model/content';
+import Content, { IContent, findContentGroup, mongoContent } from '../model/content';
 import User, { mongoUsers } from '../model/user';
 import { google } from 'googleapis';
 import { Types } from 'mongoose';
@@ -196,6 +196,54 @@ function choose_gender(lang: string):string {
     }
 }
 
+function invitation_to_assign(lang: string, from?: TelegramBot.User, group?: string):string {
+    switch(lang) {
+        case 'de': return `Sie haben von einem Benutzer eine Einladung erhalten '${group}' , Inhalte zu bewerten ${from?.first_name} ${from?.last_name}`;
+        case 'es': return `Recibiste una invitación para calificar contenido '${group}' de un usuario  ${from?.first_name} ${from?.last_name}`;
+        case 'ru': return `Вам пришло приглашение оценить контент '${group}' от пользователя ${from?.first_name} ${from?.last_name}`;
+        case 'uk': return `Вам надійшло запрошення оцінити контент '${group}' від користувача ${from?.first_name} ${from?.last_name}`;
+        case 'en':
+        default: return `You received an invitation to assess content '${group}' from a user ${from?.first_name} ${from?.last_name}`;
+    }
+}
+
+function accept_invitation(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Ich nehme an';
+        case 'es': return 'Acepto';
+        case 'ru': return 'Принимаю приглашение';
+        case 'uk': return 'Я приймаю';
+        case 'en':
+        default: return 'I accept';
+    }
+}
+
+function decline_invitation(lang: string):string {
+    switch(lang) {
+        case 'de': return 'ich lehne ab';
+        case 'es': return 'renuncio';
+        case 'ru': return 'Отклоняю приглашение';
+        case 'uk': return 'Я відмовляюся';
+        case 'en':
+        default: return 'I decline';
+    }
+}
+
+const tg_bot_accept_group = (lang: string, groupname: string, from?: TelegramBot.User) => {
+    return {
+        reply_markup: {
+            inline_keyboard: [[
+                {text: accept_invitation(lang),
+                callback_data: `accept_assignment:${groupname}:${from?.id}`
+                }
+            ],[
+                {text: decline_invitation(lang),
+                callback_data: `decline_assignment:${groupname}:${from?.id}`
+                }
+            ]]
+        }
+    }
+}
 function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.SendMessageOptions {
     return  {
         reply_markup: {
@@ -283,7 +331,7 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                 [
                     {
                         text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string,
-                        callback_data: 'set_language'
+                        callback_data: 'select_language'
                     }
                     /*,{
                         text: 'Set my location',
@@ -296,7 +344,7 @@ function tg_bot_settings_menu(lang: string):TelegramBot.SendMessageOptions {
                 ],[
                     {
                         text: set_gender(lang),
-                        callback_data: 'set_gender'
+                        callback_data: 'select_gender'
                     },
                     {
                         text: deleteMyAccount(lang),
@@ -328,24 +376,24 @@ const tg_bot_set_language_menu:TelegramBot.SendMessageOptions = {
             [
                 {
                     text: 'English',
-                    callback_data: 'set_language_en'
+                    callback_data: 'set_language:en'
                 }
                 ,{
                     text: 'Español',
-                    callback_data: 'set_language_es'
+                    callback_data: 'set_language:es'
                 }
                 ,{
                     text: 'Deutsch',
-                    callback_data: 'set_language_de'
+                    callback_data: 'set_language:de'
                 }
             ], [
                 {
                     text: 'Українська',
-                    callback_data: 'set_language_uk'
+                    callback_data: 'set_language:uk'
                 }
                 ,{
                     text: 'Русский',
-                    callback_data: 'set_language_ru'
+                    callback_data: 'set_language:ru'
                 }
             ]
             ,[
@@ -395,23 +443,57 @@ function tg_bot_set_gender_menu(lang: string): TelegramBot.SendMessageOptions{
             [
                 {
                     text: strMale(lang),
-                    callback_data: 'set_gender_male'
+                    callback_data: 'set_gender:male'
                 },
                 {
                     text: strFemale(lang),
-                    callback_data: 'set_gender_female'
+                    callback_data: 'set_gender:female'
                 }
             ],
             [
                 {
                     text: strOther(lang),
-                    callback_data: 'set_gender_other'
+                    callback_data: 'set_gender:other'
                 }
             ]
         ]}
     }
 
 }
+
+function invitation_accepted (lang: string){
+    switch(lang) {
+        case 'de': return 'Sie haben die Einladung angenommen. Vielen Dank und viel Spaß. Button „Neue Inhalte bewerten“ drücken';
+        case 'es': return 'Ha aceptado la invitación. Gracias y disfruta Presiona el botón "Evaluar nuevo contenido"';
+        case 'ru': return 'Вы приняли приглашение. Спасибо. Получите удовольствие от процесса оценки. Нажмите кнопку "Оценить еще"';
+        case 'uk': return 'Ви прийняли запрошення. Дякую і насолоджуйся. Натисніть кнопку «Оцінити новий контент»';
+        case 'en':
+        default: return 'You have accepted invitation. Thanks and enjoy. Press button "Assess new content"';
+    }
+}
+
+function invitation_failed (lang: string){
+    switch(lang) {
+        case 'de': return 'Etwas ist schief gelaufen. Wir beschäftigen uns bereits damit.';
+        case 'es': return 'Algo salió mal. Ya estamos lidiando con esto."';
+        case 'ru': return 'Что-то пошло не так. МЫ уже разбираемся с этим"';
+        case 'uk': return 'Щось пішло не так. Ми вже розуміємо це';
+        case 'en':
+        default: return 'Something went wrong. We are already dealing with this.';
+    }
+}
+
+function invitation_declined (lang: string){
+    switch(lang) {
+        case 'de': return 'Ihre Ablehnung wurde akzeptiert';
+        case 'es': return 'Su rechazo ha sido aceptado"';
+        case 'ru': return 'Ваш отказ принят';
+        case 'uk': return 'Ваш отказ принят';
+        case 'en':
+        default: return 'Your refusal has been accepted';
+    }
+}
+
 export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {
     console.log(`${colours.fg.green}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
@@ -424,29 +506,27 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
             }
 
             console.log(`Callback command '${tgData.callback_query.data}'`);
-            switch(tgData.callback_query.data) {
+            // waiting command with : separator, f.e. accept_assign:userid
+            // or without :, f.e. settings
+            const cbcommand = tgData.callback_query.data?tgData.callback_query.data?.split(':'):'';
+
+            switch(cbcommand[0]) {
                 case 'settings':
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, my_settings.get(u?.json?.nativelanguage as string)?my_settings.get(u?.json?.nativelanguage as string) as string:my_settings.get('en') as string, tg_bot_settings_menu(u?.json?.nativelanguage as string));
                     break;
-                case 'set_gender':
+                case 'select_gender':
                     menuSetGender(bot, tgData.callback_query?.message?.chat.id as number, u as User);
                     break;
-                case 'set_gender_male':
-                case 'set_gender_female':
-                case 'set_gender_other':
-                    const gender = tgData.callback_query.data.split('_')[2];
+                case 'set_gender':
+                    const gender = cbcommand[1];
                     u.setGender(gender);
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, str_gender_changed(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
                     break;
-                case 'set_language':
+                case 'select_language':
                     menuSetLanguage(bot, tgData.callback_query?.message?.chat.id as number, u as User);
                     break;
-                case 'set_language_en':
-                case 'set_language_uk':
-                case 'set_language_es':
-                case 'set_language_ru':
-                case 'set_language_de':
-                    const lang = tgData.callback_query.data.split('_')[2];
+                case 'set_language':
+                    const lang = cbcommand[1];
                     console.log(`Changing user's language to '${lang}'`);
                     await u?.changeNativeLanguage(lang);
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, language_changed.get(lang)?language_changed.get(lang) as string:language_changed.get('en') as string, tg_bot_start_menu(u?.json?.nativelanguage as string));
@@ -454,7 +534,30 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                 case 'set_age':
                     menuSetAge(bot, tgData.callback_query?.message?.chat.id as number, u as User);
                     break;
-                
+                case 'accept_assignment':
+                    console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
+                    const g = await findContentGroup(cbcommand[1]);
+                    const from_user = await getUserByTgUserId(parseInt(cbcommand[2]));
+                    if (from_user && g) {
+                        await u.assignContentGroup(from_user, g);
+                        //sending message to psycologist
+                        bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} accepted your invitation`);
+                        //sending message to patient
+                        bot.sendMessage(tgData.callback_query.from.id, invitation_accepted(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
+                    } else {
+                        //something was wrong either from_user or content group
+                        //sending message to psycologist
+                        bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} couldn't accept your invitation. But tried. Group name = '${cbcommand[1]}'`);
+                        //sending message to patient
+                        bot.sendMessage(tgData.callback_query.from.id, invitation_failed(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
+                    }
+                    break;
+                case 'decline_assignment':
+                    console.log(`Decline assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
+                    bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} declined your invitation. Group name = '${cbcommand[1]}'`);
+                    //sending message to patient
+                    bot.sendMessage(tgData.callback_query.from.id, invitation_declined(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
+                break;
                 case 'delete_account':
                     menuDeleteAccount(bot, tgData.callback_query?.message?.chat.id as number, u as User);
                     break;
@@ -522,7 +625,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
                         const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["create_assessment"]);
-                        const ci = await user.nextContentItem(user.json?.nativelanguage);
+                        const ci = await user.nextContentItem(bot, user.json?.nativelanguage);
                         return res.status(200).json({result: 'OK', content: ci, user:user.json, sessiontoken: st});
                     } else {
                         return res.status(404).json({result: 'FAIL', description: 'User not found'});
@@ -581,13 +684,17 @@ async function getUserByTgUserId(tg_user_id: number): Promise<User | undefined> 
     if (ou.length) return new User(undefined, ou[0]);
 }
 
-const tgWelcome: Map<string, string> = new Map([
-    ['en', `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request`]
-    ,['uk', 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит']
-    ,['ru', 'Добро пожаловать! Этот бот помогает динамически оценить вашу психологическую устойчивость. Также он позволяет вам найти людей со схожим мышлением. Мы уважаем вашу конфиденциальность. Будьте уверены, что мы удалим все ваши данные в любое время по вашему запросу']
-    ,['es', '¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita.']
-    ,['de', 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.']
-]);
+const tgWelcome = (lang: string, userid: number)=>{
+    switch(lang){
+        case 'uk': return 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит';
+        case 'ru': return `Добро пожаловать! Этот бот помогает динамически оценить вашу психологическую устойчивость. Также он позволяет вам найти людей со схожим мышлением. Мы уважаем вашу конфиденциальность. Будьте уверены, что мы удалим все ваши данные в любое время по вашему запросу\nВаш ID=${userid}. Сообщите его тому, кто подготовил для Вас контент для оценки`;
+        case 'es': return '¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita.';
+        case 'de': return 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.';
+        case 'en':
+        default:
+            return `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request`;
+    }
+}
 
 async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
     // looking for bot-command from user
@@ -611,7 +718,7 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                     } catch(e) {
                         isContentManageRole = false;
                     }
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(u.json?.nativelanguage?u.json?.nativelanguage:'en') as string, tg_bot_start_menu(u.json?.nativelanguage as string, isContentManageRole));
+                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(u.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(u.json?.nativelanguage as string, isContentManageRole));
                 } else {
                     const user = new User(undefined, {
                         organizationid: new Types.ObjectId('63c0e7dad80176886c22129d'),
@@ -621,11 +728,23 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                         created: new Date()
                     });
                     await user.save();
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome.get(user.json?.nativelanguage?user.json?.nativelanguage:'en') as string, tg_bot_start_menu(user.json?.nativelanguage as string));
+                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(user.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(user.json?.nativelanguage as string));
                 }
             break;
 
-            case '/getnext':
+            case '/assign':
+                const sp = tgData.message?.text?.split(' ');
+                if (!sp || sp?.length != 3) {
+                    bot.sendMessage(tgData.message?.chat.id as number, `ASSIGN command format: /assign <group_name> <userid>`, {disable_notification: true});
+                } else {
+                    console.log(`User ${u?.uid} wants to assign group '${sp[1]}' to user '${sp[2]}'`);
+                    const assign_user = parseInt(sp[2])?getUserByTgUserId(parseInt(sp[2])):undefined;
+                    if (!assign_user) {
+                        bot.sendMessage(tgData.message?.chat.id as number, `User #${sp[2]} not found`, {disable_notification: true});
+                    } else {
+                        bot.sendMessage(parseInt(sp[2]), invitation_to_assign(u?.json?.nativelanguage as string, tgData.message?.from, sp[1]), tg_bot_accept_group(u?.json?.nativelanguage as string, sp[1], tgData.message?.from));
+                    }
+                }
             break;
 
             case '/set_language':
