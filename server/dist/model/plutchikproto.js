@@ -41,7 +41,7 @@ const colours_1 = __importDefault(require("./colours"));
 const error_1 = __importDefault(require("./error"));
 exports.settings = {};
 try {
-    exports.settings = require("../settings.json");
+    exports.settings = require("../../settings.json");
 }
 catch (err) {
     console.log(`${colours_1.default.bg.red}${err.message}${colours_1.default.reset}`);

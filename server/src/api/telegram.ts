@@ -8,6 +8,7 @@ import Content, { IContent, findContentGroup, mongoContent } from '../model/cont
 import User, { mongoUsers } from '../model/user';
 import { google } from 'googleapis';
 import { Types } from 'mongoose';
+import path from 'path';
 
 const assess_new_content: Map<string, string> = new Map([
     ['en', 'Assess new content']
@@ -684,13 +685,15 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                     return res.status(404).json({result: 'FAIL', description: 'Unknown command'});
             }
             return res.status(200).json('OK');
-        } else 
+        } else {
+            const staticroot = path.join(__dirname, '..', '..', '/public');
             if (req.query ['insights'] === '')
-                return res.sendFile("insights.htm", {root: __dirname});
+                return res.sendFile("insights.htm", {root: staticroot});
             else if (req.query ['content'] === '')
-                return res.sendFile("content.htm", {root: __dirname});
+                return res.sendFile("content.htm", {root: staticroot});
             else 
-                return res.sendFile("assess.htm", {root: __dirname});
+                return res.sendFile("assess.htm", {root: staticroot});
+        }
     } catch(e: any) {
         switch (e.code as ErrorCode) {
             case "user:nonextcontent":

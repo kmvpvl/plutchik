@@ -56,6 +56,7 @@ const telegram_1 = __importStar(require("./api/telegram"));
 const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api"));
 const plutchikproto_1 = require("./model/plutchikproto");
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const PORT = process.env.PORT || 8000;
 function checkSecurity(c) {
     try {
@@ -68,8 +69,9 @@ function checkSecurity(c) {
 }
 function notFound(c, req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs_1.default.existsSync(`${__dirname}/api${req.originalUrl}`)) {
-            return res.sendFile(`${__dirname}/api${req.originalUrl}`);
+        const p = path_1.default.join(__dirname, '..', 'public', req.originalUrl);
+        if (fs_1.default.existsSync(p)) {
+            return res.sendFile(p);
         }
         return res.status(404).json('Not found');
     });

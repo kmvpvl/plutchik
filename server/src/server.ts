@@ -18,6 +18,7 @@ import telegram, { webapp } from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import {settings} from "./model/plutchikproto";
 import fs from 'fs';
+import path from 'path';
 
 const PORT = process.env.PORT || 8000;
 
@@ -31,8 +32,9 @@ function checkSecurity(c: any): boolean {
 }
 
 async function notFound(c: any, req: Request, res: Response){
-    if (fs.existsSync(`${__dirname}/api${req.originalUrl}`)) {
-        return res.sendFile(`${__dirname}/api${req.originalUrl}`);
+    const p = path.join(__dirname, '..', 'public', req.originalUrl);
+    if (fs.existsSync(p)) {
+        return res.sendFile(p);
     }
     return res.status(404).json('Not found');
 }

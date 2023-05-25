@@ -43,6 +43,7 @@ const content_1 = __importStar(require("../model/content"));
 const user_1 = __importStar(require("../model/user"));
 const googleapis_1 = require("googleapis");
 const mongoose_1 = require("mongoose");
+const path_1 = __importDefault(require("path"));
 const assess_new_content = new Map([
     ['en', 'Assess new content'],
     ['uk', 'Оцінити емоції'],
@@ -698,12 +699,15 @@ function webapp(c, req, res, bot) {
                 }
                 return res.status(200).json('OK');
             }
-            else if (req.query['insights'] === '')
-                return res.sendFile("insights.htm", { root: __dirname });
-            else if (req.query['content'] === '')
-                return res.sendFile("content.htm", { root: __dirname });
-            else
-                return res.sendFile("assess.htm", { root: __dirname });
+            else {
+                const staticroot = path_1.default.join(__dirname, '..', '..', '/public');
+                if (req.query['insights'] === '')
+                    return res.sendFile("insights.htm", { root: staticroot });
+                else if (req.query['content'] === '')
+                    return res.sendFile("content.htm", { root: staticroot });
+                else
+                    return res.sendFile("assess.htm", { root: staticroot });
+            }
         }
         catch (e) {
             switch (e.code) {

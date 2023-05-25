@@ -3,7 +3,7 @@ import colours from "./colours";
 import PlutchikError from "./error";
 export let settings: any = {};
 try {
-    settings = require("../settings.json");
+    settings = require("../../settings.json");
 } catch (err: any) {
     console.log(`${colours.bg.red}${err.message}${colours.reset}`);
     if (!process.env["mongouri"]) throw new PlutchikError("mongo:connect", `Environment variable 'mongouri' can't be read`);
