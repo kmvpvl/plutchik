@@ -3,12 +3,12 @@ import PlutchikError, { ErrorCode } from '../model/error';
 import colours from "../model/colours";
 import TelegramBot from 'node-telegram-bot-api';
 import Organization, { IOrganization, mongoOrgs } from '../model/organization';
-import PlutchikProto, { settings } from '../model/plutchikproto';
 import Content, { IContent, findContentGroup, mongoContent } from '../model/content';
 import User, { mongoUsers } from '../model/user';
 import { google } from 'googleapis';
 import { Types } from 'mongoose';
 import path from 'path';
+import MongoProto from '../model/mongoproto';
 
 const assess_new_content: Map<string, string> = new Map([
     ['en', 'Assess new content']
@@ -270,20 +270,20 @@ function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.Se
                     {
                         text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
                         web_app: {
-                            url: `${settings.tg_web_hook_server}/telegram`
+                            url: `${process.env.tg_web_hook_server}/telegram`
                         }
                     }
                     ,{
                         text: insights(lang),
                         web_app: {
-                            url: `${settings.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/telegram?insights`
                         }
                     }
                 ],manage?[
                     {
                         text: `Content management`,
                         web_app: {
-                            url: `${settings.tg_web_hook_server}/telegram?content`
+                            url: `${process.env.tg_web_hook_server}/telegram?content`
                         }
                     }
                 ]: [],[
@@ -328,13 +328,13 @@ function tg_bot_set_location_menu(lang: string):TelegramBot.SendMessageOptions {
                 ,{
                     text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
                     web_app: {
-                        url: `${settings.tg_web_hook_server}/telegram`
+                        url: `${process.env.tg_web_hook_server}/telegram`
                     }
                 }
                 ,{
                     text: insights(lang),
                     web_app: {
-                        url: `${settings.tg_web_hook_server}/telegram?insights`
+                        url: `${process.env.tg_web_hook_server}/telegram?insights`
                     }
                 }
         ]]
@@ -384,13 +384,13 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
                     {
                         text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
                         web_app: {
-                            url: `${settings.tg_web_hook_server}/telegram`
+                            url: `${process.env.tg_web_hook_server}/telegram`
                         }
                     }
                     ,{
                         text: insights(lang),
                         web_app: {
-                            url: `${settings.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/telegram?insights`
                         }
                     }
                 ]
@@ -706,7 +706,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
 }
 
 async function getUserByTgUserId(tg_user_id: number): Promise<User | undefined> {
-    PlutchikProto.connectMongo();
+    MongoProto.connectMongo();
     const ou = await mongoUsers.aggregate([{
         '$match': {
             'tguserid': tg_user_id,
@@ -819,7 +819,7 @@ async function yt_video_data(yt_video_id: string) {
         console.log();
         const youtube = google.youtube({
             version: "v3",
-            auth: settings.yt_API_KEY,
+            auth: process.env.yt_API_KEY,
         });
         const d = await youtube.videos.list({
             part: ['snippet'],
@@ -827,7 +827,7 @@ async function yt_video_data(yt_video_id: string) {
         });
         return d;
     } catch(e){
-        console.log(`${colours.fg.red}YoutubeAPI error. API_KEY = '${settings.yt_API_KEY}'; error = '${e}'${colours.reset}`);
+        console.log(`${colours.fg.red}YoutubeAPI error. API_KEY = '${process.env.yt_API_KEY}'; error = '${e}'${colours.reset}`);
     }
 }
 
@@ -948,7 +948,7 @@ async function processMedia(bot: TelegramBot, tgData: TelegramBot.Update): Promi
 }
 
 async function getOrganizationByTgUser(bot: TelegramBot, tgData: TelegramBot.Update): Promise<Organization|undefined> {
-    PlutchikProto.connectMongo();
+    MongoProto.connectMongo();
     const perms: Array<IOrganization> = await mongoOrgs.aggregate([
         {
             "$match": {

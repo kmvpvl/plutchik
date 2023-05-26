@@ -4,9 +4,9 @@ import { ContentGroup, IContent, mongoContent, mongoContentGroup, SourceType } f
 import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
 import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
-import PlutchikProto from "./plutchikproto";
 import { IVector, mongoAssessments } from "./assessment";
 import TelegramBot from "node-telegram-bot-api";
+import MongoProto from "./mongoproto";
 
 export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match"|"offer_group";
 
@@ -65,44 +65,14 @@ export const UserSchema = new Schema({
 });
 export const mongoUsers = model<IUser>('users', UserSchema);
 
-export default class User extends PlutchikProto<IUser> {
-    public async load(data?: IUser) {
-        PlutchikProto.connectMongo();
-        if (!data) {
-            const users = await mongoUsers.aggregate([
-                {
-                    '$match': {
-                        '_id': this.id
-                    } 
-                }
-            ]);
-            if (1 != users.length) throw new PlutchikError("user:notfound", `id = '${this.id}'`)
-            await super.load(users[0]);
-        } else {
-            await super.load(data);
-        }
-    }
-    protected async checkData(): Promise<void> {
-        if (!this.data) throw new PlutchikError("user:notloaded", `userid = '${this.id}'`);
+export default class User extends MongoProto<IUser> {
+    constructor(id?: Types.ObjectId, data?: IUser){
+        super(mongoUsers, id, data);
     }
     public async block(block: boolean = true) {
         await this.checkData();
         if (this.data) this.data.blocked = block;
         await this.save();
-    }
-    public async save() {
-        PlutchikProto.connectMongo();
-        await this.checkData();
-        await super.save();
-        if (this.id){
-            await mongoUsers.findByIdAndUpdate(this.id, this.data, {overwrite:true});
-            console.log(`User data was successfully updated. User id = '${this.id}'`);
-        } else { 
-            const userInserted = await mongoUsers.insertMany([this.data]);
-            this.id = new Types.ObjectId(userInserted[0]._id);
-            this.load(userInserted[0]);
-            console.log(`New user was created. ${colours.fg.blue}User id = '${this.id}'${colours.reset}`);
-        }
     }
 
     /**
@@ -112,7 +82,7 @@ export default class User extends PlutchikProto<IUser> {
      * @returns list of roles on this session token
      */
     public async checkSessionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<RoleType>> {
-        PlutchikProto.connectMongo();
+        MongoProto.connectMongo();
         const sts = await mongoSessionTokens.aggregate([{
             '$match': {
                 'useridref': this.id,
@@ -169,7 +139,7 @@ export default class User extends PlutchikProto<IUser> {
     }
 
     public async nextContentItemByAssign (groupid: Types.ObjectId, assignid: Types.ObjectId, bot?: TelegramBot): Promise<IContent> {
-        PlutchikProto.connectMongo();
+        MongoProto.connectMongo();
         const v = await mongoContentGroup.aggregate([
             {
                 '$match': {
@@ -251,7 +221,7 @@ export default class User extends PlutchikProto<IUser> {
 
     public async nextContentItemAll(language?: string, source_type?: SourceType): Promise <IContent>{
         //this.checkData();
-        PlutchikProto.connectMongo();
+        MongoProto.connectMongo();
         const v = await mongoContent.aggregate([{
             $match: {
                 'language': {

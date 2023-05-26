@@ -16,11 +16,12 @@ import createorganization from './api/createorganization';
 import organizationinfo from './api/organizationinfo';
 import telegram, { webapp } from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
-import {settings} from "./model/plutchikproto";
+import checkSettings from './model/settings'; 
 import fs from 'fs';
 import path from 'path';
 
 const PORT = process.env.PORT || 8000;
+checkSettings();
 
 function checkSecurity(c: any): boolean {
     try{
@@ -76,9 +77,9 @@ app.use(express.json());
 app.use(morgan('tiny'));
 app.use(cors());
 
-const bot = new TelegramBot(settings.tg_bot_authtoken);
-if (settings.tg_web_hook_server) {
-    bot.setWebHook(`${settings.tg_web_hook_server}/telegram`);
+const bot = new TelegramBot(process.env.tg_bot_authtoken as string);
+if (process.env.tg_web_hook_server) {
+    bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`);
     /*bot.setMyCommands([
         {command: '/start', description:'Start', },
         {command: '/set_language', description:'Set language', },

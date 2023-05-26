@@ -1,12 +1,12 @@
 import { Schema, Types, model } from "mongoose";
 import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
-import PlutchikProto from "./plutchikproto";
 import {Md5} from 'ts-md5';
 import { RoleType } from "./user";
 import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
+import MongoProto from "./mongoproto";
 
 export const DEFAULT_SESSION_DURATION = 30;
 
@@ -53,21 +53,10 @@ export const OrganizationSchema = new Schema({
 export const mongoOrgs = model<IOrganization>('organizations', OrganizationSchema);
 export const mongoSessionTokens = model<ISessionToken>('sessiontokens', SessionTokenSchema);
 
-export default class Organization extends PlutchikProto <IOrganization>{
-    async load (data?: IOrganization) {
-        if (!data) {
-            PlutchikProto.connectMongo();
-            const org = await mongoOrgs.aggregate([{
-                '$match': {
-                    '_id': this.id
-                }
-            }]);
-            if (1 != org.length) throw new PlutchikError("organization:notfound", `id = '${this.id}'`);
-            await super.load(org[0]);
-        } else {
-            await super.load(data);
-        }
-    } 
+export default class Organization extends MongoProto <IOrganization>{
+    constructor(id?: Types.ObjectId, data?: IOrganization){
+        super(mongoOrgs, id, data);
+    }
 
     public async addKey(name: string, roles: Array<RoleType>): Promise<Types.ObjectId> {
         await this.checkData();
@@ -162,20 +151,6 @@ export default class Organization extends PlutchikProto <IOrganization>{
         return roles_had.includes(role_to_find);
     }
 
-    public async save() {
-        PlutchikProto.connectMongo();
-        await this.checkData();
-        await super.save();
-        if (this.id){
-            await mongoOrgs.findByIdAndUpdate(this.id, this.data);
-            console.log(`Organization data was successfully updated. Org id = '${this.id}'`);
-        } else { 
-            const orgInserted = await mongoOrgs.insertMany([this.data]);
-            this.id = new Types.ObjectId(orgInserted[0]._id);
-            this.load(orgInserted[0]);
-            console.log(`New organization was created. ${colours.fg.blue}Org id = '${this.id}'${colours.reset}`);
-        }
-    }
     public async getFirstLettersOfContentItems(): Promise<Array<string>> {
         await this.checkData();
         const letters = await mongoContent.aggregate([
