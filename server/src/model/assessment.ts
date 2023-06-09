@@ -1,7 +1,7 @@
 import { Types, Schema, model } from "mongoose";
 import colours from "./colours";
 import PlutchikError from "./error";
-import PlutchikProto from "./plutchikproto";
+import MongoProto from "./mongoproto";
 
 export interface IVector {
     joy?: number;
@@ -48,38 +48,8 @@ export const AssessmentSchema = new Schema({
 
 export const mongoAssessments = model<IAssessment>('assessments', AssessmentSchema);
 
-export default class Assessment extends PlutchikProto<IAssessment> {
-    public async load(data?: IAssessment) {
-        PlutchikProto.connectMongo();
-        if (!data) {
-            const assessments = await mongoAssessments.aggregate([
-                {
-                    '$match': {
-                        '_id': this.id
-                    } 
-                }
-            ]);
-            if (1 != assessments.length) throw new PlutchikError("assessment:notfound", `id = '${this.id}'`)
-            await super.load(assessments[0]);
-        } else {
-            await super.load(data);
-        }
-    }
-    protected async checkData(): Promise<void> {
-        if (!this.data) throw new PlutchikError("assessment:notloaded", `id = '${this.id}'`);
-    }
-    public async save() {
-        PlutchikProto.connectMongo();
-        await this.checkData();
-        await super.save();
-        if (this.id){
-            await mongoAssessments.findByIdAndUpdate(this.id, this.data);
-            console.log(`assessment data was successfully updated.  id = '${this.id}'`);
-        } else { 
-            const assessmentInserted = await mongoAssessments.insertMany([this.data]);
-            this.id = new Types.ObjectId(assessmentInserted[0]._id);
-            this.load(assessmentInserted[0]);
-            console.log(`New assessment was created. ${colours.fg.blue}Cid = '${this.id}'${colours.reset}`);
-        }
+export default class Assessment extends MongoProto<IAssessment> {
+    constructor(id?: Types.ObjectId, data?: IAssessment){
+        super(mongoAssessments, id, data);
     }
 }

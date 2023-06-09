@@ -38,11 +38,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.webapp = void 0;
 const colours_1 = __importDefault(require("../model/colours"));
 const organization_1 = __importStar(require("../model/organization"));
-const plutchikproto_1 = __importStar(require("../model/plutchikproto"));
 const content_1 = __importStar(require("../model/content"));
 const user_1 = __importStar(require("../model/user"));
 const googleapis_1 = require("googleapis");
 const mongoose_1 = require("mongoose");
+const path_1 = __importDefault(require("path"));
+const mongoproto_1 = __importDefault(require("../model/mongoproto"));
 const assess_new_content = new Map([
     ['en', 'Assess new content'],
     ['uk', 'Оцінити емоції'],
@@ -281,20 +282,20 @@ function tg_bot_start_menu(lang, manage = false) {
                     {
                         text: assess_new_content.get(lang) ? assess_new_content.get(lang) : assess_new_content.get('en'),
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
+                            url: `${process.env.tg_web_hook_server}/telegram`
                         }
                     },
                     {
                         text: insights(lang),
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/telegram?insights`
                         }
                     }
                 ], manage ? [
                     {
                         text: `Content management`,
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?content`
+                            url: `${process.env.tg_web_hook_server}/telegram?content`
                         }
                     }
                 ] : [], [
@@ -339,13 +340,13 @@ function tg_bot_set_location_menu(lang) {
                     {
                         text: assess_new_content.get(lang) ? assess_new_content.get(lang) : assess_new_content.get('en'),
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
+                            url: `${process.env.tg_web_hook_server}/telegram`
                         }
                     },
                     {
                         text: insights(lang),
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/telegram?insights`
                         }
                     }
                 ]]
@@ -399,13 +400,13 @@ function tg_bot_settings_menu(lang, user) {
                     {
                         text: assess_new_content.get(lang) ? assess_new_content.get(lang) : assess_new_content.get('en'),
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram`
+                            url: `${process.env.tg_web_hook_server}/telegram`
                         }
                     },
                     {
                         text: insights(lang),
                         web_app: {
-                            url: `${plutchikproto_1.settings.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/telegram?insights`
                         }
                     }
                 ]
@@ -698,12 +699,15 @@ function webapp(c, req, res, bot) {
                 }
                 return res.status(200).json('OK');
             }
-            else if (req.query['insights'] === '')
-                return res.sendFile("insights.htm", { root: __dirname });
-            else if (req.query['content'] === '')
-                return res.sendFile("content.htm", { root: __dirname });
-            else
-                return res.sendFile("assess.htm", { root: __dirname });
+            else {
+                const staticroot = path_1.default.join(__dirname, '..', '..', '/public');
+                if (req.query['insights'] === '')
+                    return res.sendFile("insights.htm", { root: staticroot });
+                else if (req.query['content'] === '')
+                    return res.sendFile("content.htm", { root: staticroot });
+                else
+                    return res.sendFile("assess.htm", { root: staticroot });
+            }
         }
         catch (e) {
             switch (e.code) {
@@ -720,7 +724,7 @@ function webapp(c, req, res, bot) {
 exports.webapp = webapp;
 function getUserByTgUserId(tg_user_id) {
     return __awaiter(this, void 0, void 0, function* () {
-        plutchikproto_1.default.connectMongo();
+        mongoproto_1.default.connectMongo();
         const ou = yield user_1.mongoUsers.aggregate([{
                 '$match': {
                     'tguserid': tg_user_id,
@@ -838,7 +842,7 @@ function yt_video_data(yt_video_id) {
             console.log();
             const youtube = googleapis_1.google.youtube({
                 version: "v3",
-                auth: plutchikproto_1.settings.yt_API_KEY,
+                auth: process.env.yt_API_KEY,
             });
             const d = yield youtube.videos.list({
                 part: ['snippet'],
@@ -847,7 +851,7 @@ function yt_video_data(yt_video_id) {
             return d;
         }
         catch (e) {
-            console.log(`${colours_1.default.fg.red}YoutubeAPI error. API_KEY = '${plutchikproto_1.settings.yt_API_KEY}'; error = '${e}'${colours_1.default.reset}`);
+            console.log(`${colours_1.default.fg.red}YoutubeAPI error. API_KEY = '${process.env.yt_API_KEY}'; error = '${e}'${colours_1.default.reset}`);
         }
     });
 }
@@ -976,7 +980,7 @@ function processMedia(bot, tgData) {
 function getOrganizationByTgUser(bot, tgData) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
-        plutchikproto_1.default.connectMongo();
+        mongoproto_1.default.connectMongo();
         const perms = yield organization_1.mongoOrgs.aggregate([
             {
                 "$match": {

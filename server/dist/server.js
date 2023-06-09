@@ -54,9 +54,11 @@ const createorganization_1 = __importDefault(require("./api/createorganization")
 const organizationinfo_1 = __importDefault(require("./api/organizationinfo"));
 const telegram_1 = __importStar(require("./api/telegram"));
 const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api"));
-const plutchikproto_1 = require("./model/plutchikproto");
+const settings_1 = __importDefault(require("./model/settings"));
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const PORT = process.env.PORT || 8000;
+(0, settings_1.default)();
 function checkSecurity(c) {
     try {
         //const user = new User(c.request);
@@ -68,8 +70,9 @@ function checkSecurity(c) {
 }
 function notFound(c, req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs_1.default.existsSync(`${__dirname}/api${req.originalUrl}`)) {
-            return res.sendFile(`${__dirname}/api${req.originalUrl}`);
+        const p = path_1.default.join(__dirname, '..', 'public', req.originalUrl);
+        if (fs_1.default.existsSync(p)) {
+            return res.sendFile(p);
         }
         return res.status(404).json('Not found');
     });
@@ -108,9 +111,9 @@ exports.app = (0, express_1.default)();
 exports.app.use(express_1.default.json());
 exports.app.use((0, morgan_1.default)('tiny'));
 exports.app.use((0, cors_1.default)());
-const bot = new node_telegram_bot_api_1.default(plutchikproto_1.settings.tg_bot_authtoken);
-if (plutchikproto_1.settings.tg_web_hook_server) {
-    bot.setWebHook(`${plutchikproto_1.settings.tg_web_hook_server}/telegram`);
+const bot = new node_telegram_bot_api_1.default(process.env.tg_bot_authtoken);
+if (process.env.tg_web_hook_server) {
+    bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`);
     /*bot.setMyCommands([
         {command: '/start', description:'Start', },
         {command: '/set_language', description:'Set language', },
