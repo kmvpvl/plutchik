@@ -31,31 +31,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.settings = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const colours_1 = __importDefault(require("./colours"));
-const error_1 = __importDefault(require("./error"));
-exports.settings = {};
-try {
-    exports.settings = require("../../settings.json");
+class MongoError extends Error {
+    constructor(code, message) {
+        super(`code: ${code} - ${message}`);
+    }
 }
-catch (err) {
-    console.log(`${colours_1.default.bg.red}${err.message}${colours_1.default.reset}`);
-    if (!process.env["mongouri"])
-        throw new error_1.default("mongo:connect", `Environment variable 'mongouri' can't be read`);
-    exports.settings.mongouri = process.env["mongouri"];
-    if (!process.env["tg_bot_authtoken"])
-        throw new error_1.default("mongo:connect", `Environment variable 'tg_bot_authtoken' can't be read`);
-    exports.settings.tg_bot_authtoken = process.env["tg_bot_authtoken"];
-    exports.settings.tg_web_hook_server = process.env["tg_web_hook_server"];
-    exports.settings.yt_API_KEY = process.env["yt_API_KEY"];
-}
-class PlutchikProto {
-    constructor(id, data) {
+class MongoProto {
+    constructor(model, id, data) {
+        this.model = model;
         if (id)
             this.id = id;
         if (data) {
@@ -71,19 +56,30 @@ class PlutchikProto {
                 if (data["_id"])
                     this.id = new mongoose_1.Types.ObjectId(data["_id"]);
             }
-            yield this.checkData();
+            else {
+                MongoProto.connectMongo();
+                const data = yield this.model.aggregate([
+                    { "$match": { "_id": this.id } }
+                ]);
+                if (1 !== data.length)
+                    throw new MongoError("mongo:objectnotfoundbyid", `type='${this.constructor.name}'; _id='${this.id}'`);
+                yield this.load(data[0]);
+                yield this.checkData();
+            }
         });
     }
     get uid() {
+        if (this.id === undefined)
+            throw new MongoError("mongo:datanotloaded", `cannot return uid type='${this.constructor.name}}'; data = '${JSON.stringify(this.data)}'`);
         return this.id;
     }
     static connectMongo() {
-        let uri = exports.settings.mongouri;
+        let uri = process.env.mongouri;
         mongoose_1.default.set('strictQuery', false);
         (0, mongoose_1.connect)(uri)
             .catch((err) => {
             try {
-                throw new error_1.default("mongo:connect", `err=${err.message}; uri="${uri}"`);
+                throw new MongoError("mongo:connect", `err=${err.message}; uri="${uri}"`);
             }
             catch (e) {
                 console.error(e);
@@ -94,7 +90,10 @@ class PlutchikProto {
         return this.data;
     }
     checkData() {
-        return __awaiter(this, void 0, void 0, function* () { });
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.data)
+                throw new MongoError("mongo:datanotloaded", `type='${this.constructor.name}}'; id = '${this.id}'`);
+        });
     }
     getHistoryInfo() {
         return {
@@ -104,13 +103,27 @@ class PlutchikProto {
     }
     save() {
         return __awaiter(this, void 0, void 0, function* () {
+            MongoProto.connectMongo();
+            yield this.checkData();
             if (this.data) {
+                if (this.data && /*this.data.hasOwnProperty('created') &&*/ this.data.created === undefined)
+                    this.data.created = new Date();
                 this.data.changed = new Date();
                 let h = this.getHistoryInfo();
                 let history = new Array;
                 //if (('history' in this.data)) history = (this.data as any).history;
                 //history.push(h); 
                 //(this.data as any).history = history;
+            }
+            if (this.id && this.data) {
+                yield this.model.findByIdAndUpdate(this.id, this.data);
+                console.log(`✅ Object data was successfully updated.  type='${this.constructor.name}'; id = '${this.id}'`);
+            }
+            else {
+                const objectInserted = yield this.model.insertMany([this.data]);
+                this.id = new mongoose_1.Types.ObjectId(objectInserted[0]._id);
+                this.load(objectInserted[0]);
+                console.log(`✅ New object was created. type='${this.constructor.name}'; id = '${this.id}'`);
             }
         });
     }
@@ -123,4 +136,4 @@ class PlutchikProto {
         return n;
     }
 }
-exports.default = PlutchikProto;
+exports.default = MongoProto;

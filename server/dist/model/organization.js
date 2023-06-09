@@ -15,10 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.mongoSessionTokens = exports.mongoOrgs = exports.OrganizationSchema = exports.SessionTokenSchema = exports.DEFAULT_SESSION_DURATION = void 0;
 const mongoose_1 = require("mongoose");
 const error_1 = __importDefault(require("./error"));
-const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 const ts_md5_1 = require("ts-md5");
-const colours_1 = __importDefault(require("./colours"));
 const content_1 = require("./content");
+const mongoproto_1 = __importDefault(require("./mongoproto"));
 exports.DEFAULT_SESSION_DURATION = 30;
 exports.SessionTokenSchema = new mongoose_1.Schema({
     organizationidref: mongoose_1.Types.ObjectId,
@@ -37,27 +36,9 @@ exports.OrganizationSchema = new mongoose_1.Schema({
 });
 exports.mongoOrgs = (0, mongoose_1.model)('organizations', exports.OrganizationSchema);
 exports.mongoSessionTokens = (0, mongoose_1.model)('sessiontokens', exports.SessionTokenSchema);
-class Organization extends plutchikproto_1.default {
-    load(data) {
-        const _super = Object.create(null, {
-            load: { get: () => super.load }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!data) {
-                plutchikproto_1.default.connectMongo();
-                const org = yield exports.mongoOrgs.aggregate([{
-                        '$match': {
-                            '_id': this.id
-                        }
-                    }]);
-                if (1 != org.length)
-                    throw new error_1.default("organization:notfound", `id = '${this.id}'`);
-                yield _super.load.call(this, org[0]);
-            }
-            else {
-                yield _super.load.call(this, data);
-            }
-        });
+class Organization extends mongoproto_1.default {
+    constructor(id, data) {
+        super(exports.mongoOrgs, id, data);
     }
     addKey(name, roles) {
         var _a;
@@ -166,26 +147,6 @@ class Organization extends plutchikproto_1.default {
         if (roles_had.includes(superivor_role))
             return true;
         return roles_had.includes(role_to_find);
-    }
-    save() {
-        const _super = Object.create(null, {
-            save: { get: () => super.save }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            plutchikproto_1.default.connectMongo();
-            yield this.checkData();
-            yield _super.save.call(this);
-            if (this.id) {
-                yield exports.mongoOrgs.findByIdAndUpdate(this.id, this.data);
-                console.log(`Organization data was successfully updated. Org id = '${this.id}'`);
-            }
-            else {
-                const orgInserted = yield exports.mongoOrgs.insertMany([this.data]);
-                this.id = new mongoose_1.Types.ObjectId(orgInserted[0]._id);
-                this.load(orgInserted[0]);
-                console.log(`New organization was created. ${colours_1.default.fg.blue}Org id = '${this.id}'${colours_1.default.reset}`);
-            }
-        });
     }
     getFirstLettersOfContentItems() {
         return __awaiter(this, void 0, void 0, function* () {

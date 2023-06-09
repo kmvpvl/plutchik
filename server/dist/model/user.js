@@ -14,12 +14,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mongoUsers = exports.UserSchema = void 0;
 const mongoose_1 = require("mongoose");
-const colours_1 = __importDefault(require("./colours"));
 const content_1 = require("./content");
 const error_1 = __importDefault(require("./error"));
 const organization_1 = require("./organization");
-const plutchikproto_1 = __importDefault(require("./plutchikproto"));
 const assessment_1 = require("./assessment");
+const mongoproto_1 = __importDefault(require("./mongoproto"));
 exports.UserSchema = new mongoose_1.Schema({
     organizationid: { type: mongoose_1.Types.ObjectId, require: false },
     tguserid: { type: Number, require: false },
@@ -39,35 +38,9 @@ exports.UserSchema = new mongoose_1.Schema({
     history: (Array),
 });
 exports.mongoUsers = (0, mongoose_1.model)('users', exports.UserSchema);
-class User extends plutchikproto_1.default {
-    load(data) {
-        const _super = Object.create(null, {
-            load: { get: () => super.load }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            plutchikproto_1.default.connectMongo();
-            if (!data) {
-                const users = yield exports.mongoUsers.aggregate([
-                    {
-                        '$match': {
-                            '_id': this.id
-                        }
-                    }
-                ]);
-                if (1 != users.length)
-                    throw new error_1.default("user:notfound", `id = '${this.id}'`);
-                yield _super.load.call(this, users[0]);
-            }
-            else {
-                yield _super.load.call(this, data);
-            }
-        });
-    }
-    checkData() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.data)
-                throw new error_1.default("user:notloaded", `userid = '${this.id}'`);
-        });
+class User extends mongoproto_1.default {
+    constructor(id, data) {
+        super(exports.mongoUsers, id, data);
     }
     block(block = true) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -75,26 +48,6 @@ class User extends plutchikproto_1.default {
             if (this.data)
                 this.data.blocked = block;
             yield this.save();
-        });
-    }
-    save() {
-        const _super = Object.create(null, {
-            save: { get: () => super.save }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            plutchikproto_1.default.connectMongo();
-            yield this.checkData();
-            yield _super.save.call(this);
-            if (this.id) {
-                yield exports.mongoUsers.findByIdAndUpdate(this.id, this.data, { overwrite: true });
-                console.log(`User data was successfully updated. User id = '${this.id}'`);
-            }
-            else {
-                const userInserted = yield exports.mongoUsers.insertMany([this.data]);
-                this.id = new mongoose_1.Types.ObjectId(userInserted[0]._id);
-                this.load(userInserted[0]);
-                console.log(`New user was created. ${colours_1.default.fg.blue}User id = '${this.id}'${colours_1.default.reset}`);
-            }
         });
     }
     /**
@@ -105,7 +58,7 @@ class User extends plutchikproto_1.default {
      */
     checkSessionToken(st, sessionminutes = organization_1.DEFAULT_SESSION_DURATION) {
         return __awaiter(this, void 0, void 0, function* () {
-            plutchikproto_1.default.connectMongo();
+            mongoproto_1.default.connectMongo();
             const sts = yield organization_1.mongoSessionTokens.aggregate([{
                     '$match': {
                         'useridref': this.id,
@@ -174,7 +127,7 @@ class User extends plutchikproto_1.default {
     nextContentItemByAssign(groupid, assignid, bot) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
-            plutchikproto_1.default.connectMongo();
+            mongoproto_1.default.connectMongo();
             const v = yield content_1.mongoContentGroup.aggregate([
                 {
                     '$match': {
@@ -263,7 +216,7 @@ class User extends plutchikproto_1.default {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             //this.checkData();
-            plutchikproto_1.default.connectMongo();
+            mongoproto_1.default.connectMongo();
             const v = yield content_1.mongoContent.aggregate([{
                     $match: {
                         'language': {

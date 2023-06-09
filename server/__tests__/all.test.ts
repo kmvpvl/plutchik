@@ -1,5 +1,5 @@
 import Request from 'supertest';
-import {app, server} from '../server';
+import {app, server} from '../src/server';
 import {describe, expect, jest, it, beforeAll} from '@jest/globals';
 jest.setTimeout(15000);
 

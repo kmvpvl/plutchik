@@ -3,7 +3,7 @@ import TelegramBot from "node-telegram-bot-api";
 import colours from "./colours";
 import PlutchikError from "./error";
 import { MLStringSchema } from "./mlstring";
-import PlutchikProto from "./plutchikproto";
+import MongoProto from "./mongoproto";
 
 export type ContentTypes = "text" | "image" | "audio" | "video";
 export type SourceType = "web" | "telegram" | "youtube" | "embedded";
@@ -94,66 +94,20 @@ export const ContentGroupSchema = new Schema({
 export const mongoContent = model<IContent>('contents', ContentSchema);
 export const mongoContentGroup = model<IContentGroup>('groups', ContentGroupSchema);
 
-export default class Content extends PlutchikProto<IContent> {
-    public async load(data?: IContent) {
-        PlutchikProto.connectMongo();
-        if (!data) {
-            const contents = await mongoContent.aggregate([
-                {
-                    '$match': {
-                        '_id': this.id
-                    } 
-                }
-            ]);
-            if (1 != contents.length) throw new PlutchikError("content:notfound", `id = '${this.id}'`)
-            await super.load(contents[0]);
-        } else {
-            await super.load(data);
-        }
-    }
-    protected async checkData(): Promise<void> {
-        if (!this.data) throw new PlutchikError("content:notloaded", `cid = '${this.id}'`);
+export default class Content extends MongoProto<IContent> {
+    constructor(id?: Types.ObjectId, data?: IContent){
+        super(mongoContent, id, data);
     }
     public async block(block: boolean = true) {
         await this.checkData();
         if (this.data) this.data.blocked = block;
         await this.save();
     }
-    public async save() {
-        PlutchikProto.connectMongo();
-        await this.checkData();
-        await super.save();
-        if (this.id){
-            await mongoContent.findByIdAndUpdate(this.id, this.data);
-            console.log(`Content itemt data was successfully updated. Content id = '${this.id}'`);
-        } else { 
-            const contentInserted = await mongoContent.insertMany([this.data]);
-            this.id = new Types.ObjectId(contentInserted[0]._id);
-            this.load(contentInserted[0]);
-            console.log(`New content was created. ${colours.fg.blue}Cid = '${this.id}'${colours.reset}`);
-        }
-    }
 }
 
-export class ContentGroup extends PlutchikProto<IContentGroup> {
-    public async load(data?: IContentGroup) {
-        PlutchikProto.connectMongo();
-        if (!data) {
-            const g = await mongoContentGroup.aggregate([
-                {
-                    '$match': {
-                        '_id': this.id
-                    } 
-                }
-            ]);
-            if (1 != g.length) throw new PlutchikError("group:notfound", `id = '${this.id}'`)
-            await super.load(g[0]);
-        } else {
-            await super.load(data);
-        }
-    }
-    protected async checkData(): Promise<void> {
-        if (!this.data) throw new PlutchikError("group:notloaded", `gid = '${this.id}'`);
+export class ContentGroup extends MongoProto<IContentGroup> {
+    constructor(id?: Types.ObjectId, data?: IContentGroup){
+        super(mongoContentGroup, id, data);
     }
     public async block(block: boolean = true) {
         await this.checkData();
@@ -175,20 +129,6 @@ export class ContentGroup extends PlutchikProto<IContentGroup> {
             this.data.items = woItem;
         }
         await this.save();
-    }
-    public async save() {
-        PlutchikProto.connectMongo();
-        await this.checkData();
-        await super.save();
-        if (this.id){
-            await mongoContentGroup.findByIdAndUpdate(this.id, this.data);
-            console.log(`Group data was successfully updated. Group id = '${this.id}'`);
-        } else { 
-            const groupInserted = await mongoContentGroup.insertMany([this.data]);
-            this.id = new Types.ObjectId(groupInserted[0]._id);
-            this.load(groupInserted[0]);
-            console.log(`New group was created. ${colours.fg.blue}gid = '${this.id}'${colours.reset}`);
-        }
     }
 }
 
