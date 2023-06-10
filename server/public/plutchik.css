@@ -1,0 +1,43 @@
+@font-face {
+    font-family: "UbuntuMono";
+    src: url("UbuntuMono-Regular.ttf");
+}
+.joy{
+    fill:#edc500;
+    background-color:#edc500;
+  } 
+  .trust{
+    fill:#7abd0d;
+    background-color:#7abd0d;
+  }
+  .fear{
+    fill:#007b33;
+    background-color:#007b33;
+  }
+  .surprise{
+    fill:#0080ab;
+    background-color:#0080ab;
+  }
+  .sadness{
+    fill:#1f6dad;
+    background-color:#1f6dad;
+  }
+  .disgust{
+    fill:#7b4ea3;
+    background-color:#7b4ea3;
+  }
+  .anger{
+    fill:#dc0047;
+    background-color:#dc0047;
+  }
+  .anticipation{
+    fill:#e87200;
+    background-color:#e87200;
+  }
+  .dotted {
+    fill:transparent;
+    stroke-width: 1px;
+    opacity: 0.5;
+    stroke: var(--tg-theme-text-color);
+  }
+  
