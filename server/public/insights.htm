@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="plutchik.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="mlstrings.js"></script>
 <style>
-@font-face {
-    font-family: "UbuntuMono";
-    src: url("UbuntuMono-Regular.ttf");
-}
 * {
     box-sizing: border-box;
 }    
@@ -31,44 +29,6 @@ body {
     display: grid;
     grid-template-rows: 1fr;
 }
-.joy{
-  fill:#edc500;
-  background-color:#edc500;
-} 
-.trust{
-  fill:#7abd0d;
-  background-color:#7abd0d;
-}
-.fear{
-  fill:#007b33;
-  background-color:#007b33;
-}
-.surprise{
-  fill:#0080ab;
-  background-color:#0080ab;
-}
-.sadness{
-  fill:#1f6dad;
-  background-color:#1f6dad;
-}
-.disgust{
-  fill:#7b4ea3;
-  background-color:#7b4ea3;
-}
-.anger{
-  fill:#dc0047;
-  background-color:#dc0047;
-}
-.anticipation{
-  fill:#e87200;
-  background-color:#e87200;
-}
-.dotted {
-  fill:transparent;
-  stroke-width: 1px;
-  opacity: 0.5;
-  stroke: var(--tg-theme-text-color);
-}
 .disabled{
   fill:silver;
   background-color:silver;
@@ -88,103 +48,56 @@ body {
     height:100%;
     margin: 0;
     display: grid;
-    grid-template-rows: auto 1fr auto 1fr;
+    grid-template-rows: auto auto 0.9fr auto auto 0.9fr auto; /* 1fr auto;*/
 }
 .header {
     text-align: center;
     font-size: x-large;
 }
+.separator {
+    border-top: 1px solid var(--tg-theme-text-color);
+    margin-top: 5px;
+}
+.prompt {
+    font-size:medium;
+    text-align: justify;
+    word-wrap: break-word;
+}
+.diff-element {
+    padding: 3px;
+    margin: 3px;
+}
 </style>
 </head>
 <body>
 <div class="content">
-    <span id="own-header" class="header"></span>
+    <span id="prompt" class="prompt"></span>
+    <span id="diff_desc" class="prompt"></span>
     <span id="flower_own" class="flower"></span>
-    <span id="others-header" class="header"></span>
+    <span id="own-header" class="header"></span>
+    <span id="separator" class="separator"></span>
     <span id="flower_others" class="flower"></span>
+    <span id="others-header" class="header"></span>
+    <!--span id="separator" class="separator"></span>
+    <span id="flower_diff" class="flower"></span>
+    <span id="diff-header" class="header"></span-->
 </div>
 <script>
-const assess = new Map([
-    ['en', 'Assess']
-    ,['ru', 'Оценить']
-    ,['de', 'Bewerten']
-    ,['es', 'Evaluar']
-    ,['uk', 'Оцінити']
-]);
-
 const emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
-
-const ml_emotions = new Map([
-    ['en', new Map([
-        ['joy','joy']
-        ,['trust','trust']
-        ,['fear', 'fear']
-        ,['surprise', 'surprise']
-        ,['sadness', 'sadness']
-        ,['disgust', 'disgust']
-        ,['anger', 'anger']
-        ,['anticipation', 'anticipation']
-    ])],
-    ['de', new Map([
-        ['joy','Freude']
-        ,['trust','Vertrauen']
-        ,['fear', 'Furcht']
-        ,['surprise', 'Erstaunen']
-        ,['sadness', 'Missvergnügen']
-        ,['disgust', 'Ekel']
-        ,['anger', 'Wut']
-        ,['anticipation', 'Vorwegnahme']
-    ])],
-    ['es', new Map([
-        ['joy','alegría']
-        ,['trust','confianza']
-        ,['fear', 'miedo']
-        ,['surprise', 'asombro']
-        ,['sadness', 'molestia']
-        ,['disgust', 'asco']
-        ,['anger', 'enojo']
-        ,['anticipation', 'anticipación']
-    ])],
-    ['uk', new Map([
-        ['joy','радість']
-        ,['trust','довіра']
-        ,['fear', 'страх']
-        ,['surprise', 'здивування']
-        ,['sadness', 'смуток']
-        ,['disgust', 'огида']
-        ,['anger', 'гнів']
-        ,['anticipation', 'очікування']
-    ])],
-   ['ru', new Map([
-        ['joy','радость']
-        ,['trust','доверие']
-        ,['fear', 'страх']
-        ,['surprise', 'удивление']
-        ,['sadness', 'досада']
-        ,['disgust', 'отвращение']
-        ,['anger', 'злость']
-        ,['anticipation', 'предвкушение']
-    ])]
-]);
-
-const myEmotions = new Map([
-    ['en', 'My emotions']
-    ,['ru', 'Мои эмоции']
-    ,['de', 'Meine Gefühle']
-    ,['es', 'Mis emociones']
-    ,['uk', 'мої емоції']
-]);
-
-const othersEmotions = new Map([
-    ['en', `Emotions of people who rated the same content`]
-    ,['ru', 'Эмоции людей, оценивших тот же контент']
-    ,['de', 'Emotionen von Personen, die denselben Inhalt bewertet haben']
-    ,['es', 'Emociones de las personas que calificaron el mismo contenido']
-    ,['uk', 'Емоції людей, які оцінили один і той же контент']
-]);
 
 let tg = window.Telegram.WebApp;
 tg.MainButton.hide();
+
+function drawDiff(element, vector, lang='en') {
+    let s = '';
+    for (i in vector) {
+        if (Math.abs(vector[i]) > 0.1) {
+            s += `<span class="${i} diff-element">${vector[i]>0?'⭡':'⭣'}${ml_emotions.get(lang).get(i)}</span>`;
+        }
+    }
+    //debugger;
+    element.html(s);
+}
 
 function init() {
     $.ajaxSetup({
@@ -195,11 +108,12 @@ function init() {
     $.get(`/telegram?command=observe&tg_user_id=${tg.initDataUnsafe.user.id}`, (data, status, xhdr)=>{
         if ('success' == status) {
             render(data.user.nativelanguage);
+            const diff = vector_sub(data.observe.ownVector, data.observe.othersVector);
             $('#own-header').append(`: ${data.observe.ownVector.count}`);
             $('#others-header').append(`: ${data.observe.othersVector.count}`);
             drawCharts($('#flower_own'), data.observe.ownVector, data.user.nativelanguage);
             drawCharts($('#flower_others'), data.observe.othersVector, data.user.nativelanguage);
-            //drawFlower($('#flower_others'), data.observe.othersVector);
+            drawDiff($('#diff_desc'), diff, data.user.nativelanguage);
         } else {
             $('.content').text(status);
         }
@@ -213,6 +127,7 @@ render();
 function render(lang = 'en') {
     $('#own-header').text(myEmotions.get(lang));
     $('#others-header').text(othersEmotions.get(lang));
+    $('#prompt').text(prompt.get(lang));
 }
 tg.expand();
 
@@ -222,12 +137,14 @@ function drawCharts (element, emotion, lang='en') {
 	const N = 8;
     const we = w/N;
     const wc = 20; 
+    const mm = vector_min_max(emotion);
+    const z = (mm.min > 0)?0:mm.min;
 	var s = `<svg class="flower" viewbox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width: ${w}px;height: ${h}px;">`;
 	if (emotion) {
 		for (i=0; i<N; i++) {
             const v = emotion[emotions[i]]?emotion[emotions[i]]:0;
-            const y = h*v;
-            s += `<rect class="${emotions[i]}" x="${i* we}" y="${h-y}" width="${wc}" height="${y}"></rect>`;
+            const y = h*(v);
+            s += `<rect class="${emotions[i]}" x="${i* we}" y="${h-y}" width="${wc}" height="${y-z*h}"></rect>`;
             s += `<text class="${v?emotions[i]:'disabled'}" x="0" y="0" transform="rotate(270) translate(${-h},${we*i+1.5*wc})">${ml_emotions.get(lang).get(emotions[i])}</text>`;
         }
     }
@@ -262,6 +179,46 @@ function drawFlower (element, emotion) {
 	}
 	s += '</svg>';
 	element.html(s);
+}
+
+function vector_sub(v1, v2) {
+    ret = {};
+    for (i in emotions) {
+        vv1 = v1[emotions[i]]?v1[emotions[i]]:0;
+        vv2 = v2[emotions[i]]?v2[emotions[i]]:0;
+        ret[emotions[i]] = vv1 - vv2;
+    }
+    return ret;
+}
+
+function vector_adjust(v) {
+    const mm = vector_min_max(v);
+    ret = {};
+    for (i in emotions) {
+        ret[emotions[i]] = v[emotions[i]] - mm.min;
+    }
+    return ret;
+}
+
+function vector_min_max(v) {
+    min = undefined;
+    max = undefined;
+    for (i in emotions) {
+        vv = v[emotions[i]]?v[emotions[i]]:0;
+        min = min!==undefined?Math.min(min, vv):vv;
+        max = max!==undefined?Math.max(max, vv):vv;
+    }
+    return {min: min, max: max};
+}
+
+function vector_norm (v){
+    ret = {};
+    const mm = vector_min_max(v);
+    for (i in emotions) {
+        vv = v[emotions[i]]?v[emotions[i]]:0;
+        ret[emotions[i]] = (vv - mm.min)/(mm.max - mm.min);
+    }
+    return ret;
 }
 
 </script>

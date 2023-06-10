@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="plutchik.css"/>
+<script src="mlstrings.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <style>
-@font-face {
-    font-family: "UbuntuMono";
-    src: url("UbuntuMono-Regular.ttf");
-}
 * {
     box-sizing: border-box;
 }    
@@ -43,44 +41,6 @@ debuginfo.small {
     width: 100px;
     height: 100px;
     overflow: auto;
-}
-.joy{
-  fill:#edc500;
-  background-color:#edc500;
-} 
-.trust{
-  fill:#7abd0d;
-  background-color:#7abd0d;
-}
-.fear{
-  fill:#007b33;
-  background-color:#007b33;
-}
-.surprise{
-  fill:#0080ab;
-  background-color:#0080ab;
-}
-.sadness{
-  fill:#1f6dad;
-  background-color:#1f6dad;
-}
-.disgust{
-  fill:#7b4ea3;
-  background-color:#7b4ea3;
-}
-.anger{
-  fill:#dc0047;
-  background-color:#dc0047;
-}
-.anticipation{
-  fill:#e87200;
-  background-color:#e87200;
-}
-.dotted {
-  fill:transparent;
-  stroke-width: 1px;
-  opacity: 0.5;
-  stroke: var(--tg-theme-text-color);
 }
 .disabled{
   fill:silver;
@@ -328,102 +288,8 @@ function yt_id(url) {
     return r?r[1]:undefined;
 }
 
-const assess = new Map([
-    ['en', 'Assess']
-    ,['ru', 'Оценить']
-    ,['de', 'Bewerten']
-    ,['es', 'Evaluar']
-    ,['uk', 'Оцінити']
-]);
-
-function txt_skip (lang = 'en') {
-    switch(lang) {
-        case 'es': return 'Saltar';
-        case 'de': return 'Überspringen';
-        case 'uk': return 'Пропустити';
-        case 'ru': return 'Пропустить';
-        case 'en':
-        default: return 'Skip';
-    }
-}
-
 const emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
-const ml_emotions = new Map([
-    ['en', new Map([
-        ['joy','joy']
-        ,['trust','trust']
-        ,['fear', 'fear']
-        ,['surprise', 'surprise']
-        ,['sadness', 'sadness']
-        ,['disgust', 'disgust']
-        ,['anger', 'anger']
-        ,['anticipation', 'anticipation']
-    ])],
-    ['de', new Map([
-        ['joy','Freude']
-        ,['trust','Vertrauen']
-        ,['fear', 'Furcht']
-        ,['surprise', 'Erstaunen']
-        ,['sadness', 'Missvergnügen']
-        ,['disgust', 'Ekel']
-        ,['anger', 'Wut']
-        ,['anticipation', 'Vorwegnahme']
-    ])],
-    ['es', new Map([
-        ['joy','alegría']
-        ,['trust','confianza']
-        ,['fear', 'miedo']
-        ,['surprise', 'asombro']
-        ,['sadness', 'molestia']
-        ,['disgust', 'asco']
-        ,['anger', 'enojo']
-        ,['anticipation', 'anticipación']
-    ])],
-    ['uk', new Map([
-        ['joy','радість']
-        ,['trust','довіра']
-        ,['fear', 'страх']
-        ,['surprise', 'здивування']
-        ,['sadness', 'смуток']
-        ,['disgust', 'огида']
-        ,['anger', 'гнів']
-        ,['anticipation', 'очікування']
-    ])],
-   ['ru', new Map([
-        ['joy','радость']
-        ,['trust','доверие']
-        ,['fear', 'страх']
-        ,['surprise', 'удивление']
-        ,['sadness', 'досада']
-        ,['disgust', 'отвращение']
-        ,['anger', 'злость']
-        ,['anticipation', 'предвкушение']
-    ])]
-]);
 
-const myEmotions = new Map([
-    ['en', 'My emotions']
-    ,['ru', 'Мои эмоции']
-    ,['de', 'Meine Gefühle']
-    ,['es', 'Mis emociones']
-    ,['uk', 'мої емоції']
-]);
-
-const thatsAll = new Map([
-    ['en', `Sorry, that's all content `]
-    ,['ru', 'Извините на этом всё']
-    ,['de', 'Entschuldigung, das ist alles']
-    ,['es', 'lo siento, eso es todo']
-    ,['uk', 'Вибачте, на цьому все']
-]);
-
-const pressToNew = new Map([
-    ['en', `Press button to get new content item`]
-    ,['ru', 'Нажмите кнопку, чтобы получить новый контент для оценки']
-    ,['de', 'Klicken Sie auf die Schaltfläche, um neue Inhalte zum Bewerten zu erhalten']
-    ,['es', 'Haga clic en el botón para obtener contenido nuevo para calificar']
-    ,['uk', 'Натисніть кнопку, щоб отримати новий контент для оцінки']
-]);
 
 let emotion_objects = {};
 function getEmotionalVector(){
