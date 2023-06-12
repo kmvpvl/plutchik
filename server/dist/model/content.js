@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findContentGroup = exports.ContentGroup = exports.mongoContentGroup = exports.mongoContent = exports.ContentGroupSchema = exports.ContentSchema = void 0;
+exports.ContentGroup = exports.mongoContentGroup = exports.mongoContent = exports.ContentGroupSchema = exports.ContentSchema = void 0;
 const mongoose_1 = require("mongoose");
 const mongoproto_1 = __importDefault(require("./mongoproto"));
 exports.ContentSchema = new mongoose_1.Schema({
@@ -75,6 +75,49 @@ class Content extends mongoproto_1.default {
             yield this.save();
         });
     }
+    assignGroups(groups) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkData();
+            //lets check all prev groups
+            let oldGroups = yield exports.mongoContentGroup.aggregate([
+                { '$match': {
+                        'items': this.uid
+                    } },
+                { '$project': {
+                        '_id': 1
+                    } }
+            ]);
+            if (groups) {
+                for (const [i, g] of Object.entries(groups)) {
+                    let og = yield ContentGroup.findContentGroup(g);
+                    if (og) {
+                        yield og.addItem(this.uid);
+                        // if this group is in list of oldGroup, delete it from oldGroups
+                        oldGroups = oldGroups.filter((el) => !new mongoose_1.Types.ObjectId(og.uid).equals(el._id));
+                    }
+                    else {
+                        og = new ContentGroup(undefined, {
+                            name: g,
+                            items: [this.uid],
+                            tags: [],
+                            restrictions: [],
+                            language: (_a = this.json) === null || _a === void 0 ? void 0 : _a.language,
+                            blocked: false,
+                            created: new Date()
+                        });
+                        yield og.save();
+                    }
+                }
+            }
+            //must delete cid from any estimated group in oldGroups
+            for (const [i, g] of Object.entries(oldGroups)) {
+                const go = new ContentGroup(new mongoose_1.Types.ObjectId(g._id));
+                yield go.load();
+                yield go.removeItem(this.uid);
+            }
+        });
+    }
 }
 exports.default = Content;
 class ContentGroup extends mongoproto_1.default {
@@ -110,16 +153,15 @@ class ContentGroup extends mongoproto_1.default {
             yield this.save();
         });
     }
+    static findContentGroup(name) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const group = yield exports.mongoContentGroup.aggregate([{
+                    '$match': {
+                        name: name
+                    }
+                }]);
+            return group.length ? new ContentGroup(undefined, group[0]) : undefined;
+        });
+    }
 }
 exports.ContentGroup = ContentGroup;
-function findContentGroup(name) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const group = yield exports.mongoContentGroup.aggregate([{
-                '$match': {
-                    name: name
-                }
-            }]);
-        return group.length ? new ContentGroup(undefined, group[0]) : undefined;
-    });
-}
-exports.findContentGroup = findContentGroup;

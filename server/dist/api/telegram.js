@@ -576,7 +576,7 @@ function telegram(c, req, res, bot) {
                         break;
                     case 'accept_assignment':
                         console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
-                        const g = yield (0, content_1.findContentGroup)(cbcommand[1]);
+                        const g = yield content_1.ContentGroup.findContentGroup(cbcommand[1]);
                         const from_user = yield getUserByTgUserId(parseInt(cbcommand[2]));
                         if (from_user && g) {
                             yield u.assignContentGroup(from_user, g);
@@ -856,7 +856,7 @@ function yt_video_data(yt_video_id) {
     });
 }
 function processURLs(bot, tgData) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     return __awaiter(this, void 0, void 0, function* () {
         // looking for URL
         let org = yield getOrganizationByTgUser(bot, tgData);
@@ -865,6 +865,8 @@ function processURLs(bot, tgData) {
         const media_lang = media_props ? media_props[1] : undefined;
         const media_name = media_props ? media_props[2] : undefined;
         const media_desc = media_props ? media_props[3] : undefined;
+        const media_group_string = media_props ? media_props[4] : undefined;
+        const media_groups = media_group_string ? media_group_string.split(';') : undefined;
         const URLs = (_d = (_c = tgData.message) === null || _c === void 0 ? void 0 : _c.entities) === null || _d === void 0 ? void 0 : _d.filter(v => v.type == "url");
         if (!URLs || !URLs.length) {
             switch (media_type) {
@@ -888,6 +890,8 @@ function processURLs(bot, tgData) {
                             ic.language = 'en';
                         let content = new content_1.default(undefined, ic);
                         yield content.save();
+                        if (media_groups !== undefined)
+                            yield content.assignGroups(media_groups);
                         const msg = `New content added`;
                         bot.sendMessage((_f = tgData.message) === null || _f === void 0 ? void 0 : _f.chat.id, msg, { disable_notification: true });
                     }
@@ -922,6 +926,8 @@ function processURLs(bot, tgData) {
                             ic.language = 'en';
                         let content = new content_1.default(undefined, ic);
                         yield content.save();
+                        if (media_groups !== undefined)
+                            yield content.assignGroups(media_groups);
                         const msg = `New content added`;
                         bot.sendMessage((_l = tgData.message) === null || _l === void 0 ? void 0 : _l.chat.id, msg, { disable_notification: true });
                     }
@@ -930,38 +936,51 @@ function processURLs(bot, tgData) {
                     const ytId = yt_id(url_name);
                     if (ytId) {
                         console.log(`YOUTUBE content found: videoId = '${ytId}'`);
-                        const data = (yield yt_video_data(ytId)).data;
+                        let data = undefined;
                         // !! need error handling
                         //console.log(data.items);
-                        if (org) {
-                            for (let [i, ytVi] of Object.entries(data.items)) {
-                                let snippet = ytVi.snippet;
-                                console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
-                                let ic = {
-                                    organizationid: (_m = org.json) === null || _m === void 0 ? void 0 : _m._id,
-                                    url: url_name,
-                                    type: "video",
-                                    source: "youtube",
-                                    name: snippet.title,
-                                    tags: snippet.tags,
-                                    description: snippet.description,
-                                    language: snippet.defaultAudioLanguage,
-                                    tgData: tgData,
-                                    blocked: false,
-                                    created: new Date(),
-                                    restrictions: []
-                                };
-                                if (!ic.language)
-                                    ic.language = 'en';
-                                let content = new content_1.default(undefined, ic);
-                                yield content.save();
-                                const msg = `New content added`;
-                                bot.sendMessage((_o = tgData.message) === null || _o === void 0 ? void 0 : _o.chat.id, msg, { disable_notification: true });
+                        try {
+                            data = (yield yt_video_data(ytId)).data;
+                        }
+                        catch (err) {
+                            console.error(JSON.stringify(err));
+                        }
+                        if (data !== undefined) {
+                            if (org) {
+                                for (let [i, ytVi] of Object.entries(data.items)) {
+                                    let snippet = ytVi.snippet;
+                                    console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
+                                    let ic = {
+                                        organizationid: (_m = org.json) === null || _m === void 0 ? void 0 : _m._id,
+                                        url: url_name,
+                                        type: "video",
+                                        source: "youtube",
+                                        name: snippet.title,
+                                        tags: snippet.tags,
+                                        description: snippet.description ? snippet.description : 'nodesc',
+                                        language: snippet.defaultAudioLanguage,
+                                        tgData: tgData,
+                                        blocked: false,
+                                        created: new Date(),
+                                        restrictions: []
+                                    };
+                                    if (!ic.language)
+                                        ic.language = 'en';
+                                    let content = new content_1.default(undefined, ic);
+                                    yield content.save();
+                                    //if (media_groups !== undefined) await content.assignGroups(media_groups);
+                                    const msg = `New content added`;
+                                    bot.sendMessage((_o = tgData.message) === null || _o === void 0 ? void 0 : _o.chat.id, msg, { disable_notification: true });
+                                }
+                            }
+                            else {
+                                const msg = `Role 'manage_content' expected`;
+                                bot.sendMessage((_p = tgData.message) === null || _p === void 0 ? void 0 : _p.chat.id, msg);
                             }
                         }
                         else {
-                            const msg = `Role 'manage_content' expected`;
-                            bot.sendMessage((_p = tgData.message) === null || _p === void 0 ? void 0 : _p.chat.id, msg);
+                            const msg = `Youtube API hasnot return data`;
+                            bot.sendMessage((_q = tgData.message) === null || _q === void 0 ? void 0 : _q.chat.id, msg);
                         }
                     }
                     else {
