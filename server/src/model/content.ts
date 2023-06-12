@@ -103,6 +103,45 @@ export default class Content extends MongoProto<IContent> {
         if (this.data) this.data.blocked = block;
         await this.save();
     }
+    public async assignGroups(groups: Array<string>) {
+        await this.checkData();
+        //lets check all prev groups
+        let oldGroups = await mongoContentGroup.aggregate([
+            {'$match': {
+                'items':this.uid
+            }},
+            {'$project': {
+                '_id': 1
+            }}
+        ]);
+        if (groups) {
+            for (const [i, g] of Object.entries(groups)){
+                let og: ContentGroup | undefined = await ContentGroup.findContentGroup(g as string);
+                if (og) {
+                    await og.addItem(this.uid as Types.ObjectId);
+                    // if this group is in list of oldGroup, delete it from oldGroups
+                    oldGroups = oldGroups.filter((el)=>!new Types.ObjectId((og as ContentGroup).uid).equals(el._id));
+                } else {
+                    og = new ContentGroup(undefined, {
+                        name: g as string,
+                        items:[this.uid as Types.ObjectId],
+                        tags:[],
+                        restrictions: [],
+                        language: this.json?.language as string,
+                        blocked: false,
+                        created: new Date()
+                    });
+                    await og.save();
+                }
+            }
+        }
+        //must delete cid from any estimated group in oldGroups
+        for (const [i, g] of Object.entries(oldGroups)) {
+            const go = new ContentGroup(new Types.ObjectId(g._id as string));
+            await go.load();
+            await go.removeItem(this.uid as Types.ObjectId);
+        }
+    }
 }
 
 export class ContentGroup extends MongoProto<IContentGroup> {
@@ -130,13 +169,13 @@ export class ContentGroup extends MongoProto<IContentGroup> {
         }
         await this.save();
     }
+    public static async findContentGroup(name: string): Promise<ContentGroup|undefined> {
+        const group = await mongoContentGroup.aggregate([{
+            '$match': {
+                name: name
+            }
+        }]);
+        return group.length?new ContentGroup(undefined, group[0]):undefined;
+    }
 }
 
-export async function findContentGroup(name: string): Promise<ContentGroup|undefined> {
-    const group = await mongoContentGroup.aggregate([{
-        '$match': {
-            name: name
-        }
-    }]);
-    return group.length?new ContentGroup(undefined, group[0]):undefined;
-}

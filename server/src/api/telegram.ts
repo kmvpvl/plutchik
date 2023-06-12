@@ -3,7 +3,7 @@ import PlutchikError, { ErrorCode } from '../model/error';
 import colours from "../model/colours";
 import TelegramBot from 'node-telegram-bot-api';
 import Organization, { IOrganization, mongoOrgs } from '../model/organization';
-import Content, { IContent, findContentGroup, mongoContent } from '../model/content';
+import Content, { ContentGroup, IContent, mongoContent } from '../model/content';
 import User, { mongoUsers } from '../model/user';
 import { google } from 'googleapis';
 import { Types } from 'mongoose';
@@ -566,7 +566,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     break;
                 case 'accept_assignment':
                     console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
-                    const g = await findContentGroup(cbcommand[1]);
+                    const g = await ContentGroup.findContentGroup(cbcommand[1]);
                     const from_user = await getUserByTgUserId(parseInt(cbcommand[2]));
                     if (from_user && g) {
                         await u.assignContentGroup(from_user, g);
@@ -839,6 +839,9 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
     const media_lang = media_props?media_props[1]:undefined;
     const media_name = media_props?media_props[2]:undefined;
     const media_desc = media_props?media_props[3]:undefined;
+    const media_group_string = media_props?media_props[4]:undefined;
+    const media_groups = media_group_string?media_group_string.split(';'):undefined;
+
     
     const URLs = tgData.message?.entities?.filter(v => v.type == "url");
     if (!URLs || !(URLs as any).length) {
@@ -862,6 +865,7 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                     if (!ic.language) ic.language = 'en';
                     let content = new Content(undefined, ic);
                     await content.save();
+                    if (media_groups !== undefined) await content.assignGroups(media_groups);
                     const msg = `New content added`;
                     bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
                 }
@@ -895,6 +899,7 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                     if (!ic.language) ic.language = 'en';
                     let content = new Content(undefined, ic);
                     await content.save();
+                    if (media_groups !== undefined) await content.assignGroups(media_groups);
                     const msg = `New content added`;
                     bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
                 }
@@ -903,35 +908,46 @@ async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promis
                 const ytId = yt_id(url_name as string);
                 if (ytId){
                     console.log(`YOUTUBE content found: videoId = '${ytId}'`);
-                    const data = (await yt_video_data(ytId) as any).data;
+                    let data = undefined;
                     // !! need error handling
                     //console.log(data.items);
-                    if (org){
-                        for (let [i, ytVi] of Object.entries(data.items)) {
-                            let snippet: any = (ytVi as any).snippet;
-                            console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
-                            let ic: IContent = {
-                                organizationid: org.json?._id,
-                                url: url_name,
-                                type: "video",
-                                source: "youtube",
-                                name: snippet.title,
-                                tags:snippet.tags,
-                                description:snippet.description,
-                                language:snippet.defaultAudioLanguage,
-                                tgData:tgData,
-                                blocked: false,
-                                created: new Date(),
-                                restrictions:[]
-                            };
-                            if (!ic.language) ic.language = 'en';
-                            let content = new Content(undefined, ic);
-                            await content.save();
-                            const msg = `New content added`;
-                            bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
+                    try {
+                        data = (await yt_video_data(ytId) as any).data;
+                    } catch (err) {
+                        console.error(JSON.stringify(err));
+                    }
+                    if (data !== undefined) {
+                        if (org){
+                            for (let [i, ytVi] of Object.entries(data.items)) {
+                                let snippet: any = (ytVi as any).snippet;
+                                console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
+                                let ic: IContent = {
+                                    organizationid: org.json?._id,
+                                    url: url_name,
+                                    type: "video",
+                                    source: "youtube",
+                                    name: snippet.title,
+                                    tags:snippet.tags,
+                                    description:snippet.description?snippet.description:'nodesc',
+                                    language:snippet.defaultAudioLanguage,
+                                    tgData:tgData,
+                                    blocked: false,
+                                    created: new Date(),
+                                    restrictions:[]
+                                };
+                                if (!ic.language) ic.language = 'en';
+                                let content = new Content(undefined, ic);
+                                await content.save();
+                                //if (media_groups !== undefined) await content.assignGroups(media_groups);
+                                const msg = `New content added`;
+                                bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
+                            }
+                        } else {
+                            const msg = `Role 'manage_content' expected`;
+                            bot.sendMessage(tgData.message?.chat.id as number, msg);
                         }
                     } else {
-                        const msg = `Role 'manage_content' expected`;
+                        const msg = `Youtube API hasnot return data`;
                         bot.sendMessage(tgData.message?.chat.id as number, msg);
                     }
                 } else {
