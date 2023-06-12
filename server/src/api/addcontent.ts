@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
-import Content, { ContentGroup, findContentGroup, mongoContentGroup } from '../model/content';
+import Content, { ContentGroup, mongoContentGroup } from '../model/content';
 import PlutchikError, { ErrorCode } from '../model/error';
 import Organization from '../model/organization';
 import User from '../model/user';
@@ -52,43 +52,7 @@ export default async function addcontent(c: any, req: Request, res: Response) {
             content = new Content(undefined, req.body.contentinfo);
         }
         await content.save();
-
-        //lets check all prev groups
-        let oldGroups = await mongoContentGroup.aggregate([
-            {'$match': {
-                'items':content.uid
-            }},
-            {'$project': {
-                '_id': 1
-            }}
-        ]);
-        if (req.body.groups) {
-            for (const [i, g] of Object.entries(req.body.groups)){
-                let og: ContentGroup | undefined = await findContentGroup(g as string);
-                if (og) {
-                    await og.addItem(content.uid as Types.ObjectId);
-                    // if this group is in list of oldGroup, delete it from oldGroups
-                    oldGroups = oldGroups.filter((el)=>!new Types.ObjectId((og as ContentGroup).uid).equals(el._id));
-                } else {
-                    og = new ContentGroup(undefined, {
-                        name: g as string,
-                        items:[content.uid as Types.ObjectId],
-                        tags:[],
-                        restrictions: [],
-                        language: content.json?.language as string,
-                        blocked: false,
-                        created: new Date()
-                    });
-                    await og.save();
-                }
-            }
-        }
-        //must delete cid from any estimated group in oldGroups
-        for (const [i, g] of Object.entries(oldGroups)) {
-            const go = new ContentGroup(new Types.ObjectId(g._id as string));
-            await go.load();
-            await go.removeItem(content.uid as Types.ObjectId);
-        }
+        await content.assignGroups(req.body.groups);
         return res.status(200).json(content.json);
     } catch (e: any) {
         switch (e.code as ErrorCode) {
