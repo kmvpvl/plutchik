@@ -39,7 +39,7 @@ exports.webapp = void 0;
 const colours_1 = __importDefault(require("../model/colours"));
 const organization_1 = __importStar(require("../model/organization"));
 const content_1 = __importStar(require("../model/content"));
-const user_1 = __importStar(require("../model/user"));
+const user_1 = __importDefault(require("../model/user"));
 const googleapis_1 = require("googleapis");
 const mongoose_1 = require("mongoose");
 const path_1 = __importDefault(require("path"));
@@ -541,7 +541,7 @@ function telegram(c, req, res, bot) {
         const tgData = req.body;
         if (tgData.callback_query) {
             try {
-                const u = yield getUserByTgUserId(tgData.callback_query.from.id);
+                const u = yield user_1.default.getUserByTgUserId(tgData.callback_query.from.id);
                 if (!u) {
                     bot.sendMessage((_b = (_a = tgData.callback_query) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.chat.id, userNotFound(tgData.callback_query.from.language_code));
                     return res.status(200).json("User not found");
@@ -577,7 +577,7 @@ function telegram(c, req, res, bot) {
                     case 'accept_assignment':
                         console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
                         const g = yield content_1.ContentGroup.findContentGroup(cbcommand[1]);
-                        const from_user = yield getUserByTgUserId(parseInt(cbcommand[2]));
+                        const from_user = yield user_1.default.getUserByTgUserId(parseInt(cbcommand[2]));
                         if (from_user && g) {
                             yield u.assignContentGroup(from_user, g);
                             //sending message to psycologist
@@ -619,7 +619,7 @@ function telegram(c, req, res, bot) {
             }
         }
         console.log(`${colours_1.default.fg.blue}Telegram userId = '${(_14 = (_13 = tgData.message) === null || _13 === void 0 ? void 0 : _13.from) === null || _14 === void 0 ? void 0 : _14.id}'${colours_1.default.reset}; chat_id = '${(_15 = tgData.message) === null || _15 === void 0 ? void 0 : _15.chat.id}'`);
-        const u = yield getUserByTgUserId((_17 = (_16 = tgData.message) === null || _16 === void 0 ? void 0 : _16.from) === null || _17 === void 0 ? void 0 : _17.id);
+        const u = yield user_1.default.getUserByTgUserId((_17 = (_16 = tgData.message) === null || _16 === void 0 ? void 0 : _16.from) === null || _17 === void 0 ? void 0 : _17.id);
         if ((_18 = u === null || u === void 0 ? void 0 : u.json) === null || _18 === void 0 ? void 0 : _18.awaitcommanddata) {
             switch ((_19 = u === null || u === void 0 ? void 0 : u.json) === null || _19 === void 0 ? void 0 : _19.awaitcommanddata) {
                 case 'set_age':
@@ -662,7 +662,7 @@ function webapp(c, req, res, bot) {
             if (req.query['command']) {
                 switch (req.query['command']) {
                     case 'getnext':
-                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        user = yield user_1.default.getUserByTgUserId(parseInt(req.query['tg_user_id']));
                         if (user) {
                             const org = new organization_1.default((_a = user.json) === null || _a === void 0 ? void 0 : _a.organizationid);
                             yield org.load();
@@ -675,7 +675,7 @@ function webapp(c, req, res, bot) {
                         }
                         break;
                     case 'observe':
-                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        user = yield user_1.default.getUserByTgUserId(parseInt(req.query['tg_user_id']));
                         if (user) {
                             const org = new organization_1.default((_d = user.json) === null || _d === void 0 ? void 0 : _d.organizationid);
                             yield org.load();
@@ -684,7 +684,7 @@ function webapp(c, req, res, bot) {
                         }
                         break;
                     case 'manage_content':
-                        user = yield getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        user = yield user_1.default.getUserByTgUserId(parseInt(req.query['tg_user_id']));
                         if (user) {
                             const org = new organization_1.default((_e = user.json) === null || _e === void 0 ? void 0 : _e.organizationid);
                             yield org.load();
@@ -692,6 +692,15 @@ function webapp(c, req, res, bot) {
                             const st = yield org.checkAndUpdateSessionToken((_f = user.json) === null || _f === void 0 ? void 0 : _f._id, ["manage_content"]);
                             const ci = yield org.getContentItems();
                             return res.status(200).json({ org: org.json, user: user.json, letters: letters, items: ci, sessiontoken: st });
+                        }
+                        break;
+                    case 'create_auth_code':
+                        user = yield user_1.default.getUserByTgUserId(parseInt(req.query['tg_user_id']));
+                        if (user) {
+                            const ac = yield user.createAuthCode();
+                            if (ac)
+                                bot.sendMessage(parseInt(req.query['tg_user_id']), ac);
+                            return res.status(200).json({ desc: 'Auth code sent by Telegram' });
                         }
                         break;
                     default:
@@ -722,19 +731,6 @@ function webapp(c, req, res, bot) {
     });
 }
 exports.webapp = webapp;
-function getUserByTgUserId(tg_user_id) {
-    return __awaiter(this, void 0, void 0, function* () {
-        mongoproto_1.default.connectMongo();
-        const ou = yield user_1.mongoUsers.aggregate([{
-                '$match': {
-                    'tguserid': tg_user_id,
-                    'blocked': false
-                }
-            }]);
-        if (ou.length)
-            return new user_1.default(undefined, ou[0]);
-    });
-}
 const tgWelcome = (lang, userid) => {
     switch (lang) {
         case 'uk': return 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит';
@@ -757,7 +753,7 @@ function processCommands(bot, tgData) {
         for (let [i, c] of Object.entries(commands)) {
             const command_name = (_e = (_d = tgData.message) === null || _d === void 0 ? void 0 : _d.text) === null || _e === void 0 ? void 0 : _e.substring(c.offset, c.offset + c.length);
             console.log(`${colours_1.default.fg.green}Processing command = '${command_name}'${colours_1.default.reset}`);
-            const u = yield getUserByTgUserId((_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.from) === null || _g === void 0 ? void 0 : _g.id);
+            const u = yield user_1.default.getUserByTgUserId((_g = (_f = tgData.message) === null || _f === void 0 ? void 0 : _f.from) === null || _g === void 0 ? void 0 : _g.id);
             switch (command_name) {
                 case '/start':
                     if (u) {
@@ -793,7 +789,7 @@ function processCommands(bot, tgData) {
                     }
                     else {
                         console.log(`User ${u === null || u === void 0 ? void 0 : u.uid} wants to assign group '${sp[1]}' to user '${sp[2]}'`);
-                        const assign_user = parseInt(sp[2]) ? getUserByTgUserId(parseInt(sp[2])) : undefined;
+                        const assign_user = parseInt(sp[2]) ? user_1.default.getUserByTgUserId(parseInt(sp[2])) : undefined;
                         if (!assign_user) {
                             bot.sendMessage((_3 = tgData.message) === null || _3 === void 0 ? void 0 : _3.chat.id, `User #${sp[2]} not found`, { disable_notification: true });
                         }

@@ -19,6 +19,8 @@ const error_1 = __importDefault(require("./error"));
 const organization_1 = require("./organization");
 const assessment_1 = require("./assessment");
 const mongoproto_1 = __importDefault(require("./mongoproto"));
+const crypto_1 = require("crypto");
+const ts_md5_1 = require("ts-md5");
 exports.UserSchema = new mongoose_1.Schema({
     organizationid: { type: mongoose_1.Types.ObjectId, require: false },
     tguserid: { type: Number, require: false },
@@ -32,6 +34,7 @@ exports.UserSchema = new mongoose_1.Schema({
     features: { type: String, require: false },
     assignedgroups: { type: Array, require: false },
     awaitcommanddata: { type: String, require: false },
+    auth_code_hash: { type: String, require: false },
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -550,6 +553,32 @@ class User extends mongoproto_1.default {
             if (!(exists === null || exists === void 0 ? void 0 : exists.length))
                 (_f = (_e = this.data) === null || _e === void 0 ? void 0 : _e.assignedgroups) === null || _f === void 0 ? void 0 : _f.push(a);
             yield this.save();
+        });
+    }
+    createAuthCode() {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            this.checkData();
+            if (this.data) {
+                const auth_code = (0, crypto_1.randomInt)(100, 999).toString();
+                const auth_code_hash = ts_md5_1.Md5.hashStr(`${(_a = this.json) === null || _a === void 0 ? void 0 : _a.tguserid} ${auth_code}`);
+                this.data.auth_code_hash = auth_code_hash;
+                yield this.save();
+                return auth_code;
+            }
+        });
+    }
+    static getUserByTgUserId(tg_user_id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mongoproto_1.default.connectMongo();
+            const ou = yield exports.mongoUsers.aggregate([{
+                    '$match': {
+                        'tguserid': tg_user_id,
+                        'blocked': false
+                    }
+                }]);
+            if (ou.length)
+                return new User(undefined, ou[0]);
         });
     }
 }

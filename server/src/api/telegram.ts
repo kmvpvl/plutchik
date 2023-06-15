@@ -529,7 +529,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     const tgData: TelegramBot.Update = req.body;
     if (tgData.callback_query){
         try {
-            const u = await getUserByTgUserId(tgData.callback_query.from.id as number);
+            const u = await User.getUserByTgUserId(tgData.callback_query.from.id as number);
             if (!u) {
                 bot.sendMessage(tgData.callback_query?.message?.chat.id as number, userNotFound(tgData.callback_query.from.language_code as string));
                 return res.status(200).json("User not found");
@@ -567,7 +567,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                 case 'accept_assignment':
                     console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
                     const g = await ContentGroup.findContentGroup(cbcommand[1]);
-                    const from_user = await getUserByTgUserId(parseInt(cbcommand[2]));
+                    const from_user = await User.getUserByTgUserId(parseInt(cbcommand[2]));
                     if (from_user && g) {
                         await u.assignContentGroup(from_user, g);
                         //sending message to psycologist
@@ -610,7 +610,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     }
     console.log(`${colours.fg.blue}Telegram userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${tgData.message?.chat.id}'`);
 
-    const u = await getUserByTgUserId(tgData.message?.from?.id as number);
+    const u = await User.getUserByTgUserId(tgData.message?.from?.id as number);
     if (u?.json?.awaitcommanddata){
         switch(u?.json?.awaitcommanddata) {
             case 'set_age':
@@ -650,7 +650,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
         if (req.query['command']) {
             switch(req.query['command']) {
                 case 'getnext':
-                    user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
@@ -662,7 +662,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                     }
                     break;
                 case 'observe':
-                    user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
@@ -671,7 +671,7 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                     }
                     break;
                 case 'manage_content':
-                    user = await getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
                         const org = new Organization(user.json?.organizationid);
                         await org.load();
@@ -679,6 +679,14 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["manage_content"]);
                         const ci = await org.getContentItems();
                         return res.status(200).json({org: org.json, user: user.json, letters: letters, items: ci, sessiontoken: st});
+                    }
+                    break;
+                case 'create_auth_code':
+                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    if (user) {
+                        const ac = await user.createAuthCode();
+                        if (ac) bot.sendMessage(parseInt(req.query['tg_user_id'] as string), ac);
+                        return res.status(200).json({desc: 'Auth code sent by Telegram'});
                     }
                     break;
                 default:
@@ -705,17 +713,6 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
     }
 }
 
-async function getUserByTgUserId(tg_user_id: number): Promise<User | undefined> {
-    MongoProto.connectMongo();
-    const ou = await mongoUsers.aggregate([{
-        '$match': {
-            'tguserid': tg_user_id,
-            'blocked': false
-        }
-    }]);
-    if (ou.length) return new User(undefined, ou[0]);
-}
-
 const tgWelcome = (lang: string, userid: number)=>{
     switch(lang){
         case 'uk': return 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит';
@@ -736,7 +733,7 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
     for (let [i, c] of Object.entries(commands as Array<TelegramBot.MessageEntity>)) {
         const command_name = tgData.message?.text?.substring(c.offset, c.offset + c.length);
         console.log(`${colours.fg.green}Processing command = '${command_name}'${colours.reset}`);
-        const u = await getUserByTgUserId(tgData.message?.from?.id as number);
+        const u = await User.getUserByTgUserId(tgData.message?.from?.id as number);
         switch (command_name) {
             case '/start': 
                  if (u){
@@ -770,7 +767,7 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                     bot.sendMessage(tgData.message?.chat.id as number, `ASSIGN command format: /assign <group_name> <userid>`, {disable_notification: true});
                 } else {
                     console.log(`User ${u?.uid} wants to assign group '${sp[1]}' to user '${sp[2]}'`);
-                    const assign_user = parseInt(sp[2])?getUserByTgUserId(parseInt(sp[2])):undefined;
+                    const assign_user = parseInt(sp[2])?User.getUserByTgUserId(parseInt(sp[2])):undefined;
                     if (!assign_user) {
                         bot.sendMessage(tgData.message?.chat.id as number, `User #${sp[2]} not found`, {disable_notification: true});
                     } else {

@@ -7,6 +7,8 @@ servers:
     description: Local server
   - url: https://plutchik.onrender.com
     description: Temporary free hosting to test changes
+  - url: https://89bb-45-137-112-210.ngrok-free.app
+    description: Test NGROK
 
 components:
   securitySchemes:
@@ -22,6 +24,10 @@ components:
       type: apiKey
       in: header
       name: uid
+    PlutchikTGUserId:
+      type: apiKey
+      in: header
+      name: tguid
     PlutchikAuthSessionToken:
       type: apiKey
       in: header
@@ -333,6 +339,23 @@ paths:
                   63c12e625c80a49f1b08ad71
         '401':
           $ref: '#/components/responses/NotAuthorized'
+  /tggetsessiontoken:
+    get:
+      description: Returns session token by authorization
+      operationId: tggetsessiontoken
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                pattern: ^[0-9a-fA-F]{24}$
+                example:
+                  63c12e625c80a49f1b08ad71
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
   /adduser:
     post:
       description: Add new user from organization
@@ -490,6 +513,16 @@ paths:
           description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
+  /getnextcontentitem:
+    description: Reveals next content item for assessment
+    post:
+      operationId: getnextcontentitem
+      security:
+        - PlutchikTGUserId: []
+          PlutchikAuthSessionToken: []
+      responses:
+        '200':
+          description: OK
   /addcontent:
     description: Add new content item
     post:
@@ -631,5 +664,6 @@ paths:
 security:
   - PlutchikAuthOrganizationId: []
     PlutchikAuthOrganizationKey: []
+  - PlutchikTGUserId: []
   - PlutchikAuthUserId: []
   - PlutchikAuthSessionToken: []

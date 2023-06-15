@@ -7,6 +7,8 @@ import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
 import { IVector, mongoAssessments } from "./assessment";
 import TelegramBot from "node-telegram-bot-api";
 import MongoProto from "./mongoproto";
+import { randomInt } from "crypto";
+import { Md5 } from "ts-md5";
 
 export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match"|"offer_group";
 
@@ -34,6 +36,7 @@ export interface IUser {
     features?: string;
     assignedgroups?: Array<IAssign>;
     blocked: boolean;
+    auth_code_hash?: string;
     created: Date;
     changed?: Date;
     awaitcommanddata?: string;
@@ -58,6 +61,7 @@ export const UserSchema = new Schema({
     features: {type: String, require: false},
     assignedgroups: {type: Array, require: false},
     awaitcommanddata: {type: String, require: false},
+    auth_code_hash: {type: String, require: false},
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -549,5 +553,26 @@ export default class User extends MongoProto<IUser> {
         const exists = this.data?.assignedgroups?.filter((val)=>val.groupid.equals(group.uid as Types.ObjectId));
         if (!exists?.length) this.data?.assignedgroups?.push(a);
         await this.save();
+    }
+    public async createAuthCode(): Promise<string | undefined> {
+        this.checkData();
+        if (this.data) {
+            const auth_code = randomInt(100, 999).toString();
+            const auth_code_hash = Md5.hashStr(`${this.json?.tguserid} ${auth_code}`);
+            this.data.auth_code_hash = auth_code_hash;
+            await this.save();
+            return auth_code;
+        }
+    }
+    
+    static async getUserByTgUserId(tg_user_id: number): Promise<User | undefined> {
+        MongoProto.connectMongo();
+        const ou = await mongoUsers.aggregate([{
+            '$match': {
+                'tguserid': tg_user_id,
+                'blocked': false
+            }
+        }]);
+        if (ou.length) return new User(undefined, ou[0]);
     }
 }

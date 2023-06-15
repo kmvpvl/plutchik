@@ -42,7 +42,7 @@ const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = __importDefault(require("cors"));
 const version_1 = __importDefault(require("./api/version"));
 const adduser_1 = __importDefault(require("./api/adduser"));
-const getsessiontoken_1 = __importDefault(require("./api/getsessiontoken"));
+const getsessiontoken_1 = __importStar(require("./api/getsessiontoken"));
 const blockuser_1 = __importDefault(require("./api/blockuser"));
 const addcontent_1 = __importDefault(require("./api/addcontent"));
 const blockcontent_1 = __importDefault(require("./api/blockcontent"));
@@ -57,6 +57,7 @@ const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api")
 const settings_1 = __importDefault(require("./model/settings"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const getnextcontentitem_1 = __importDefault(require("./api/getnextcontentitem"));
 const PORT = process.env.PORT || 8000;
 (0, settings_1.default)();
 function checkSecurity(c) {
@@ -85,6 +86,7 @@ api.register({
     version: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, version_1.default)(c, req, res); }),
     createorganization: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, createorganization_1.default)(c, req, res); }),
     getsessiontoken: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, getsessiontoken_1.default)(c, req, res); }),
+    tggetsessiontoken: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, getsessiontoken_1.tggetsessiontoken)(c, req, res); }),
     adduser: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, adduser_1.default)(c, req, res); }),
     addorganizationkey: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, addorganizationkey_1.default)(c, req, res); }),
     organizationkeyslist: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, organizationkeyslist_1.default)(c, req, res); }),
@@ -96,6 +98,7 @@ api.register({
     blockcontent: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, blockcontent_1.default)(c, req, res); }),
     unblockcontent: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, blockcontent_1.default)(c, req, res, false); }),
     addassessment: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, addassessment_1.default)(c, req, res); }),
+    getnextcontentitem: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, getnextcontentitem_1.default)(c, req, res); }),
     telegram: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, telegram_1.default)(c, req, res, bot); }),
     tgwebapp: (c, req, res) => __awaiter(void 0, void 0, void 0, function* () { return (0, telegram_1.webapp)(c, req, res, bot); }),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
@@ -105,6 +108,7 @@ api.register({
 });
 api.registerSecurityHandler('PlutchikAuthOrganizationId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthOrganizationKey', checkSecurity);
+api.registerSecurityHandler('PlutchikTGUserId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthUserId', checkSecurity);
 api.registerSecurityHandler('PlutchikAuthSessionToken', checkSecurity);
 exports.app = (0, express_1.default)();
