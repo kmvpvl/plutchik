@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import TGLogin, { IServerInfo, LoginFormStates } from './components/loginForm';
-
+import './common';
 
 export default class App extends React.Component {
     public tgLoginFormRef: React.RefObject<TGLogin>;

@@ -89,6 +89,12 @@ export default class TGLogin extends React.Component<ILoginForm, ILoginFormState
             v=>this.changeState('error')
         );
     }
+    logout() {
+        localStorage.removeItem('sessiontoken');
+        delete this.serverInfo.sessiontoken;
+        this.changeState('connecting');
+        this.getServerVersion();
+    }
     render(): React.ReactNode {
         const state = this.state.state;
         return (
@@ -96,11 +102,11 @@ export default class TGLogin extends React.Component<ILoginForm, ILoginFormState
                 <span>{this.state.state}</span>
                 {'connecting' !== state ? <span>{JSON.stringify(this.serverInfo.version)}</span>:<></>}
                 {'error' === state ? <button onClick={()=>this.getServerVersion()}>Retry</button>:<></>}
-                {'connecting' !== state && 'logged' !== state && 'error' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} value={this.serverInfo.tguserid}/>:<></>}
+                {'connecting' !== state && 'logged' !== state && 'error' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
                 {'connecting' !== state && 'logged' !== state && 'error' !== state ? <button onClick={()=>this.getAuthCode()}>Get code</button>:<></>}
                 {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
                 {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>OK</button>:<></>}
-                {'logged' === state ? <button>Sign out</button>:<></>}
+                {'logged' === state ? <button onClick={()=>this.logout()}>Sign out</button>:<></>}
             </div>
         );
     }
