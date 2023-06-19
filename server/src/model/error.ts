@@ -6,7 +6,7 @@ export type ErrorCode =
     | "forbidden:rolerequiered" /* U need role doing this operation*/
     | "organization:notfound" /* Organization id not found*/
     | "organization:notloaded" /* Organization id not loaded*/
-    | "organization:wrongkey" /* Organization has no that key*/
+    | "user:wrongauthcode" /* Organization has no that key*/
     | "organization:wrongtguserid" //, "Organization has no that telegram user id"],
     | "user:notfound" /* User id not found*/
     | "user:notloaded" /* User id not loaded*/
@@ -29,7 +29,7 @@ export default class PlutchikError extends Error {
             ["forbidden:rolerequiered", "U need role doing this operation"], 
             ["organization:notfound", "Organization id not found"],
             ["organization:notloaded", "Organization id not loaded"],
-            ["organization:wrongkey", "Organization has no that key"],
+            ["user:wrongauthcode", "Wrong auth code"],
             ["organization:wrongtguserid", "Organization has no that telegram user id"],
             ["user:notfound", "User id not found"],
             ["user:notloaded", "User id not loaded"],

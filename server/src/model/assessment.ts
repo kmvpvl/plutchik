@@ -17,7 +17,6 @@ export interface IVector {
 export interface IAssessment {
     _id?: Types.ObjectId; // uniq ID of assessment
     uid?: Types.ObjectId; // user ID, required but may be undefined. userid posted by security schema of call
-    organizationid: Types.ObjectId;
     assignid?: Types.ObjectId;
     cid: Types.ObjectId; // content ID
     vector: IVector,
@@ -28,7 +27,6 @@ export interface IAssessment {
 
 export const AssessmentSchema = new Schema({
     uid: {type: Types.ObjectId, required: false},
-    organizationid: Types.ObjectId,
     cid: Types.ObjectId,
     assignid: {type: Types.ObjectId, required: false},
     vector: {

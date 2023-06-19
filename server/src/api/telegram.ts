@@ -633,7 +633,8 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     try{
         if (
             !await processCommands(bot, tgData) 
-            && !await processURLs(bot, tgData)) {
+            //&& !await processURLs(bot, tgData)) 
+            ){
                 bot.sendMessage(tgData.message?.chat.id as number, `Sorry, i couldn't apply this content. Check spelling`);
             };
         
@@ -652,11 +653,8 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                 case 'getnext':
                     user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
-                        const org = new Organization(user.json?.organizationid);
-                        await org.load();
-                        const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["create_assessment"]);
                         const ci = await user.nextContentItem(bot, user.json?.nativelanguage);
-                        return res.status(200).json({result: 'OK', content: ci, user:user.json, sessiontoken: st});
+                        return res.status(200).json({result: 'OK', content: ci, user:user.json});
                     } else {
                         return res.status(404).json({result: 'FAIL', description: 'User not found'});
                     }
@@ -664,28 +662,18 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                 case 'observe':
                     user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
-                        const org = new Organization(user.json?.organizationid);
-                        await org.load();
                         const ob = await user.observeAssessments();
                         return res.status(200).json({observe: ob, user: user.json});
                     }
                     break;
                 case 'manage_content':
-                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
-                    if (user) {
-                        const org = new Organization(user.json?.organizationid);
-                        await org.load();
-                        const letters = await org.getFirstLettersOfContentItems();
-                        const st = await org.checkAndUpdateSessionToken(user.json?._id as Types.ObjectId, ["manage_content"]);
-                        const ci = await org.getContentItems();
-                        return res.status(200).json({org: org.json, user: user.json, letters: letters, items: ci, sessiontoken: st});
-                    }
+                    return res.status(200).json({});
                     break;
                 case 'create_auth_code':
                     user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
                     if (user) {
                         const ac = await user.createAuthCode();
-                        if (ac) bot.sendMessage(parseInt(req.query['tg_user_id'] as string), ac);
+                        if (ac) bot.sendMessage(parseInt(req.query['tg_user_id'] as string), ac, {disable_notification:true});
                         return res.status(200).json({desc: 'Auth code sent by Telegram'});
                     }
                     break;
@@ -715,13 +703,13 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
 
 const tgWelcome = (lang: string, userid: number)=>{
     switch(lang){
-        case 'uk': return 'Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит';
+        case 'uk': return `Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит. Ваш ID=${userid}. Повідомте його, хто підготував для Вас контент для оцінки`;
         case 'ru': return `Добро пожаловать! Этот бот помогает динамически оценить вашу психологическую устойчивость. Также он позволяет вам найти людей со схожим мышлением. Мы уважаем вашу конфиденциальность. Будьте уверены, что мы удалим все ваши данные в любое время по вашему запросу\nВаш ID=${userid}. Сообщите его тому, кто подготовил для Вас контент для оценки`;
-        case 'es': return '¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita.';
-        case 'de': return 'Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden.';
+        case 'es': return `¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita. Tu identificación = ${userid}. Cuéntaselo a la persona que preparó el contenido para que lo evalúes`;
+        case 'de': return `Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden. Ihre ID = ${userid}. Teilen Sie es der Person mit, die den Inhalt für Sie zur Bewertung vorbereitet hat`;
         case 'en':
         default:
-            return `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request`;
+            return `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request. Your ID is ${userid}.`;
     }
 }
 
@@ -737,21 +725,10 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
         switch (command_name) {
             case '/start': 
                  if (u){
-                    //
-                    const org = new Organization(u.json?.organizationid);
-                    await org.load();
-                    let isContentManageRole = false;
-                    try {
-                        const key = await org.checkTgUserId(tgData.message?.from?.id as number);
-                        isContentManageRole = Organization.checkRoles(key.roles, "manage_content");
-                    } catch(e) {
-                        isContentManageRole = false;
-                    }
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(u.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(u.json?.nativelanguage as string, isContentManageRole));
+                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(u.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(u.json?.nativelanguage as string));
                 } else {
                     const user = new User(undefined, {
-                        organizationid: new Types.ObjectId('63c0e7dad80176886c22129d'),
-                        tguserid: tgData.message?.from?.id,
+                        tguserid: tgData.message?.from?.id as number,
                         nativelanguage: tgData.message?.from?.language_code,
                         blocked: false,
                         created: new Date()
@@ -826,161 +803,5 @@ async function yt_video_data(yt_video_id: string) {
     } catch(e){
         console.log(`${colours.fg.red}YoutubeAPI error. API_KEY = '${process.env.yt_API_KEY}'; error = '${e}'${colours.reset}`);
     }
-}
-
-async function processURLs(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
-    // looking for URL
-    let org = await getOrganizationByTgUser(bot, tgData);
-    const media_props = tgData.message?.text?.split(':');
-    const media_type = media_props?media_props[0]:undefined;
-    const media_lang = media_props?media_props[1]:undefined;
-    const media_name = media_props?media_props[2]:undefined;
-    const media_desc = media_props?media_props[3]:undefined;
-    const media_group_string = media_props?media_props[4]:undefined;
-    const media_groups = media_group_string?media_group_string.split(';'):undefined;
-
-    
-    const URLs = tgData.message?.entities?.filter(v => v.type == "url");
-    if (!URLs || !(URLs as any).length) {
-        switch(media_type){
-            case 'text':
-                console.log(`Text found: Name = '${media_name}', lang = '${media_lang}'`);
-                if (org) {
-                    let ic: IContent = {
-                        organizationid: org.json?._id,
-                        type: "text",
-                        source: "embedded",
-                        name: media_name as string,
-                        tags:[],
-                        tgData: tgData,
-                        description: media_desc as string,
-                        language:media_lang as string,
-                        blocked: false,
-                        created: new Date(),
-                        restrictions:[]
-                    };
-                    if (!ic.language) ic.language = 'en';
-                    let content = new Content(undefined, ic);
-                    await content.save();
-                    if (media_groups !== undefined) await content.assignGroups(media_groups);
-                    const msg = `New content added`;
-                    bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
-                }
-                return true;
-            default:
-                return false;
-            }
-    }
-    console.log(`url(s) found: ${tgData.message?.text}`);
-    for (let [i, u] of Object.entries(URLs)) {
-        const url_name = tgData.message?.text?.substring(u.offset, u.offset + u.length);
-        console.log(`${colours.fg.green}Processing URL = '${url_name}'${colours.reset}`);
-        switch (media_type) {
-            case 'img':
-                console.log(`Image found: Name = '${media_name}', lang = '${media_lang}'`);
-                if (org) {
-                    let ic: IContent = {
-                        organizationid: org.json?._id,
-                        url: url_name,
-                        type: "image",
-                        source: "web",
-                        name: media_name as string,
-                        tgData: tgData,
-                        tags:[],
-                        description: media_desc as string,
-                        language:media_lang as string,
-                        blocked: false,
-                        created: new Date(),
-                        restrictions:[]
-                    };
-                    if (!ic.language) ic.language = 'en';
-                    let content = new Content(undefined, ic);
-                    await content.save();
-                    if (media_groups !== undefined) await content.assignGroups(media_groups);
-                    const msg = `New content added`;
-                    bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
-                }
-                break;
-            default:
-                const ytId = yt_id(url_name as string);
-                if (ytId){
-                    console.log(`YOUTUBE content found: videoId = '${ytId}'`);
-                    let data = undefined;
-                    // !! need error handling
-                    //console.log(data.items);
-                    try {
-                        data = (await yt_video_data(ytId) as any).data;
-                    } catch (err) {
-                        console.error(JSON.stringify(err));
-                    }
-                    if (data !== undefined) {
-                        if (org){
-                            for (let [i, ytVi] of Object.entries(data.items)) {
-                                let snippet: any = (ytVi as any).snippet;
-                                console.log(`Title: '${snippet.title}', tags: '${snippet.tags}'`);
-                                let ic: IContent = {
-                                    organizationid: org.json?._id,
-                                    url: url_name,
-                                    type: "video",
-                                    source: "youtube",
-                                    name: snippet.title,
-                                    tags:snippet.tags,
-                                    description:snippet.description?snippet.description:'nodesc',
-                                    language:snippet.defaultAudioLanguage,
-                                    tgData:tgData,
-                                    blocked: false,
-                                    created: new Date(),
-                                    restrictions:[]
-                                };
-                                if (!ic.language) ic.language = 'en';
-                                let content = new Content(undefined, ic);
-                                await content.save();
-                                //if (media_groups !== undefined) await content.assignGroups(media_groups);
-                                const msg = `New content added`;
-                                bot.sendMessage(tgData.message?.chat.id as number, msg, {disable_notification:true});
-                            }
-                        } else {
-                            const msg = `Role 'manage_content' expected`;
-                            bot.sendMessage(tgData.message?.chat.id as number, msg);
-                        }
-                    } else {
-                        const msg = `Youtube API hasnot return data`;
-                        bot.sendMessage(tgData.message?.chat.id as number, msg);
-                    }
-                } else {
-                    console.log(`Couldn't recognize known domain: ${url_name}`);
-                }
-        }
-
-    }
-    return true;
-}
-
-async function processMedia(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
-    return false;
-}
-
-async function getOrganizationByTgUser(bot: TelegramBot, tgData: TelegramBot.Update): Promise<Organization|undefined> {
-    MongoProto.connectMongo();
-    const perms: Array<IOrganization> = await mongoOrgs.aggregate([
-        {
-            "$match": {
-                "keys.tgUserId": tgData.message?.from?.id 
-            }
-        }
-    ]);
-
-    let org: Organization | undefined;
-    console.log(`Organization keys found for user:`);
-    for (const i in perms){
-        org = new Organization(undefined, perms[i]);
-        const ikey = await org.checkTgUserId(tgData.message?.from?.id as number);
-
-        console.log(`${colours.fg.blue}found: organizationid = '${perms[i]._id}'; roles = '${ikey.roles}'${colours.reset}`);
-        if (Organization.checkRoles(ikey.roles, "manage_content")) {
-            return org;
-        }
-    }
-    return;
 }
 

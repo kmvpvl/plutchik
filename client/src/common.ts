@@ -1,18 +1,33 @@
-let s;
-try {
-    s = require("./settings.json");
-    for (let v in s) {
-        process.env[v] = s[v];
+export type ErrorCode = "notauth" | "rolerequired" | "servernotresponding" | "badrequest" | "unknown";
+export class PlutchikError extends Error{
+    code: ErrorCode;
+    constructor (code: ErrorCode, message: string){
+        super(`${code} - ${message}`);
+        this.code = code;
     }
-} catch (err: any) {
-    //console.log(`${colours.bg.red}${err.message}${colours.reset}`);
-    s = undefined;
+} 
+export type TServerVersion = {
+    api: string;
+    data: string;
+    ai: string;
 }
+
+export interface IServerInfo {
+    version?: TServerVersion;
+    error?: {
+        code: string;
+        description: string;
+    };
+    tguserid?: number;
+    sessiontoken?: string;
+}
+
 console.log(JSON.stringify(process.env));
-export function serverFetch(command: string, method: string, headers?: HeadersInit, body?: BodyInit, successcb?: (res: any)=>void, failcb?: (res: any)=>void) {
+export function serverFetch(command: string, method: string, headers?: HeadersInit, body?: BodyInit, successcb?: (res: any)=>void, failcb?: (err: PlutchikError)=>void) {
     const h: Headers = new Headers([
         ['Access-Control-Allow-Origin', '*'],
-        ["ngrok-skip-browser-warning", "any"]
+        ["ngrok-skip-browser-warning", "any"],
+        ["Content-Type", "application/json"]
     ]);
     if (headers) {
         const oheaders = new Headers(headers);
@@ -31,15 +46,29 @@ export function serverFetch(command: string, method: string, headers?: HeadersIn
         if (successcb) successcb(v);
     })
     .catch((v)=>{
-        try {
-            v.json()
-            .then((j: any)=>{
-                console.log(j);
-                if (failcb) failcb(j);
-            })
-        } catch(e: any) {
-            console.log(v);
-            if (failcb) failcb(v);
+        if (v instanceof Error) {
+            if (failcb) failcb(new PlutchikError("servernotresponding", `command='${command}'; error='${v.message}'`));
+        } else {
+            const j = v.json();
+            let err;
+            switch (v.status){
+                case 500:
+                case 400: err = new PlutchikError("badrequest", `command='${command}; server_desc='${JSON.stringify(j)}'`);
+                break;
+                case 401: err = new PlutchikError("notauth", `command='${command}; server_desc='${JSON.stringify(j)}'`);
+                break;
+                case 403: err = new PlutchikError("rolerequired", `command='${command}'; server_desc='${JSON.stringify(j)}'`);
+                break; 
+                default: err = new PlutchikError("unknown", `command='${command}; server_desc='${JSON.stringify(j)}'`);
+            }
+            if (failcb) failcb(err);
         }
     });
+}
+
+export function serverCommand (command: string, si: IServerInfo, body?: BodyInit, successcb?: (res: any)=>void, failcb?: (err: PlutchikError)=>void){
+    serverFetch(command, 'POST', {
+        plutchik_tguid: si.tguserid?si.tguserid.toString():'',
+        plutchik_sessiontoken: si.sessiontoken?si.sessiontoken:''
+    }, body, successcb, failcb);
 }

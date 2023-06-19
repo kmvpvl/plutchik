@@ -1,0 +1,64 @@
+.content-container {
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 100%;
+    min-width: 100%;
+    width: 100%;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+}
+.content-items {
+    display: flex;
+    flex-flow: row;
+    justify-content: flex-start;
+    overflow: auto;
+    justify-items: left;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    min-height: fit-content;
+}
+
+.content-item {
+    border-width: 1px;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    border-style: solid;
+    cursor: pointer;
+    min-width: 150px;
+    width: auto;
+    position: relative;
+}
+
+.content-item-header {
+    font-size: 120%;
+}
+.selected {
+    font-weight: bold;
+}
+
+.content-item-desc {
+    font-size: small;
+    overflow: scroll;
+}
+
+.content-item-type {
+    position: relative;
+    float: right;
+}
+
+.fit-to {
+    max-width: 100%;
+    max-height: 100%;
+}
+.content-form {
+    overflow: scroll;
+    padding: 2px;
+}
+
+textarea {
+    width: 100%;
+}

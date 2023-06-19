@@ -12,26 +12,18 @@ servers:
 
 components:
   securitySchemes:
-    PlutchikAuthOrganizationId:
-      type: apiKey
-      in: header
-      name: organizationid
-    PlutchikAuthOrganizationKey:
-      type: apiKey
-      in: header
-      name: organizationkey
-    PlutchikAuthUserId:
-      type: apiKey
-      in: header
-      name: uid
     PlutchikTGUserId:
       type: apiKey
       in: header
-      name: tguid
+      name: plutchik_tguid
     PlutchikAuthSessionToken:
       type: apiKey
       in: header
-      name: PlutchikAuthSessionToken
+      name: plutchik_sessiontoken
+    PlutchikAuthCode:
+      type: apiKey
+      in: header
+      name: plutchik_authcode
   schemas:
     version:
       type: object
@@ -47,51 +39,43 @@ components:
           pattern: ^(\d+\.)?(\d+\.)?(\d+)$
     user:
       type: object
+      required:
+        - tguserid
       properties:
-        uid:
+        _id:
           type: string
           description: Uniq user's id at Plutchik
           pattern: ^[0-9a-fA-F]{24}$
-          nullable: true
-        organizationid:
-          type: string
-          pattern: ^[0-9a-fA-F]{24}$
-          description: Uniq organization id at Plutchik
-          nullable: false
+        tguserid:
+          type: number
         birthdate:
           type: string
           pattern: ^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$
           description: Birthdate of user
-          nullable: true
         nativelanguage:
           type: string
           description: User's nativa language
-          nullable: true
         secondlanguages:
           description: All second or foreign languages of user
           type: array
           items:
             type: string
-          nullable: true
         location:
           description: Location of user (city, country of coord location) 
           type: string
-          nullable: true
         gender:
           description: User's gender (any trad gender or combination)
           type: string
-          nullable: true
         maritalstatus:
           type: string
           description: Marital status of user as one wants using
-          nullable: true
         features:
           type: string
-          nullable: true
         blocked:
           description: Is user banned?
           type: boolean
-          nullable: false
+    organization:
+      type: object
     contentitem:
       type: object
       properties:
@@ -204,74 +188,12 @@ components:
         application/json:
           schema: {}
   parameters:
-    organizationid:
-      name: organizationid
-      in: header
-      required: true
-      description: Uniq organization id
-      schema: 
-        type: string
-        pattern: ^[0-9a-fA-F]{24}$
-      example: 63c0e7dad80176886c22129d
-    organizationkey:
-      name: organizationkey
-      in: header
-      required: true
-      description: Secret organization key
-      schema: 
-        type: string
-        pattern: ^[0-9a-fA-F]{24}$
-      example: 63c13287808a659be295092e
-    sessiontoken:
-      name: PlutchikAuthSessionToken
-      in: header
-      required: true
-      description: Session token
-      schema:
-        type: string
-        pattern: ^[0-9a-fA-F]{24}$
-    userinfo:
-      name: userinfo
-      in: query
-      schema:
-        $ref: "#/components/schemas/user"
-      #style: deepObject
-      #explode: false
-    contentinfo:
-      name: contentinfo
-      in: query
-      schema:
-        $ref: "#/components/schemas/contentitem"
     assessmentinfo:
       name: assessmentinfo
       in: query
       schema:
         $ref: "#/components/schemas/assessment"
       #explode: false
-    uid: 
-      name: uid
-      in: header
-      required: true
-      description: Uniq user id
-      schema:
-        type: string
-        pattern: ^[0-9a-fA-F]{24}$
-    cid: 
-      name: cid
-      in: path
-      required: true
-      description: Uniq content id
-      schema:
-        type: string
-        pattern: ^[0-9a-fA-F]{24}$
-    eid: 
-      name: eid
-      in: path
-      required: true
-      description: Uniq assessment id
-      schema:
-        type: string
-        pattern: ^[0-9a-fA-F]{24}$
 paths:
   /version:
     get:
@@ -289,61 +211,29 @@ paths:
                 api: 1.0.0
                 data: 1.0.0
                 ai: 0.0.1
+  /tgcreateauthcode:
+    post:
+      description: Send to user auth code
+      operationId: tgcreateauthcode
+      security:
+        - PlutchikTGUserId: []
+      responses:
+        '200':
+          description: OK
   /createorganization:
     post:
       description: Creates new organization and returns first organization key with administrator roles
       operationId: createorganization
-      security: []
-      parameters:
-        - in: query
-          name: name
-          schema:
-            type: string
-        - in: query
-          name: emails
-          schema:
-            type: array
-            items: 
-              type: string
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  organizationid:
-                    type: string
-                    pattern: ^[0-9a-fA-F]{24}$
-                  organizationkey:
-                    type: string
-                    pattern: ^[0-9a-fA-F]{24}$
-  /getsessiontoken:
-    get:
-      description: Returns session token by authorization
-      operationId: getsessiontoken
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-          PlutchikAuthUserId: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: string
-                pattern: ^[0-9a-fA-F]{24}$
-                example:
-                  63c12e625c80a49f1b08ad71
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
   /tggetsessiontoken:
     get:
       description: Returns session token by authorization
       operationId: tggetsessiontoken
-      security: []
+      security: 
+        - PlutchikTGUserId: []
+          PlutchikAuthCode: []
       responses:
         '200':
           description: OK
@@ -356,158 +246,36 @@ paths:
                   63c12e625c80a49f1b08ad71
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /adduser:
-    post:
-      description: Add new user from organization
-      operationId: adduser
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      tags:
-        - user
-        - new content
-      parameters:
-        - $ref: "#/components/parameters/userinfo"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user"
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /addorganizationkey:
-    post:
-      description: Add new organizationkey with exect roles
-      operationId: addorganizationkey
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      parameters:
-        - in: query
-          name: name
-          schema:
-            type: string
-          #required: true
-        - in: query
-          name: roles
-          schema:
-            type: array
-            items: 
-              type: string
-          #required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user"
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /removeorganizationkey:
-    post:
-      description: Remove organizationkey permanently
-      operationId: removeorganizationkey
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      parameters:
-        - in: query
-          name: id
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /organizationkeyslist:
-    get:
-      description: Reveals all organizationkey s
-      operationId: organizationkeyslist
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    keyname: 
-                      type: string
-                    id:
-                      type: number
-                    roles:
-                      type: array
-                      items: 
-                        type: string
-                    created:
-                      type: string
-                      pattern: ^((?:(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})?)$
-                    expired:
-                      type: string
-                      pattern: ^((?:(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})?)$
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
   /userinfo:
     description: Reveal user information
-    get:
-      tags:
-        - user
-        - read
-      security:
-        - PlutchikAuth: []
-      parameters:
-        - $ref: "#/components/parameters/uid"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user"
-              example:
-                uid: 63c13295808a659be295092f
-                organizationid: 63c13295808a659be295092f
-                useridinorganization: 00000080880675
-                birthdate: 1995-11-03
-                nativelanguage: Polska
-                secondlanguages: [english, german]
-                location: Warsaw
-                gender: female
-                maritalstatus: single
-                features: hobby, cats
-                blocked: false
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /unblockuser:
-    get:
-      operationId: unblockuser
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-          PlutchikAuthUserId: []
-      parameters: []
+    post:
+      operationId: userinfo
       responses:
         '200':
           description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /blockuser:
-    get:
-      operationId: blockuser
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-          PlutchikAuthUserId: []
-      parameters: []
+  /orgsattachedtouser:
+    description: Reveal user information
+    post:
+      operationId: orgsattachedtouser
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /getorgcontent:
+    description: Returns all content items of organization
+    post:
+      operationId: getorgcontent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oid:
+                  type: string
       responses:
         '200':
           description: OK
@@ -517,9 +285,6 @@ paths:
     description: Reveals next content item for assessment
     post:
       operationId: getnextcontentitem
-      security:
-        - PlutchikTGUserId: []
-          PlutchikAuthSessionToken: []
       responses:
         '200':
           description: OK
@@ -527,49 +292,18 @@ paths:
     description: Add new content item
     post:
       operationId: addcontent
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      parameters:
-        - $ref: "#/components/parameters/contentinfo"
-        - in: query
-          name: groups
-          required: false
-          schema:
-            type: array
-            items: 
-              type: string
-              pattern: ^[0-9a-fA-F]{24}$
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contentitem"
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /blockcontent/{cid}:
-    get:
-      operationId: blockcontent
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      parameters:
-        - $ref: "#/components/parameters/cid"
-      responses:
-        '200':
-          description: OK
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
-  /unblockcontent/{cid}:
-    get:
-      operationId: unblockcontent
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      parameters: 
-        - $ref: "#/components/parameters/cid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contentinfo
+              properties:
+                contentinfo:
+                  type: object
+                groups:
+                  type: object
       responses:
         '200':
           description: OK
@@ -579,9 +313,8 @@ paths:
     description: Add new assessment
     post:
       operationId: addassessment
-      security:
-        - PlutchikAuthUserId: []
-          PlutchikAuthSessionToken: []
+      security: 
+        - PlutchikTGUserId: []
       parameters:
         - $ref: "#/components/parameters/assessmentinfo"
       responses:
@@ -593,41 +326,10 @@ paths:
                 $ref: "#/components/schemas/assessment"
         '401':
           $ref: '#/components/responses/NotAuthorized'
-  /organizationinfo:
-    get:
-      operationId: organizationinfo
-      security:
-        - PlutchikAuthOrganizationId: []
-          PlutchikAuthOrganizationKey: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  name: 
-                    type: string
-                  keyname:
-                    type: string
-                  keyroles:
-                    type: array
-                    items: 
-                      type: string
-                  keyscount:
-                    type: number
-                  userscount:
-                    type: number
-                  contentcount:
-                    type: number
-                  assessmnetscount:
-                    type: number
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
   /telegram:
     post:
       operationId: telegram
+      security: []
       responses:
         '200':
           description: OK
@@ -635,6 +337,7 @@ paths:
           $ref: '#/components/responses/NotAuthorized'
     get:
       operationId: tgwebapp
+      security: []
       parameters:
         - in: query
           name: command
@@ -662,8 +365,7 @@ paths:
         '401':
           $ref: '#/components/responses/NotAuthorized'
 security:
-  - PlutchikAuthOrganizationId: []
-    PlutchikAuthOrganizationKey: []
   - PlutchikTGUserId: []
-  - PlutchikAuthUserId: []
-  - PlutchikAuthSessionToken: []
+    PlutchikAuthSessionToken: []
+  - PlutchikTGUserId: []
+    PlutchikAuthCode: []

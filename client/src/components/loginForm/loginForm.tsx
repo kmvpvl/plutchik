@@ -1,34 +1,20 @@
 import React from 'react';
 import './loginForm.css';
-import { serverFetch } from '../common';
+import { IServerInfo, PlutchikError, serverCommand, serverFetch } from '../../common';
 
-export type LoginFormStates = 'connecting' | 'connected' | 'revealing_auth_code' | 'logging' | 'logged' | 'error';
+export type LoginFormStates = 'connecting' | 'connected' | 'revealing_auth_code' | 'logging' | 'logged';
 
-export type TServerVersion = {
-    api: string;
-    data: string;
-    ai: string;
-}
-
-export interface IServerInfo {
-    version?: TServerVersion;
-    error?: {
-        code: string;
-        description: string;
-    };
-    tguserid?: number;
-    sessiontoken?: string;
-}
-
-interface ILoginForm {
+interface ILoginFormProps {
     onStateChanged?: (oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo)=>void;
+    onUserInfoLoaded?: (ui: any)=>void;
+    onError: (err: PlutchikError)=>void;
 }
 
 interface ILoginFormState {
     state: LoginFormStates;
 }
 
-export default class TGLogin extends React.Component<ILoginForm, ILoginFormState> {
+export default class TGLogin extends React.Component<ILoginFormProps, ILoginFormState> {
     tgUserIdRef: React.RefObject<HTMLInputElement>;
     tgAuthCode: React.RefObject<HTMLInputElement>;
     serverInfo: IServerInfo;
@@ -58,18 +44,29 @@ export default class TGLogin extends React.Component<ILoginForm, ILoginFormState
             res=>{
                 this.serverInfo.version = res;
                 this.changeState('connected');
-                if (this.serverInfo.tguserid && this.serverInfo.sessiontoken) this.changeState('logged');
+                if (this.serverInfo.tguserid && this.serverInfo.sessiontoken) {
+                    this.changeState('logged');
+                    this.getuserinfo();
+                }
             },
-            v=>this.changeState('error')
+            err=>{
+                this.props.onError(err);
+            }
         );
     }
     getAuthCode() {
         const tgUI = this.tgUserIdRef.current?.value;
-        if (tgUI) localStorage.setItem('tgUserId', tgUI);
-        serverFetch(`telegram?command=create_auth_code&tg_user_id=${tgUI}`,'GET', undefined, undefined,
-            res=>this.changeState('revealing_auth_code'),
-            v=>this.changeState('error')
-        );
+        if (tgUI) {
+            localStorage.setItem('tgUserId', tgUI);
+            serverFetch(`tgcreateauthcode`,'POST', [
+                ['plutchik_tguid', tgUI]
+            ], undefined,
+                res=>this.changeState('revealing_auth_code'),
+                err=> {
+                    this.props.onError(err);
+                }
+            );
+        }
     }
     login() {
         this.changeState('logging');
@@ -78,15 +75,18 @@ export default class TGLogin extends React.Component<ILoginForm, ILoginFormState
         const tgUI = this.tgUserIdRef.current.value;
         const tgAC = this.tgAuthCode.current.value;
         serverFetch(`tggetsessiontoken`, 'GET', { 
-                tg_userid: tgUI,
-                tg_auth_code: tgAC
+            plutchik_tguid: tgUI,
+            plutchik_authcode: tgAC
             }, undefined,
             res=>{
                 this.serverInfo.sessiontoken = res;
                 localStorage.setItem('sessiontoken', res);
-                this.changeState('logged')
+                this.changeState('logged');
+                this.getuserinfo();
             },
-            v=>this.changeState('error')
+            err=>{
+                this.props.onError(err);
+            }
         );
     }
     logout() {
@@ -95,15 +95,22 @@ export default class TGLogin extends React.Component<ILoginForm, ILoginFormState
         this.changeState('connecting');
         this.getServerVersion();
     }
+    getuserinfo(){
+        serverCommand('userinfo', this.serverInfo, undefined, res=>{
+            if (this.props.onUserInfoLoaded) this.props.onUserInfoLoaded(res)
+        }, err=>{
+                this.logout();
+                this.props.onError(err);
+        })
+    }
     render(): React.ReactNode {
         const state = this.state.state;
         return (
             <div>
-                <span>{this.state.state}</span>
+                <span>{this.state.state}{'logged' === state ?<></>:<button onClick={()=>this.getServerVersion()}>Try again</button>}</span>
                 {'connecting' !== state ? <span>{JSON.stringify(this.serverInfo.version)}</span>:<></>}
-                {'error' === state ? <button onClick={()=>this.getServerVersion()}>Retry</button>:<></>}
-                {'connecting' !== state && 'logged' !== state && 'error' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
-                {'connecting' !== state && 'logged' !== state && 'error' !== state ? <button onClick={()=>this.getAuthCode()}>Get code</button>:<></>}
+                {'connecting' !== state && 'logged' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
+                {'connecting' !== state && 'logged' !== state ? <button onClick={()=>this.getAuthCode()}>Get code</button>:<></>}
                 {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
                 {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>OK</button>:<></>}
                 {'logged' === state ? <button onClick={()=>this.logout()}>Sign out</button>:<></>}

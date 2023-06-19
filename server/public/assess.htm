@@ -159,7 +159,6 @@ button[action="skip"]{
 <body>
 <div class="header">
     <debuginfo class="small">
-    sessiontoken <span id="sessiontoken"></span>
     tg_user_id <span id="tg_user_id"></span>
     user <span id="user"></span>
     content <span id="content"></span>
@@ -341,7 +340,7 @@ $('button[action="assess"]').on('click', ()=>{
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             'userid': JSON.parse($('#user').text())._id,
-            'sessiontoken': $('#sessiontoken').text()
+            'plutchik_tguid': tg.initDataUnsafe.user.id
         }
     });
     $.post(`addassessment`, JSON.stringify({
@@ -352,7 +351,6 @@ $('button[action="assess"]').on('click', ()=>{
             }
         }), (data, status, xhdr)=>{
         if ('success' == status) {
-            $('#sessiontoken').text('');
             $('#content').text('');
             $('.content').text('');
             $('#media-name').text('');
@@ -372,7 +370,6 @@ function getnext(){
     $.get(`/telegram?command=getnext&tg_user_id=${tg.initDataUnsafe.user.id}`, (data, status, xhdr)=>{
         if ('success' == status) {
             $('#user').text(JSON.stringify(data.user));
-            $('#sessiontoken').text(data.sessiontoken);
             $('#content').text(JSON.stringify(data.content));
             $('#media-name').text(`${data.content.name}`);
             switch (data.content.source) {
