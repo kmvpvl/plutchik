@@ -2,8 +2,7 @@
     font-size: 200%;
     text-align: center;
     display: grid;
-    grid-template-columns: 1fr 100px;
-    padding-top: 1em;
+    grid-template-columns: 100px 1fr;
 }
 
 .assess-header > span {
@@ -37,10 +36,6 @@
     font-size: 120%;
 }
 
-.assess-emotion-text {
-    transform-origin: 0px calc(100% - 1em);
-    transform: rotate(270deg) translate(0px, 1em);
-}
 
 .image-center {
     min-width: 100%;

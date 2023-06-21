@@ -2,3 +2,7 @@
     padding: 2px;
     max-width: 4em;
 }
+
+.assess-emotion-text {
+    transform: rotate(270deg) translate(-8em, 2em);
+}

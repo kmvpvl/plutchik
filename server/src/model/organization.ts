@@ -7,7 +7,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
 import MongoProto from "./mongoproto";
 
-export const DEFAULT_SESSION_DURATION = 30;
+export const DEFAULT_SESSION_DURATION = 10080;
 
 export interface IParticipant {
     _id?: Types.ObjectId;

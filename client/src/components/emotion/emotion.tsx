@@ -36,8 +36,8 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
                 });
                 if (this.props.onChange) this.props.onChange(v);
             }}/>
-            <text className={`${this.props.emotion} assess-emotion-text`} x="0" y="100%">{this.props.emotion}</text>
             <rect className={this.props.emotion} x="-0" y={`calc((100% - 1em)*${1 - this.state.value})`} width="1.5em" height="1em" rx="0.5em"/>
+            <text className={`${this.props.emotion} assess-emotion-text`} x="0" y="0">{this.props.emotion}</text>
         </svg>
         </>;
     }

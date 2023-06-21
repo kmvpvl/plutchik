@@ -68,7 +68,10 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
 
     render(): React.ReactNode {
         return (<>
-            {this.state.contentitem?<><div className='assess-header'><span>{this.state.contentitem?.name}</span><Flower vector={this.vector} ref={this.flowerRef}/></div></>:<div></div>}
+            {this.state.contentitem?<><div className='assess-header'>
+                <Flower vector={this.vector} ref={this.flowerRef}/>
+                <span>{this.state.contentitem?.name}</span>
+            </div></>:<div></div>}
             {this.state.contentitem?<div className='assess-content'>
                 <div>
                     {this.state.contentitem?.type === 'image'?<div className='image-center'><img className='fit-to' alt={this.state.contentitem.description} src={this.state.contentitem.url}/></div>
