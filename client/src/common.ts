@@ -1,4 +1,4 @@
-export type ErrorCode = "notauth" | "rolerequired" | "servernotresponding" | "badrequest" | "unknown";
+export type ErrorCode = "notauth" | "rolerequired" | "servernotresponding" | "badrequest" | "unknown" | "notfound";
 export class PlutchikError extends Error{
     code: ErrorCode;
     constructor (code: ErrorCode, message: string){
@@ -49,19 +49,26 @@ export function serverFetch(command: string, method: string, headers?: HeadersIn
         if (v instanceof Error) {
             if (failcb) failcb(new PlutchikError("servernotresponding", `command='${command}'; error='${v.message}'`));
         } else {
-            const j = v.json();
-            let err;
-            switch (v.status){
-                case 500:
-                case 400: err = new PlutchikError("badrequest", `command='${command}; server_desc='${JSON.stringify(j)}'`);
-                break;
-                case 401: err = new PlutchikError("notauth", `command='${command}; server_desc='${JSON.stringify(j)}'`);
-                break;
-                case 403: err = new PlutchikError("rolerequired", `command='${command}'; server_desc='${JSON.stringify(j)}'`);
-                break; 
-                default: err = new PlutchikError("unknown", `command='${command}; server_desc='${JSON.stringify(j)}'`);
-            }
-            if (failcb) failcb(err);
+            v.json().then((j: any) =>{
+                let errcode: ErrorCode;
+                switch (v.status){
+                    case 500:
+                    case 400: errcode = "badrequest"
+                    break;
+                    case 401: errcode = "notauth"
+                    break;
+                    case 403: errcode = "rolerequired"
+                    break; 
+                    case 404: errcode = "notfound"
+                    break; 
+                    default: errcode = "unknown";
+                }
+                const err = new PlutchikError(errcode, `command='${command}; url='${v.url}'; status='${v.status}'; text='${v.statusText}'; server_desc='${JSON.stringify(j)}'`);
+                if (failcb) failcb(err);
+            })
+            .catch((err: any)=> {
+                debugger;
+            });
         }
     });
 }

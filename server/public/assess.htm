@@ -339,7 +339,7 @@ $('button[action="assess"]').on('click', ()=>{
     $.ajaxSetup({
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'userid': JSON.parse($('#user').text())._id,
+            'plutchik_userid': JSON.parse($('#user').text())._id,
             'plutchik_tguid': tg.initDataUnsafe.user.id
         }
     });

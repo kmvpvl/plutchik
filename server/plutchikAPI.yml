@@ -24,6 +24,10 @@ components:
       type: apiKey
       in: header
       name: plutchik_authcode
+    PlutchikUserId:
+      type: apiKey
+      in: header
+      name: plutchik_userid
   schemas:
     version:
       type: object
@@ -315,8 +319,9 @@ paths:
       operationId: addassessment
       security: 
         - PlutchikTGUserId: []
-      parameters:
-        - $ref: "#/components/parameters/assessmentinfo"
+          PlutchikAuthSessionToken: []
+        - PlutchikTGUserId: []
+
       responses:
         '200':
           description: OK
@@ -369,3 +374,5 @@ security:
     PlutchikAuthSessionToken: []
   - PlutchikTGUserId: []
     PlutchikAuthCode: []
+  - PlutchikTGUserId: []
+    PlutchikUserId: []

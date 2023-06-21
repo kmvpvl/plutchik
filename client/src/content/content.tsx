@@ -110,15 +110,15 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                         </select>
 
                         Blocked <input type="checkbox" key={`${this.state.currentItem._id}_7`} ref={this.blockedRef} defaultChecked={this.state.currentItem.blocked}/>
+
+                        Groups <input key={`${this.state.currentItem._id}_6`} ref={this.groupsRef} defaultValue={this.state.currentItem.groups.map((v: any)=>v.name).join(';')}/>
                     </div>
                     <div>
                         Desc <textarea key={`${this.state.currentItem._id}_4`} ref={this.descRef} defaultValue={this.state.currentItem.description}/></div>
-                    <div>
+                    <div className="">
                         Url <textarea key={`${this.state.currentItem._id}_5`} ref={this.urlRef} defaultValue={this.state.currentItem.url}/></div>
-                    <div>
-                        Groups <input key={`${this.state.currentItem._id}_6`} ref={this.groupsRef} defaultValue={this.state.currentItem.groups.map((v: any)=>v.name).join(';')}/></div>
                     
-                    {this.state.currentItem.type==='image'?<img className="fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>:<></>}
+                    {this.state.currentItem.type==='image'?<img className="content-fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>:<></>}
                 </div>
                 :
                 <div className="content-form">
@@ -140,15 +140,16 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                         </select>
 
                         Blocked <input type="checkbox" key={`${'new'}_7`} ref={this.blockedRef} defaultChecked={false}/>
+                        Groups <input key={`${'new'}_6`} ref={this.groupsRef} defaultValue={''}/>
                     </div>
                     <div>
                         Desc <textarea key={`${'new'}_4`} ref={this.descRef} defaultValue={''}/></div>
                     <div>
                         Url <textarea key={`${'new'}_5`} ref={this.urlRef} defaultValue={''}/></div>
                     <div>
-                        Groups <input key={`${'new'}_6`} ref={this.groupsRef} defaultValue={''}/></div>
+                    </div>
                     
-                    <img className="fit-to" alt={''}/>
+                    <img className="content-fit-to" alt={''}/>
                 </div>}
             </div>
         );

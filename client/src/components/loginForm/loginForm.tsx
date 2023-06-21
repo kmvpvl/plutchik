@@ -106,14 +106,22 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
     render(): React.ReactNode {
         const state = this.state.state;
         return (
-            <div>
-                <span>{this.state.state}{'logged' === state ?<></>:<button onClick={()=>this.getServerVersion()}>Try again</button>}</span>
-                {'connecting' !== state ? <span>{JSON.stringify(this.serverInfo.version)}</span>:<></>}
-                {'connecting' !== state && 'logged' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
-                {'connecting' !== state && 'logged' !== state ? <button onClick={()=>this.getAuthCode()}>Get code</button>:<></>}
-                {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
-                {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>OK</button>:<></>}
-                {'logged' === state ? <button onClick={()=>this.logout()}>Sign out</button>:<></>}
+            <div className={ 'logged' === state ?'login-form logged':'login-form'}>
+                <span className='login-state'>
+                    <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>Try again</button>}
+                </span>
+                <span className='login-tguserid'>
+                    {'connecting' !== state && 'logged' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
+                    {'connecting' !== state && 'logged' !== state ? <><button onClick={()=>this.getAuthCode()}>Get code</button><button onClick={()=>{
+                        this.setState({state: "revealing_auth_code"});
+                    }}>I have code</button></>:<></>}
+                </span>
+                <span className='login-authcode'>
+                    {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
+                    {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>Log in</button>:<></>}
+                    {'logged' === state ? <button onClick={()=>this.logout()}>Sign out</button>:<></>}
+                </span>
+                {'connected' === state ? <span className='versions'>{JSON.stringify(this.serverInfo.version)}</span>:<span></span>}
             </div>
         );
     }

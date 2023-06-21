@@ -31,14 +31,9 @@ body {
   min-height: 100%;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto auto auto 1fr;
+  grid-template-rows: auto auto 1fr;
   width: 100%;
   height: 100%;
-}
-
-code {
-  font-family: 'UbuntuMono', source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
 }
 
 button, select {
@@ -48,3 +43,43 @@ button, select {
   border-width: 1px;
   border-radius: 5px;
 }
+
+.joy{
+  fill:#edc500;
+  background-color:#edc500;
+} 
+.trust{
+  fill:#7abd0d;
+  background-color:#7abd0d;
+}
+.fear{
+  fill:#007b33;
+  background-color:#007b33;
+}
+.surprise{
+  fill:#0080ab;
+  background-color:#0080ab;
+}
+.sadness{
+  fill:#1f6dad;
+  background-color:#1f6dad;
+}
+.disgust{
+  fill:#7b4ea3;
+  background-color:#7b4ea3;
+}
+.anger{
+  fill:#dc0047;
+  background-color:#dc0047;
+}
+.anticipation{
+  fill:#e87200;
+  background-color:#e87200;
+}
+.dotted {
+  fill:transparent;
+  stroke-width: 1px;
+  opacity: 0.5;
+  stroke: silver;
+}
+

@@ -5,6 +5,8 @@ import './common';
 import Organizations from './components/manageOrgs/organizations';
 import { IServerInfo, PlutchikError } from './common';
 import { ContentItems } from './content/content';
+import User, { UserModes } from './components/user/user';
+import Assess from './components/assess/assess';
 
 interface IAppState {
     logged: boolean;
@@ -13,6 +15,7 @@ interface IAppState {
     orgs?: any[];
     orgContent?: any[];
     currentOrg?: string;
+    mode: UserModes;
 }
 
 export default class App extends React.Component <{}, IAppState> {
@@ -27,7 +30,8 @@ export default class App extends React.Component <{}, IAppState> {
         userInfo: {},
         currentOrg: undefined,
         orgs: [],
-        orgContent: []
+        orgContent: [],
+        mode: 'user'
     }
     messagesRef: RefObject<Infos> = React.createRef();
 
@@ -70,23 +74,48 @@ export default class App extends React.Component <{}, IAppState> {
             this.messagesRef.current?.setState(s);
         }
     }
+
+    onChangeMode(oldMode: UserModes, newMode: UserModes) {
+        if (this.state.mode !== newMode) {
+            const nState: IAppState = this.state;
+            nState.mode = newMode;
+            this.setState(nState);
+        }
+    }
+    renderPsyMode (): React.ReactNode {
+        return (<>
+        {this.state.logged?<Organizations serverInfo={this.state.serverInfo} onError={err=>this.onError(err)} onCreateNewOrg={(org)=>this.onNewOrgCreated(org)} onOrganizationListLoaded={(orgs)=>{
+            const nState: IAppState = this.state;
+            nState.orgs = orgs;
+            this.setState(nState);
+        }} onOrgSelected={orgid=>{
+            const nState: IAppState = this.state;
+            nState.currentOrg = orgid;
+            this.setState(nState);//=>this.setState(nState));
+        }}/>
+        :<span></span>}
+        {this.state.logged && this.state.currentOrg?<ContentItems serverInfo={this.state.serverInfo} oid={this.state.currentOrg} uid={this.state.userInfo._id} onSuccess={(text: string)=>this.displayInfo(text)} onError={(err: PlutchikError)=>this.displayError(err)}/>:<span></span>}
+        </>
+        );
+    }
+    renderUserMode (): React.ReactNode {
+        return (
+            <>
+            {this.state.logged?<Assess serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onError={err=>{
+                this.displayError(err);
+            }}></Assess>:<span></span>}
+            </>
+        );
+    }
     
     render(): React.ReactNode {
         return (
         <>
             <TGLogin onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
-            {this.state.logged?<span>User {this.state.serverInfo.tguserid}/{this.state.userInfo.nativelanguage}/{this.state.userInfo.gender}/{this.state.userInfo.birthdate}</span>:<span></span>}
-            {this.state.logged?<Organizations serverInfo={this.state.serverInfo} onError={err=>this.onError(err)} onCreateNewOrg={(org)=>this.onNewOrgCreated(org)} onOrganizationListLoaded={(orgs)=>{
-                const nState: IAppState = this.state;
-                nState.orgs = orgs;
-                this.setState(nState);
-            }} onOrgSelected={orgid=>{
-                const nState: IAppState = this.state;
-                nState.currentOrg = orgid;
-                this.setState(nState);//=>this.setState(nState));
-            }}/>
-            :<span></span>}
-            {this.state.logged && this.state.currentOrg?<ContentItems serverInfo={this.state.serverInfo} oid={this.state.currentOrg} uid={this.state.userInfo._id} onSuccess={(text: string)=>this.displayInfo(text)} onError={(err: PlutchikError)=>this.displayError(err)}/>:<span></span>}
+            {this.state.logged?<User serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onChangeMode={(o, n)=>this.onChangeMode(o, n)}/>:<span></span>}
+            
+            {this.state.mode === 'psychologist' ? this.renderPsyMode():this.renderUserMode()
+            }   
             <Infos ref={this.messagesRef}/>
         </>
         );

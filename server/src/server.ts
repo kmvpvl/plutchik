@@ -16,6 +16,7 @@ import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
 import getorgcontent, { addcontent } from './api/content';
 import addassessment from './api/addassessment';
+import getnextcontentitem from './api/getnextcontentitem';
 
 const PORT = process.env.PORT || 8000;
 checkSettings();
@@ -42,6 +43,7 @@ api.register({
     getorgcontent: async (c, req, res, user) => getorgcontent(c, req, res, user),
     addcontent: async (c, req, res, user) => addcontent(c, req, res, user),
     addassessment: async (c, req, res, user) => addassessment(c, req, res, user),
+    getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user),
 
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
     tgwebapp: async (c, req, res, user) => webapp(c, req, res, bot),
@@ -63,6 +65,12 @@ api.registerSecurityHandler('PlutchikAuthCode', async (context, req: Request, re
     const sauthcode = req.headers["plutchik_authcode"];
     const hash = Md5.hashStr(`${user.uid} ${sauthcode}`);
     return hash === user.json?.auth_code_hash;
+return true;    
+});
+
+api.registerSecurityHandler('PlutchikUserId', async (context, req: Request, res, user: User)=>{
+    const plutchik_userid = req.headers["plutchik_userid"];
+    return user.uid.equals(plutchik_userid as string);
 return true;    
 });
 
