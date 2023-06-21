@@ -74,11 +74,13 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         //debugger;
         const tgUI = this.tgUserIdRef.current.value;
         const tgAC = this.tgAuthCode.current.value;
+        localStorage.setItem('tgUserId', tgUI);
         serverFetch(`tggetsessiontoken`, 'GET', { 
             plutchik_tguid: tgUI,
             plutchik_authcode: tgAC
             }, undefined,
             res=>{
+                this.serverInfo.tguserid = parseInt(tgUI);
                 this.serverInfo.sessiontoken = res;
                 localStorage.setItem('sessiontoken', res);
                 this.changeState('logged');
