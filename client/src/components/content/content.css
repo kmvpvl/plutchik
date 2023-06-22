@@ -62,3 +62,9 @@
 textarea {
     width: 100%;
 }
+
+.content-form-tools {
+    height: 3em;
+    display: grid;
+    grid-template-columns: 1fr 75px auto;
+}

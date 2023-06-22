@@ -14,7 +14,7 @@ import userinfo, {ogranizationAttachedToUser} from './api/user';
 import createorganization from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
-import getorgcontent, { addcontent } from './api/content';
+import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
 import addassessment from './api/addassessment';
 import getnextcontentitem from './api/getnextcontentitem';
 
@@ -44,6 +44,7 @@ api.register({
     addcontent: async (c, req, res, user) => addcontent(c, req, res, user),
     addassessment: async (c, req, res, user) => addassessment(c, req, res, user),
     getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user),
+    getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
 
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
     tgwebapp: async (c, req, res, user) => webapp(c, req, res, bot),

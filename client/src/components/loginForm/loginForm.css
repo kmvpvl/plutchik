@@ -25,6 +25,7 @@
     float: right;
     left: auto;
     bottom: auto;
+    opacity: 0.3;
 }
 
 .versions {

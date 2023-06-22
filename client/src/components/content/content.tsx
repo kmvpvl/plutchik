@@ -1,6 +1,7 @@
 import React, { RefObject } from "react";
-import { IServerInfo, PlutchikError, serverCommand } from "../common";
+import { IServerInfo, PlutchikError, serverCommand } from "../../common";
 import './content.css';
+import { EmotionType, Flower, emotions } from "../emotion/emotion";
 export interface IContentItemsProps {
     serverInfo: IServerInfo;
     uid: string;
@@ -12,12 +13,16 @@ export interface IContentItemsProps {
 export interface IContentItemsState {
     items: any[];
     currentItem: any;
+    currentItemStat: Map<EmotionType, number>;
+    currentItemAssessmentsCount: number
 }
 
 export class ContentItems extends React.Component<IContentItemsProps, IContentItemsState> {
     state = {
         items: [],
-        currentItem: {} as any
+        currentItem: {} as any,
+        currentItemStat: new Map<EmotionType, number>(),
+        currentItemAssessmentsCount: NaN
     }
     langRef: RefObject<HTMLSelectElement> = React.createRef();
     groupsRef: RefObject<HTMLInputElement> = React.createRef();
@@ -26,6 +31,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
     urlRef: RefObject<HTMLTextAreaElement> = React.createRef();
     typeRef: RefObject<HTMLSelectElement> = React.createRef();
     blockedRef: RefObject<HTMLInputElement> = React.createRef();
+    flowerRef: RefObject<Flower> = React.createRef();
     
     loadContentItems() {
         serverCommand(`getorgcontent`, this.props.serverInfo, JSON.stringify({oid: this.props.oid}), res=>{
@@ -87,12 +93,28 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                     <ContentItem key={i} item={v} selected={v._id === this.state.currentItem?._id} onSelect={v=>{
                         const nState: IContentItemsState = this.state;
                         nState.currentItem = v;
+                        nState.currentItemStat = new Map<EmotionType, number>();
+                        nState.currentItemAssessmentsCount = NaN;
                         this.setState(nState);
+                        serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
+                            cid: v._id
+                        }), (res)=>{
+                            const nState: IContentItemsState = this.state;
+                            for (const i in emotions) {
+                                nState.currentItemStat.set(emotions[i], res[emotions[i]]);
+                            }
+                            nState.currentItemAssessmentsCount = res.count;
+                            this.setState(nState);
+                        }, (err: PlutchikError)=>{
+                            this.props.onError(err);
+                        });
                     }}/>)}
                 </div>:<div></div>}
                 
                 {this.state.currentItem?._id?<div className="content-form">
-                    <div><button onClick={(e)=>this.onSaveForm(e)}>Save</button></div>
+                    <div className="content-form-tools"><button onClick={(e)=>this.onSaveForm(e)}>Save</button>
+                        <Flower ref={this.flowerRef} vector={this.state.currentItemStat}/> <span>Count: {this.state.currentItemAssessmentsCount}</span>
+                    </div>
                     <div>
                         Name <input key={`${this.state.currentItem._id}_1`} ref={this.nameRef} defaultValue={this.state.currentItem.name}/>
                         

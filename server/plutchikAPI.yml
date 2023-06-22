@@ -321,7 +321,6 @@ paths:
         - PlutchikTGUserId: []
           PlutchikAuthSessionToken: []
         - PlutchikTGUserId: []
-
       responses:
         '200':
           description: OK
@@ -331,6 +330,23 @@ paths:
                 $ref: "#/components/schemas/assessment"
         '401':
           $ref: '#/components/responses/NotAuthorized'
+  /getcontentstatistics:
+    description: Returns statistics of content items' assesment
+    post:
+      operationId: getcontentstatistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cid
+              properties:
+                cid:
+                  type: string
+      responses:
+        '200':
+          description: OK
   /telegram:
     post:
       operationId: telegram

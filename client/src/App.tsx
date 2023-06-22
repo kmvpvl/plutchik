@@ -4,7 +4,7 @@ import TGLogin, {LoginFormStates } from './components/loginForm/loginForm';
 import './common';
 import Organizations from './components/manageOrgs/organizations';
 import { IServerInfo, PlutchikError } from './common';
-import { ContentItems } from './content/content';
+import { ContentItems } from './components/content/content';
 import User, { UserModes } from './components/user/user';
 import Assess from './components/assess/assess';
 
