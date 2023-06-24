@@ -1,9 +1,12 @@
 import './emotion.css';
 import React, { RefObject } from 'react';
 export type EmotionType = 'joy' | "trust" | 'fear' | 'surprise' | 'sadness' | 'disgust' | 'anger' | 'anticipation';
+export type EmotionViewModeType = "slider" | "chart";
 interface IEmotionProps {
     emotion: EmotionType;
+    value?: number;
     disabled: boolean;
+    viewmode: EmotionViewModeType;
     onChange?: (value: number)=>void;
 }
 export const emotions: EmotionType[] = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
@@ -24,9 +27,27 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
         this.height = this.svgRef.current?.height.baseVal.value;
     }
     render(): React.ReactNode {
+
+        let y;
+        let h;
+
+        switch (this.props.viewmode) {
+            case "chart":
+                let v = this.props.value;
+                v = v?v:0;
+                y = `${(1 - v) * 100}%`;
+                h = `${v*100}%`;
+                break;
+
+            case "slider":
+            default:
+                y = "0";
+                h = "100%";
+        }
         return <>
         <svg ref={this.svgRef} xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width='100%' height='100%' className='emotion-slider'>
-            <rect className={this.props.emotion} style={{cursor:'pointer'}} x="0.5em" y="0" width="0.5em" height="100%" onClick={(e)=>{
+            {this.props.viewmode === "chart"?<rect className="dotted" x="0.5em" y="0" width="0.5em" height="100%"/>:<></>}
+            <rect className={this.props.emotion} style={{cursor:'pointer'}} x="0.5em" y={y} width="0.5em" height={h} onClick={(e)=>{
                 //debugger;
                 const y = e.clientY;
                 const rect = e.currentTarget.getBoundingClientRect();
@@ -36,7 +57,7 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
                 });
                 if (this.props.onChange) this.props.onChange(v);
             }}/>
-            <rect className={this.props.emotion} x="-0" y={`calc((100% - 1em)*${1 - this.state.value})`} width="1.5em" height="1em" rx="0.5em"/>
+            {this.props.viewmode === 'slider'?<rect className={this.props.emotion} x="-0" y={`calc((100% - 1em)*${1 - this.state.value})`} width="1.5em" height="1em" rx="0.5em"/>:<></>}
             <text className={`${this.props.emotion} assess-emotion-text`} x="0" y="0">{this.props.emotion}</text>
         </svg>
         </>;
@@ -76,6 +97,28 @@ export class Flower extends React.Component<IFlowerProps, IFlowerState> {
                 return <path key={i} className={axis?v:'dotted'} d={`M 0,0 L ${xc1},${yc1} Q ${xv},${yv} ${xc2},${yc2} L 0,0, z`}/>
             })}
         </svg>
+        </>;
+    }
+}
+
+interface IChartsProps {
+    vector?: Map<EmotionType, number>
+}
+interface IChartsState {
+
+}
+
+export class Charts extends React.Component<IChartsProps, IChartsState> {
+    render(): React.ReactNode {
+        if (!this.props.vector?.size) return <></>;
+        return <>
+        <div className='charts-emotions'>
+            {emotions.map((v, i)=>{
+                let val: number | undefined = this.props.vector?.get(emotions[i]);
+                val = val?val:0;
+                return <Emotion viewmode='chart' disabled={false} value={val} emotion={emotions[i]} key={i}/>
+            })}
+        </div>
         </>;
     }
 }

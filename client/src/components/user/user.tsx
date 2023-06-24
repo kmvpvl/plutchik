@@ -2,7 +2,7 @@ import React from 'react';
 import { IServerInfo } from '../../common';
 import './user.css'
 
-export type UserModes = "user" | "psychologist";
+export type UserModes = "user" | "psychologist" | "user:insights";
 
 interface IUserProps {
     serverInfo: IServerInfo;

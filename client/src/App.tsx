@@ -7,6 +7,7 @@ import { IServerInfo, PlutchikError } from './common';
 import { ContentItems } from './components/content/content';
 import User, { UserModes } from './components/user/user';
 import Assess from './components/assess/assess';
+import Insights from './components/insights/insights';
 
 interface IAppState {
     logged: boolean;
@@ -82,6 +83,16 @@ export default class App extends React.Component <{}, IAppState> {
             this.setState(nState);
         }
     }
+    onUserInsights() {
+        const nState: IAppState = this.state;
+        nState.mode = "user:insights";
+        this.setState(nState);
+    }
+    onUserAssessments() {
+        const nState: IAppState = this.state;
+        nState.mode = "user";
+        this.setState(nState);
+    }
     renderPsyMode (): React.ReactNode {
         return (<>
         {this.state.logged?<Organizations serverInfo={this.state.serverInfo} onError={err=>this.onError(err)} onCreateNewOrg={(org)=>this.onNewOrgCreated(org)} onOrganizationListLoaded={(orgs)=>{
@@ -99,11 +110,15 @@ export default class App extends React.Component <{}, IAppState> {
         );
     }
     renderUserMode (): React.ReactNode {
+        const mode = this.state.mode.split(':')[1];
+        if (!this.state.logged) return <></>;
         return (
             <>
-            {this.state.logged?<Assess serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onError={err=>{
+            {mode === undefined?<Assess serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onError={err=>{
                 this.displayError(err);
-            }}></Assess>:<span></span>}
+            }} onInsights={()=>this.onUserInsights()}></Assess>
+            :
+            <Insights serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onAssess={()=>this.onUserAssessments()} onError={err=>this.onError(err)}/>}
             </>
         );
     }
@@ -114,7 +129,7 @@ export default class App extends React.Component <{}, IAppState> {
             <TGLogin onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
             {this.state.logged?<User serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onChangeMode={(o, n)=>this.onChangeMode(o, n)}/>:<span></span>}
             
-            {this.state.mode === 'psychologist' ? this.renderPsyMode():this.renderUserMode()
+            {this.state.mode.split(':')[0] === 'psychologist' ? this.renderPsyMode():this.renderUserMode()
             }   
             <Infos ref={this.messagesRef}/>
         </>

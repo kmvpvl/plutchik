@@ -6,6 +6,7 @@ interface IAssessProps {
     serverInfo: IServerInfo;
     userInfo: any;
     onError: (err: PlutchikError)=>void;
+    onInsights: ()=>void;
 }
 
 interface IAssessState {
@@ -80,7 +81,7 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
                 </div>
                 <div className='assess-control-panel'>
                 <div className='assess-control-emotions'>
-                {emotions.map((v, i)=><Emotion emotion={v} ref={this.emotionRefs.get(v)} disabled={false} key={i} onChange={(val: number)=>{
+                {emotions.map((v, i)=><Emotion viewmode='slider' emotion={v} ref={this.emotionRefs.get(v)} disabled={false} key={i} onChange={(val: number)=>{
                     this.vector.set(v, val);
                     this.flowerRef.current?.setState({});
                 }}/>)}
@@ -89,7 +90,9 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
                 <button onClick={(e)=>this.sendAssessment()}>Assess and get next</button><button onClick={e=>{
                     this.getNext();
 
-                }}>Skip</button><button>Report</button><button>Insights</button>
+                }}>Skip</button><button>Report</button><button onClick={()=>{
+                    this.props.onInsights();
+                }}>Insights</button>
                 </div>
                 </div>
             </div>:

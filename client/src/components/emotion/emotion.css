@@ -4,5 +4,10 @@
 }
 
 .assess-emotion-text {
-    transform: rotate(270deg) translate(-8em, 2em);
+    transform: translate(50%, 100%) rotate(-90deg) translate(1em, 0);
+}
+
+.charts-emotions {
+    display: flex;
+    justify-content: center;
 }

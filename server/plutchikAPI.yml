@@ -347,6 +347,13 @@ paths:
       responses:
         '200':
           description: OK
+  /getinsights:
+    description: Returns insights data
+    post:
+      operationId: getinsights
+      responses:
+        '200':
+          description: OK
   /telegram:
     post:
       operationId: telegram

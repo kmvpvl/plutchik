@@ -10,3 +10,8 @@ export async function ogranizationAttachedToUser(c: any, req: Request, res: Resp
     const orgs = await user.getOrganizationsUserAttachedTo();
     return res.status(200).json(orgs);
 }
+
+export async function getinsights(c: any, req: Request, res: Response, user: User){
+    const ob = await user.observeAssessments();
+    return res.status(200).json(ob);
+}
