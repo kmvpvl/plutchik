@@ -1,0 +1,14 @@
+.emotion-slider {
+    padding: 2px;
+    max-width: 4em;
+}
+
+.assess-emotion-text {
+    transform-origin: left bottom;
+    transform: rotate(-90deg) translate(1em, 2em);
+}
+
+.charts-emotions {
+    display: flex;
+    justify-content: center;
+}

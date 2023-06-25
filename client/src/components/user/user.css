@@ -1,0 +1,9 @@
+.user-header {
+    padding-right: 100px;
+}
+.user-properties{
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    flex-wrap: wrap;
+}
