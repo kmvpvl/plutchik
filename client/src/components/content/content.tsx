@@ -116,7 +116,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                             this.setState(nState);
                             this.props.pending?.current?.decUse();
                         }, (err: PlutchikError)=>{
-                            this.props.onError(err);
+                            //this.props.onError(err);
                             this.props.pending?.current?.decUse();
                         });
                     }}/>)}

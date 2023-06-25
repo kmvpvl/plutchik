@@ -10,6 +10,7 @@
         "controls controls"
         "items form";
     grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
 }
 .content-controls {
     grid-area: controls;
