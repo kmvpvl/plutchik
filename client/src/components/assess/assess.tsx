@@ -2,11 +2,13 @@ import React, { RefObject } from 'react';
 import { IServerInfo, PlutchikError, serverCommand } from '../../common';
 import './assess.css'
 import Emotion, { EmotionType, Flower, emotions } from '../emotion/emotion';
+import Pending from '../pending/pending';
 interface IAssessProps {
     serverInfo: IServerInfo;
     userInfo: any;
     onError: (err: PlutchikError)=>void;
     onInsights: ()=>void;
+    pending?: RefObject<Pending>
 }
 
 interface IAssessState {
@@ -34,11 +36,13 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
     getNext() {
         this.vector.clear();
         this.flowerRef.current?.setState({});
+        this.props.pending?.current?.incUse();
         serverCommand('getnextcontentitem', this.props.serverInfo, undefined, res=>{
             this.setState({
                 contentitem: res,
             });
             this.emotionRefs.forEach((v, k)=>v.current?.setState({value: 0}));
+            this.props.pending?.current?.decUse();
         }, err=>{
             if (err.code === "notfound" ) {
                 this.setState({
@@ -47,6 +51,7 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
             } else {
                 this.props.onError(err);
             }
+            this.props.pending?.current?.decUse();
         })
     }
 
@@ -58,12 +63,15 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
             cid: this.state.contentitem._id,
             vector: vector
         }
+        this.props.pending?.current?.incUse();
         serverCommand('addassessment', this.props.serverInfo, JSON.stringify({
             assessmentinfo: assessinfo
         }), (res: any)=>{
             this.getNext();
+            this.props.pending?.current?.decUse();
         }, (err: PlutchikError)=>{
             this.props.onError(err);
+            this.props.pending?.current?.decUse();
         });
     }
 

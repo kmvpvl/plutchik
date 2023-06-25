@@ -1,0 +1,27 @@
+.pending-container {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: auto auto auto;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: fit-content;
+    height: auto;
+    max-height: fit-content;
+    gap: 1em;
+}
+
+.pending-square {
+    width: 1em;
+    height: 1em;
+    background-color: silver;
+    transform-origin: center center;
+    animation: spin 6s cubic-bezier(.8, 0, .2, 1) infinite;
+}
+@keyframes spin {
+    50% { transform: rotate(180deg) scale(1.5); }
+    100% { transform: rotate(360deg) scale(1); }
+}

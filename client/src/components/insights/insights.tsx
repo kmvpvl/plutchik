@@ -1,13 +1,15 @@
 import { IServerInfo, PlutchikError, serverCommand } from '../../common';
 import { Charts, EmotionType, emotions } from '../emotion/emotion';
+import Pending from '../pending/pending';
 import './insights.css'
-import React, { ReactNode } from 'react';
+import React, { ReactNode, RefObject } from 'react';
 
 interface IInsightsProps {
     onAssess: ()=>void;
     serverInfo: IServerInfo;
     userInfo: any;
     onError: (err: PlutchikError)=> void;
+    pending: RefObject<Pending>;
 }
 
 interface IInsightsState {
@@ -28,15 +30,19 @@ export default class Insights extends React.Component<IInsightsProps, IInsightsS
         this.loadInsightsData();
     }
     loadInsightsData() {
+        this.props.pending?.current?.incUse();
         serverCommand('getinsights', this.props.serverInfo, undefined, res=>{
-            const nState: IInsightsState = this.state;
-            nState.my_count = res.ownVector.count;
-            nState.others_count = res.othersVector.count;
-            for (const i in emotions) {
-                nState.my_vector.set(emotions[i], res.ownVector[emotions[i]]);
-                nState.others_vector.set(emotions[i], res.othersVector[emotions[i]]);
+            if (res.ownVector){
+                const nState: IInsightsState = this.state;
+                nState.my_count = res.ownVector.count;
+                nState.others_count = res.othersVector.count;
+                for (const i in emotions) {
+                    nState.my_vector.set(emotions[i], res.ownVector[emotions[i]]);
+                    nState.others_vector.set(emotions[i], res.othersVector[emotions[i]]);
+                }
+                this.setState(nState);
             }
-            this.setState(nState);
+            this.props.pending?.current?.decUse();
         }, err=> {
             const nState: IInsightsState = this.state;
             nState.my_count = NaN;
@@ -45,19 +51,20 @@ export default class Insights extends React.Component<IInsightsProps, IInsightsS
             nState.others_vector.clear();
             this.setState(nState);
             this.props.onError(err);
+            this.props.pending?.current?.decUse();
         })
     }
     render(): ReactNode {
         return <>
         <div></div>
-        <div className='insights-content'>
+        {this.state.my_count?<div className='insights-content'>
             <div>Differences</div>
             <Charts key={'my'} vector={this.state.my_vector}/>
             <div>My emotions count:{this.state.my_count}</div>
             <Charts key={'others'} vector={this.state.others_vector}/>
             <div>Others emotions count:{this.state.others_count}</div>
             <div className='assess-control-buttons'><button onClick={()=>this.props.onAssess()}>Get next</button><button>Report</button></div>
-        </div>
+        </div>:<div></div>}
         </>;
     }
 }

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { RefObject } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../common";
+import Pending from "../pending/pending";
 
 interface IOrgsProps {
     serverInfo: IServerInfo,
@@ -7,6 +8,7 @@ interface IOrgsProps {
     onCreateNewOrg?: ( org: any)=>void,
     onOrganizationListLoaded?: (orgs: Array<any>)=>void
     onOrgSelected:(orgid: string)=>void
+    pending?: RefObject<Pending>
 }
 
 interface IOrgsState {
@@ -24,24 +26,30 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
     }
     
     createNewOrganization(){
+        this.props.pending?.current?.incUse();
         serverCommand('createorganization', this.props.serverInfo, JSON.stringify({
             name: 'Test',
             emails: 'rrr'
         }), (res)=>{
             if (this.props.onCreateNewOrg) this.props.onCreateNewOrg(res);
+            this.props.pending?.current?.decUse();
         }, (err)=>{
             if (this.props.onError) this.props.onError(err);
+            this.props.pending?.current?.decUse();
         });
     }
     loadOrganizations() {
+        this.props.pending?.current?.incUse();
         serverCommand('orgsattachedtouser', this.props.serverInfo, undefined, res=>{
             if(this.props.onOrganizationListLoaded) this.props.onOrganizationListLoaded(res);
             const nState: IOrgsState = this.state;
             nState.orgs = res;
             this.setState(nState);
             if (this.state.orgs.length) this.props.onOrgSelected(this.state.currentOrg?this.state.currentOrg:(this.state.orgs[0] as any)._id);
+            this.props.pending?.current?.decUse();
         }, err=>{
             if (this.props.onError) this.props.onError(err);
+            this.props.pending?.current?.decUse();
         })
     }
     orgSelected(e: any) {

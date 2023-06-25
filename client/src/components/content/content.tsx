@@ -2,12 +2,14 @@ import React, { RefObject } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../common";
 import './content.css';
 import { EmotionType, Flower, emotions } from "../emotion/emotion";
+import Pending from "../pending/pending";
 export interface IContentItemsProps {
     serverInfo: IServerInfo;
     uid: string;
     oid: string;
     onSuccess: (text: string)=>void;
     onError: (err: PlutchikError)=>void;
+    pending?: RefObject<Pending>;
 }
 
 export interface IContentItemsState {
@@ -34,13 +36,16 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
     flowerRef: RefObject<Flower> = React.createRef();
     
     loadContentItems() {
+        this.props.pending?.current?.incUse();
         serverCommand(`getorgcontent`, this.props.serverInfo, JSON.stringify({oid: this.props.oid}), res=>{
             const nState: IContentItemsState = this.state;
             nState.items = res;
             nState.currentItem = undefined;
             this.setState(nState);
+            this.props.pending?.current?.decUse();
         }, err=>{
             this.props.onError(err);
+            this.props.pending?.current?.decUse();
         })
     }
     
@@ -72,13 +77,16 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
         ci.url = this.urlRef.current?.value;
         ci.type = this.typeRef.current?.value;
         ci.blocked = this.blockedRef.current?.checked;
+        this.props.pending?.current?.incUse();
         serverCommand('addcontent', this.props.serverInfo, JSON.stringify({
             contentinfo: ci
         }), res=>{
             this.props.onSuccess(`Success!\n${JSON.stringify(res)}`);
             this.loadContentItems();
+            this.props.pending?.current?.decUse();
         }, err=>{
             this.props.onError(err);
+            this.props.pending?.current?.decUse();
         })
     }
     render(): React.ReactNode {
@@ -96,6 +104,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                         nState.currentItemStat = new Map<EmotionType, number>();
                         nState.currentItemAssessmentsCount = NaN;
                         this.setState(nState);
+                        this.props.pending?.current?.incUse();
                         serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
                             cid: v._id
                         }), (res)=>{
@@ -105,8 +114,10 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                             }
                             nState.currentItemAssessmentsCount = res.count;
                             this.setState(nState);
+                            this.props.pending?.current?.decUse();
                         }, (err: PlutchikError)=>{
                             this.props.onError(err);
+                            this.props.pending?.current?.decUse();
                         });
                     }}/>)}
                 </div>:<div></div>}

@@ -8,6 +8,7 @@ import { ContentItems } from './components/content/content';
 import User, { UserModes } from './components/user/user';
 import Assess from './components/assess/assess';
 import Insights from './components/insights/insights';
+import Pending from './components/pending/pending';
 
 interface IAppState {
     logged: boolean;
@@ -35,6 +36,7 @@ export default class App extends React.Component <{}, IAppState> {
         mode: 'user'
     }
     messagesRef: RefObject<Infos> = React.createRef();
+    pendingRef: RefObject<Pending> = React.createRef();
 
     public onLoginStateChanged(oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo) {
         const nState: IAppState = this.state;
@@ -95,7 +97,7 @@ export default class App extends React.Component <{}, IAppState> {
     }
     renderPsyMode (): React.ReactNode {
         return (<>
-        {this.state.logged?<Organizations serverInfo={this.state.serverInfo} onError={err=>this.onError(err)} onCreateNewOrg={(org)=>this.onNewOrgCreated(org)} onOrganizationListLoaded={(orgs)=>{
+        {this.state.logged?<Organizations pending={this.pendingRef} serverInfo={this.state.serverInfo} onError={err=>this.onError(err)} onCreateNewOrg={(org)=>this.onNewOrgCreated(org)} onOrganizationListLoaded={(orgs)=>{
             const nState: IAppState = this.state;
             nState.orgs = orgs;
             this.setState(nState);
@@ -105,7 +107,7 @@ export default class App extends React.Component <{}, IAppState> {
             this.setState(nState);//=>this.setState(nState));
         }}/>
         :<span></span>}
-        {this.state.logged && this.state.currentOrg?<ContentItems serverInfo={this.state.serverInfo} oid={this.state.currentOrg} uid={this.state.userInfo._id} onSuccess={(text: string)=>this.displayInfo(text)} onError={(err: PlutchikError)=>this.displayError(err)}/>:<span></span>}
+        {this.state.logged && this.state.currentOrg?<ContentItems pending={this.pendingRef} serverInfo={this.state.serverInfo} oid={this.state.currentOrg} uid={this.state.userInfo._id} onSuccess={(text: string)=>this.displayInfo(text)} onError={(err: PlutchikError)=>this.displayError(err)}/>:<span></span>}
         </>
         );
     }
@@ -114,11 +116,11 @@ export default class App extends React.Component <{}, IAppState> {
         if (!this.state.logged) return <></>;
         return (
             <>
-            {mode === undefined?<Assess serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onError={err=>{
+            {mode === undefined?<Assess pending={this.pendingRef} serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onError={err=>{
                 this.displayError(err);
             }} onInsights={()=>this.onUserInsights()}></Assess>
             :
-            <Insights serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onAssess={()=>this.onUserAssessments()} onError={err=>this.onError(err)}/>}
+            <Insights pending={this.pendingRef} serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onAssess={()=>this.onUserAssessments()} onError={err=>this.onError(err)}/>}
             </>
         );
     }
@@ -126,12 +128,13 @@ export default class App extends React.Component <{}, IAppState> {
     render(): React.ReactNode {
         return (
         <>
-            <TGLogin onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
+            <TGLogin pending={this.pendingRef} onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
             {this.state.logged?<User serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onChangeMode={(o, n)=>this.onChangeMode(o, n)}/>:<span></span>}
             
             {this.state.mode.split(':')[0] === 'psychologist' ? this.renderPsyMode():this.renderUserMode()
             }   
             <Infos ref={this.messagesRef}/>
+            <Pending ref={this.pendingRef}/>
         </>
         );
     }

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { RefObject } from 'react';
 import './loginForm.css';
 import { IServerInfo, PlutchikError, serverCommand, serverFetch } from '../../common';
+import Pending from '../pending/pending';
 
 export type LoginFormStates = 'connecting' | 'connected' | 'revealing_auth_code' | 'logging' | 'logged';
 
@@ -8,6 +9,7 @@ interface ILoginFormProps {
     onStateChanged?: (oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo)=>void;
     onUserInfoLoaded?: (ui: any)=>void;
     onError: (err: PlutchikError)=>void;
+    pending?: RefObject<Pending>;
 }
 
 interface ILoginFormState {
@@ -40,6 +42,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         if (this.props.onStateChanged) this.props.onStateChanged(oldState, newState, this.serverInfo);
     }
     getServerVersion(){
+        this.props.pending?.current?.incUse();
         serverFetch('version', 'GET', undefined, undefined,
             res=>{
                 this.serverInfo.version = res;
@@ -48,9 +51,11 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                     this.changeState('logged');
                     this.getuserinfo();
                 }
+                this.props.pending?.current?.decUse();
             },
             err=>{
                 this.props.onError(err);
+                this.props.pending?.current?.decUse();
             }
         );
     }
@@ -58,12 +63,17 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         const tgUI = this.tgUserIdRef.current?.value;
         if (tgUI) {
             localStorage.setItem('tgUserId', tgUI);
+            this.props.pending?.current?.incUse();
             serverFetch(`tgcreateauthcode`,'POST', [
                 ['plutchik_tguid', tgUI]
             ], undefined,
-                res=>this.changeState('revealing_auth_code'),
-                err=> {
+                res=>{
+                    this.changeState('revealing_auth_code')
+                    this.props.pending?.current?.decUse();
+                }
+                ,err=> {
                     this.props.onError(err);
+                    this.props.pending?.current?.decUse();
                 }
             );
         }
@@ -75,6 +85,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         const tgUI = this.tgUserIdRef.current.value;
         const tgAC = this.tgAuthCode.current.value;
         localStorage.setItem('tgUserId', tgUI);
+        this.props.pending?.current?.incUse();
         serverFetch(`tggetsessiontoken`, 'GET', { 
             plutchik_tguid: tgUI,
             plutchik_authcode: tgAC
@@ -85,9 +96,11 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                 localStorage.setItem('sessiontoken', res);
                 this.changeState('logged');
                 this.getuserinfo();
+                this.props.pending?.current?.decUse();
             },
             err=>{
                 this.props.onError(err);
+                this.props.pending?.current?.decUse();
             }
         );
     }
@@ -98,11 +111,14 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         this.getServerVersion();
     }
     getuserinfo(){
+        this.props.pending?.current?.incUse();
         serverCommand('userinfo', this.serverInfo, undefined, res=>{
             if (this.props.onUserInfoLoaded) this.props.onUserInfoLoaded(res)
+            this.props.pending?.current?.decUse();
         }, err=>{
                 this.logout();
                 this.props.onError(err);
+                this.props.pending?.current?.decUse();
         })
     }
     render(): React.ReactNode {
