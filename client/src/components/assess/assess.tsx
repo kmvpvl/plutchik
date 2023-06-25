@@ -98,13 +98,22 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
                 <button onClick={(e)=>this.sendAssessment()}>Assess and get next</button><button onClick={e=>{
                     this.getNext();
 
-                }}>Skip</button><button>Report</button><button onClick={()=>{
+                }}>Skip</button><button>Report</button>
+                <button onClick={()=>{
                     this.props.onInsights();
                 }}>Insights</button>
                 </div>
                 </div>
             </div>:
-            <div>Sorry that's all</div>}
+            <>
+            <div>Sorry that's all</div>
+            <div>
+                <button onClick={()=>{
+                    this.props.onInsights();
+                }}>Insights</button>
+            </div>
+            </>
+            }
         </>);
     }
 }

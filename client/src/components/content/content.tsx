@@ -92,7 +92,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
     render(): React.ReactNode {
         return (
             <div className="content-container">
-                <span>Content<button onClick={(e: any)=>{
+                <span className="content-controls">Content<button onClick={(e: any)=>{
                     const nState: IContentItemsState = this.state;
                     nState.currentItem = undefined;
                     this.setState(nState);
@@ -151,7 +151,11 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                     <div className="">
                         Url <textarea key={`${this.state.currentItem._id}_5`} ref={this.urlRef} defaultValue={this.state.currentItem.url}/></div>
                     
-                    {this.state.currentItem.type==='image'?<img className="content-fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>:<></>}
+                    {this.state.currentItem.type==='image'?
+                    <div className="img-to-center">
+                        <img className="content-fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>
+                    </div>
+                    :<></>}
                 </div>
                 :
                 <div className="content-form">
@@ -182,7 +186,9 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                     <div>
                     </div>
                     
-                    <img className="content-fit-to" alt={''}/>
+                    <div className="img-to-center">
+                        <img className="content-fit-to" alt={''}/>
+                    </div>
                 </div>}
             </div>
         );
