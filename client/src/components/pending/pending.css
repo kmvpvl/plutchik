@@ -1,4 +1,4 @@
-.pending-container {
+.pending-squares-container {
     display: grid;
     grid-template-columns: auto auto auto;
     grid-template-rows: auto auto auto;
@@ -12,16 +12,53 @@
     height: auto;
     max-height: fit-content;
     gap: 1em;
+    opacity: 0.8;
 }
 
-.pending-square {
+.pending-squares-square {
     width: 1em;
     height: 1em;
     background-color: silver;
     transform-origin: center center;
-    animation: spin 6s cubic-bezier(.8, 0, .2, 1) infinite;
+    animation: squares-spin 1s cubic-bezier(.8, 0, .2, 1) infinite;
 }
-@keyframes spin {
+@keyframes squares-spin {
     50% { transform: rotate(180deg) scale(1.5); }
     100% { transform: rotate(360deg) scale(1); }
+}
+
+.pending-shattle-container {
+    display: block;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 40%;
+    max-height: fit-content;
+    border: 1px solid gray;
+    background-color: white;
+    padding: 5px;
+    opacity: 0.9;
+    overflow: hidden;
+}
+
+.pending-shattle-point {
+    animation: shattle-spin 1s cubic-bezier(.8, 0, .2, 1) infinite;
+    min-width: 0;
+    min-height: 10px;
+    background-color: gray;
+    height: 100%;
+    position: relative;
+    display: inline-block;
+    left: 0;
+    width: 0%;
+}
+
+@keyframes shattle-spin {
+    25% { width: 100%; }
+    50% { left: 100%; width: 0}
+    75% { left: 0; width: 100% }
+    100% {  width: 0;left: 0; }
 }
