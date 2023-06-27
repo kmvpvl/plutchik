@@ -103,7 +103,10 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
             <div className="content-container">
                 <span className="content-controls">Content<button onClick={(e: any)=>{
                     this.clearContentForm();
-                }}>📄</button></span>
+                }}>New</button>
+                <button onClick={(e)=>this.onSaveForm(e)}>Save</button>
+                Filters: <input placeholder="language"/><input placeholder="name"/>
+                </span>
                 {this.state.items.length > 0?<div className="content-items">{this.state.items.reverse().map((v: any, i)=>
                     <ContentItem key={i} item={v} selected={v._id === this.state.currentItem?._id} onSelect={v=>{
                         const nState: IContentItemsState = this.state;
@@ -130,7 +133,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                 </div>:<div></div>}
                 
                 {this.state.currentItem?._id?<div className="content-form">
-                    <div className="content-form-tools"><button onClick={(e)=>this.onSaveForm(e)}>Save</button>
+                    <div className="content-form-tools">
                         <Flower ref={this.flowerRef} vector={this.state.currentItemStat}/> <span>Count: {this.state.currentItemAssessmentsCount}</span>
                     </div>
                     <div>
@@ -166,7 +169,6 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                 </div>
                 :
                 <div className="content-form">
-                    <div><button onClick={(e)=>this.onSaveForm(e)}>Save</button></div>
                     <div>
                         Name <input key={`${'new'}_1`} ref={this.nameRef} defaultValue={''} onChangeCapture={()=>{
                             if (/*this.descRef.current?.value === '' && */this.descRef.current && this.nameRef.current) this.descRef.current.value = this.nameRef.current.value;
