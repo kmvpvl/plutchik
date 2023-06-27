@@ -16,7 +16,11 @@ export interface IContentItemsState {
     items: any[];
     currentItem: any;
     currentItemStat: Map<EmotionType, number>;
-    currentItemAssessmentsCount: number
+    currentItemAssessmentsCount: number;
+    filter: {
+        language?: string;
+        name?: string;
+    }
 }
 
 export class ContentItems extends React.Component<IContentItemsProps, IContentItemsState> {
@@ -24,7 +28,11 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
         items: [],
         currentItem: {} as any,
         currentItemStat: new Map<EmotionType, number>(),
-        currentItemAssessmentsCount: NaN
+        currentItemAssessmentsCount: NaN,
+        filter: {
+            language: undefined,
+            name: undefined
+        }
     }
     langRef: RefObject<HTMLSelectElement> = React.createRef();
     groupsRef: RefObject<HTMLInputElement> = React.createRef();
@@ -99,15 +107,27 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
         this.setState(nState);
     }
     render(): React.ReactNode {
+        const items = this.state.items.reverse().filter((item: any)=>(this.state.filter.language === undefined || item.language === this.state.filter.language) 
+        && (this.state.filter.name === undefined || item.name.includes(this.state.filter.name)));
         return (
             <div className="content-container">
                 <span className="content-controls">Content<button onClick={(e: any)=>{
                     this.clearContentForm();
                 }}>New</button>
                 <button onClick={(e)=>this.onSaveForm(e)}>Save</button>
-                Filters: <input placeholder="language"/><input placeholder="name"/>
+                Filters: 
+                <input placeholder="language" onChange={(e)=>{
+                    let nState: IContentItemsState = this.state;
+                    nState.filter.language = e.currentTarget.value === ""?undefined:e.currentTarget.value;
+                    this.setState(nState);
+                }}/>
+                <input placeholder="name" onChange={(e)=>{
+                    let nState: IContentItemsState = this.state;
+                    nState.filter.name = e.currentTarget.value === ""?undefined:e.currentTarget.value;
+                    this.setState(nState);
+                }}/>
                 </span>
-                {this.state.items.length > 0?<div className="content-items">{this.state.items.reverse().map((v: any, i)=>
+                {items.length > 0?<div className="content-items">{items.map((v: any, i)=>
                     <ContentItem key={i} item={v} selected={v._id === this.state.currentItem?._id} onSelect={v=>{
                         const nState: IContentItemsState = this.state;
                         nState.currentItem = v;
