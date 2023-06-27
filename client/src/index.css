@@ -1,10 +1,15 @@
+:root {
+  --text-color: #dedede;
+  --background-color: #2e2e2e;
+}    
+
 @font-face {
   font-family: "UbuntuMono";
   src: url("UbuntuMono-Regular.ttf");
 }
 * {
   box-sizing: border-box;
-}    
+}
 html {
   height: 100%;
   font-family: "UbuntuMono", monospace;
@@ -23,6 +28,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
   /*font-size: calc(10px + 2vmin);*/
 }
 #root{
@@ -37,12 +44,13 @@ body {
   position: relative;
 }
 
-button, select {
+input, select, textarea {
   font-family: 'UbuntuMono', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
   /*font-size: calc(10px + 2vmin);*/
-  border-style:solid;
-  border-width: 1px;
   border-radius: 5px;
+  color: var(--text-color);
+  border: var(--text-color) 1px solid;
+  background-color: var(--background-color);
 }
 
 .joy{

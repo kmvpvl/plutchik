@@ -83,21 +83,28 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
         }), res=>{
             this.props.onSuccess(`Success!\n${JSON.stringify(res)}`);
             this.loadContentItems();
+            this.clearContentForm();
             this.props.pending?.current?.decUse();
         }, err=>{
             this.props.onError(err);
             this.props.pending?.current?.decUse();
         })
     }
+    clearContentForm() {
+        if (this.nameRef.current) this.nameRef.current.value = "";
+        if (this.descRef.current) this.descRef.current.value = "";
+        if (this.urlRef.current) this.urlRef.current.value = "";
+        const nState: IContentItemsState = this.state;
+        nState.currentItem = undefined;            
+        this.setState(nState);
+    }
     render(): React.ReactNode {
         return (
             <div className="content-container">
                 <span className="content-controls">Content<button onClick={(e: any)=>{
-                    const nState: IContentItemsState = this.state;
-                    nState.currentItem = undefined;
-                    this.setState(nState);
+                    this.clearContentForm();
                 }}>📄</button></span>
-                {this.state.items.length > 0?<div className="content-items">{this.state.items.map((v: any, i)=>
+                {this.state.items.length > 0?<div className="content-items">{this.state.items.reverse().map((v: any, i)=>
                     <ContentItem key={i} item={v} selected={v._id === this.state.currentItem?._id} onSelect={v=>{
                         const nState: IContentItemsState = this.state;
                         nState.currentItem = v;
@@ -161,7 +168,9 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                 <div className="content-form">
                     <div><button onClick={(e)=>this.onSaveForm(e)}>Save</button></div>
                     <div>
-                        Name <input key={`${'new'}_1`} ref={this.nameRef} defaultValue={''}/>
+                        Name <input key={`${'new'}_1`} ref={this.nameRef} defaultValue={''} onChangeCapture={()=>{
+                            if (/*this.descRef.current?.value === '' && */this.descRef.current && this.nameRef.current) this.descRef.current.value = this.nameRef.current.value;
+                        }}/>
                         
                         Lang <select key={`${'new'}_2`} ref={this.langRef}>
                             <option value='en'>en</option>
