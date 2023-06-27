@@ -1,0 +1,45 @@
+.login-form {
+    position: absolute;
+    width: fit-content;
+    height: auto;
+    min-height: fit-content;
+    max-height: fit-content;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+    border-radius: 5px;
+    padding: 20px;
+    display: grid;
+    grid-template-rows: auto auto auto auto;
+    padding: 10px;
+    border-style: solid;
+    border-width: 1px;
+    gap: 5px;
+}
+
+.logged {
+    border-width: 0px;
+    float: right;
+    left: auto;
+    bottom: auto;
+    opacity: 0.3;
+}
+
+.versions {
+    font-size: small;
+    opacity: 0.5;
+}
+
+.login-state {
+    display: grid;
+    grid-template-columns: 1fr auto;
+}
+
+.login-tguserid, .login-authcode {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 5px;
+}

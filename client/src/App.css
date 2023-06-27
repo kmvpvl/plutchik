@@ -1,0 +1,25 @@
+div.info, div.error {
+  position: absolute;
+  width: 80%;
+  height: auto;
+  min-height: fit-content;
+  max-height: fit-content;
+  margin: auto;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
+  border-radius: 5px;
+  padding: 20px;
+}
+div.info {
+  border: darkgreen 1px solid;
+  background-color:lightgreen;
+  color: darkgreen;
+}
+div.error {
+  border: darkred 1px solid;
+  background-color:lightcoral;
+  color: darkred;
+}

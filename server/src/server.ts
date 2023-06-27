@@ -1,36 +1,25 @@
-import OpenAPIBackend from 'openapi-backend';
+import OpenAPIBackend, { Context, Document, UnknownParams } from 'openapi-backend';
 import express, { Application, Request, Response } from "express";
 import morgan from "morgan";
 import cors from 'cors';
 import version from './api/version';
-import adduser from './api/adduser';
-import getsessiontoken from './api/getsessiontoken';
-import blockuser from './api/blockuser';
-import addcontent from './api/addcontent';
-import blockcontent from './api/blockcontent';
-import addassessment from './api/addassessment';
-import addorganizationkey from './api/addorganizationkey';
-import organizationkeyslist from './api/organizationkeyslist';
-import removeorganizationkey from './api/removeorganizationkey';
-import createorganization from './api/createorganization';
-import organizationinfo from './api/organizationinfo';
+import { tggetsessiontoken, tgcreateauthcode } from './api/auth';
 import telegram, { webapp } from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import checkSettings from './model/settings'; 
 import fs from 'fs';
 import path from 'path';
+import User from './model/user';
+import userinfo, {getinsights, ogranizationAttachedToUser} from './api/user';
+import createorganization from './api/organization';
+import { Md5 } from 'ts-md5';
+import { Types } from 'mongoose';
+import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
+import addassessment from './api/addassessment';
+import getnextcontentitem from './api/getnextcontentitem';
 
 const PORT = process.env.PORT || 8000;
 checkSettings();
-
-function checkSecurity(c: any): boolean {
-    try{
-        //const user = new User(c.request);
-        return true; 
-    } catch(e){
-        return false;
-    }
-}
 
 async function notFound(c: any, req: Request, res: Response){
     const p = path.join(__dirname, '..', 'public', req.originalUrl);
@@ -45,31 +34,47 @@ const api = new OpenAPIBackend({
 });
 api.init();
 api.register({
-    version:    async (c, req, res) => version(c, req, res),
-    createorganization: async (c, req, res) => createorganization(c, req, res),
-    getsessiontoken:    async (c, req, res) => getsessiontoken(c, req, res),
-    adduser:    async (c, req, res) => adduser(c, req, res),
-    addorganizationkey:    async (c, req, res) => addorganizationkey(c, req, res),
-    organizationkeyslist:    async (c, req, res) => organizationkeyslist(c, req, res),
-    removeorganizationkey: async (c, req, res) => removeorganizationkey(c, req, res),
-    organizationinfo:    async (c, req, res) => organizationinfo(c, req, res),
-    blockuser:    async (c, req, res) => blockuser(c, req, res),
-    unblockuser:    async (c, req, res) => blockuser(c, req, res, false),
-    addcontent:    async (c, req, res) => addcontent(c, req, res),
-    blockcontent:    async (c, req, res) => blockcontent(c, req, res),
-    unblockcontent:    async (c, req, res) => blockcontent(c, req, res, false),
-    addassessment:    async (c, req, res) => addassessment(c, req, res),
-    telegram: async (c, req, res) => telegram(c, req, res, bot),
-    tgwebapp: async (c, req, res) => webapp(c, req, res, bot),
+    version: version,
+    tggetsessiontoken: async (c, req, res, user) => tggetsessiontoken(c, req, res, user),
+    createorganization: async (c, req, res, user) => createorganization(c, req, res, user),
+    tgcreateauthcode: async (c, req, res, user) => tgcreateauthcode(c, req, res, user, bot),
+    userinfo: async (c, req, res, user) => userinfo(c, req, res, user),
+    orgsattachedtouser: async (c, req, res, user) => ogranizationAttachedToUser(c, req, res, user),
+    getorgcontent: async (c, req, res, user) => getorgcontent(c, req, res, user),
+    addcontent: async (c, req, res, user) => addcontent(c, req, res, user),
+    addassessment: async (c, req, res, user) => addassessment(c, req, res, user),
+    getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user),
+    getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
+    getinsights: async (c, req, res, user) => getinsights(c, req, res, user),
+    
+    telegram: async (c, req, res, user) => telegram(c, req, res, bot),
+    tgwebapp: async (c, req, res, user) => webapp(c, req, res, bot),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
     notFound: (c, req, res) => notFound(c, req, res),
     notImplemented: (c, req, res) => res.status(500).json({ err: 'not implemented' }),
     unauthorizedHandler: (c, req, res) => res.status(401).json({ err: 'not auth' })
 });
-api.registerSecurityHandler('PlutchikAuthOrganizationId',  checkSecurity);
-api.registerSecurityHandler('PlutchikAuthOrganizationKey',  checkSecurity);
-api.registerSecurityHandler('PlutchikAuthUserId',  checkSecurity);
-api.registerSecurityHandler('PlutchikAuthSessionToken',  checkSecurity);
+api.registerSecurityHandler('PlutchikTGUserId',  async (context, req, res, user: User)=>{
+    return user !== undefined;
+});
+api.registerSecurityHandler('PlutchikAuthSessionToken', async (context, req: Request, res, user: User)=>{
+    const ssessiontoken = req.headers["plutchik_sessiontoken"];
+    if (!ssessiontoken) return false;
+    const cur_st = await user.checkSessionToken(new Types.ObjectId(ssessiontoken as string));
+    return cur_st.equals(ssessiontoken as string);
+});
+api.registerSecurityHandler('PlutchikAuthCode', async (context, req: Request, res, user: User)=>{
+    const sauthcode = req.headers["plutchik_authcode"];
+    const hash = Md5.hashStr(`${user.uid} ${sauthcode}`);
+    return hash === user.json?.auth_code_hash;
+return true;    
+});
+
+api.registerSecurityHandler('PlutchikUserId', async (context, req: Request, res, user: User)=>{
+    const plutchik_userid = req.headers["plutchik_userid"];
+    return user.uid.equals(plutchik_userid as string);
+return true;    
+});
 
 
 export const app: Application = express();
@@ -80,39 +85,27 @@ app.use(cors());
 const bot = new TelegramBot(process.env.tg_bot_authtoken as string);
 if (process.env.tg_web_hook_server) {
     bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`);
-    /*bot.setMyCommands([
-        {command: '/start', description:'Start', },
-        {command: '/set_language', description:'Set language', },
-    ], {language_code: 'en'});
-    bot.setMyCommands([
-        {command: '/start', description:'Comenzar', },
-        {command: '/set_language', description:'Elegir lenguaje', },
-    ], {language_code: 'es'});
-    bot.setMyCommands([
-        {command: '/start', description:'Start', },
-        {command: '/set_language', description:'Sprache einstellen', },
-    ], {language_code: 'de'});
-    bot.setMyCommands([
-        {command: '/start', description:'Почати', },
-        {command: '/set_language', description:'Встановити мову', },
-    ], {language_code: 'uk'});
-    bot.setMyCommands([
-        {command: '/start', description:'Начать', },
-        {command: '/set_language', description:'Установить язык', },
-    ], {language_code: 'ru'});*/
 };
 
 // use as express middleware
 app.use(async (req: Request, res: Response) => {
+    const stguid = req.headers["plutchik_tguid"];
+    const sauthcode = req.headers["plutchik_authcode"];
+    const ssessiontoken = req.headers["plutchik_sessiontoken"];
+
+    console.log(`🔥 tguid='${stguid}'; authcode='${sauthcode}'; sessiontoken='${ssessiontoken}'`);
+    
+    const user = await User.getUserByTgUserId(parseInt(stguid as string));
+
     try {
         return await api.handleRequest({
-        method: req.method,
-        path: req.path,
-        body: req.body,
-        query: req.query as {[key: string]: string},
-        headers: req.headers as {[key: string]: string}
+            method: req.method,
+            path: req.path,
+            body: req.body,
+            query: req.query as {[key: string]: string},
+            headers: req.headers as {[key: string]: string}
         }, 
-        req, res);
+        req, res, user);
     } catch (e){
         return res.status(500).json({code: "Wrong parameters", description: `Request ${req.url}- ${(e as Error).message}`});
     }

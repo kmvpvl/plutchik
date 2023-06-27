@@ -3,12 +3,14 @@ import colours from "./colours";
 import { ContentGroup, IContent, mongoContent, mongoContentGroup, SourceType } from "./content";
 import PlutchikError from "./error";
 import IMLString, {MLStringSchema} from "./mlstring";
-import { DEFAULT_SESSION_DURATION, mongoSessionTokens } from "./organization";
+import Organization, { DEFAULT_SESSION_DURATION, IOrganization, ISessionToken, mongoOrgs, mongoSessionTokens } from "./organization";
 import { IVector, mongoAssessments } from "./assessment";
 import TelegramBot from "node-telegram-bot-api";
 import MongoProto from "./mongoproto";
+import { randomInt } from "crypto";
+import { Md5 } from "ts-md5";
 
-export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"mining_session"|"create_assessment"|"getting_feed"|"getting_match"|"offer_group";
+export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"getting_match"|"offer_group";
 
 export interface IAssign {
     _id: Types.ObjectId;
@@ -22,8 +24,7 @@ export interface IAssign {
 
 export interface IUser {
     _id?: Types.ObjectId;
-    tguserid?: number;
-    organizationid?: Types.ObjectId;
+    tguserid: number;
     birthdate?: Date;
     birthdateapproximately?: boolean;
     nativelanguage?: string;
@@ -34,6 +35,7 @@ export interface IUser {
     features?: string;
     assignedgroups?: Array<IAssign>;
     blocked: boolean;
+    auth_code_hash?: string;
     created: Date;
     changed?: Date;
     awaitcommanddata?: string;
@@ -46,8 +48,7 @@ interface IObserveAssessments {
 }
 
 export const UserSchema = new Schema({
-    organizationid: {type: Types.ObjectId, require: false},
-    tguserid: {type: Number, require: false},
+    tguserid: {type: Number, require: true},
     birthdate: {type: Date, require: false},
     birthdateapproximately: {type: Boolean, require: false},
     nativelanguage: {type: String, require: false},
@@ -58,6 +59,7 @@ export const UserSchema = new Schema({
     features: {type: String, require: false},
     assignedgroups: {type: Array, require: false},
     awaitcommanddata: {type: String, require: false},
+    auth_code_hash: {type: String, require: false},
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -81,20 +83,32 @@ export default class User extends MongoProto<IUser> {
      * @param sessionminutes duration of session token
      * @returns list of roles on this session token
      */
-    public async checkSessionToken(st: Types.ObjectId, sessionminutes = DEFAULT_SESSION_DURATION): Promise<Array<RoleType>> {
+    public async checkSessionToken(st?: Types.ObjectId, sessionminutes: number = DEFAULT_SESSION_DURATION): Promise<Types.ObjectId>{
         MongoProto.connectMongo();
-        const sts = await mongoSessionTokens.aggregate([{
-            '$match': {
-                'useridref': this.id,
-                '_id': st,
-                'expired': {'$gte': new Date()}
-            }
-        }]);
-        if (!sts.length) throw new PlutchikError("user:hasnoactivesession", `userid = '${this.id}'; sessiontoken = '${st}'`)
         const nexpired = new Date(new Date().getTime() + sessionminutes * 60000);
-        if (sts[0].expired < nexpired) await mongoSessionTokens.findByIdAndUpdate(sts[0]._id, {expired:nexpired});
-        console.log(`Session token updated: id = '${sts[0]._id}'; new expired = '${nexpired}'`);
-        return sts[0].roles;
+        if (st) {
+            const sts = await mongoSessionTokens.aggregate([{
+                '$match': {
+                    'useridref': this.id,
+                    '_id': st,
+                    'expired': {'$gte': new Date()}
+                }
+            }]);
+            if (!sts.length) throw new PlutchikError("user:hasnoactivesession", `userid = '${this.id}'; sessiontoken = '${st}'`);
+            if (sts[0].expired < nexpired) await mongoSessionTokens.findByIdAndUpdate(sts[0]._id, {expired:nexpired});
+            console.log(`Session token updated: id = '${sts[0]._id}'; new expired = '${nexpired}'`);
+            return st;
+        } else {
+            const ist: ISessionToken =  {
+                _id: new Types.ObjectId,
+                useridref: this.uid,
+                expired: nexpired,
+                created: new Date()
+            };
+            const st = await mongoSessionTokens.insertMany(ist);
+            console.log(`New session token created: id = '${st[0]._id}'`);
+            return st[0]._id;
+        }
     }
 
     public async changeNativeLanguage(lang:string) {
@@ -549,5 +563,36 @@ export default class User extends MongoProto<IUser> {
         const exists = this.data?.assignedgroups?.filter((val)=>val.groupid.equals(group.uid as Types.ObjectId));
         if (!exists?.length) this.data?.assignedgroups?.push(a);
         await this.save();
+    }
+    public async createAuthCode(): Promise<string | undefined> {
+        this.checkData();
+        if (this.data) {
+            const auth_code = randomInt(100, 999).toString();
+            const auth_code_hash = Md5.hashStr(`${this.uid} ${auth_code}`);
+            this.data.auth_code_hash = auth_code_hash;
+            await this.save();
+            return auth_code;
+        }
+    }
+    
+    static async getUserByTgUserId(tg_user_id: number): Promise<User | undefined> {
+        MongoProto.connectMongo();
+        const ou = await mongoUsers.aggregate([{
+            '$match': {
+                'tguserid': tg_user_id,
+                'blocked': false
+            }
+        }]);
+        if (ou.length) return new User(undefined, ou[0]);
+    }
+
+    async getOrganizationsUserAttachedTo(): Promise<Array<IOrganization>> {
+        MongoProto.connectMongo();
+        await this.checkData();
+
+        const orgs = mongoOrgs.aggregate([{
+            '$match': {'participants.uid': this.uid}
+        }]);
+        return orgs;
     }
 }

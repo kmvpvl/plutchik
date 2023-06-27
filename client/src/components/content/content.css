@@ -1,0 +1,87 @@
+.content-container {
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 100%;
+    min-width: 100%;
+    width: 100%;
+    overflow: hidden;
+    display: grid;
+    grid-template-areas: 
+        "controls controls"
+        "items form";
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+}
+.content-controls {
+    grid-area: controls;
+}
+.content-items {
+    display: flex;
+    flex-flow: column;
+    justify-content: flex-start;
+    overflow: auto;
+    justify-items: left;
+    flex-wrap: nowrap;
+    height: auto;
+    min-height: fit-content;
+    grid-area: items;
+}
+
+.content-item {
+    border-width: 1px;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    border-style: solid;
+    cursor: pointer;
+    min-width: 5em;
+    position: relative;
+    max-width: 15em;
+}
+
+.content-item-header {
+    font-size: 120%;
+}
+.selected {
+    font-weight: bold;
+}
+
+.content-item-desc {
+    font-size: small;
+    overflow: scroll;
+}
+
+.content-item-type {
+    position: relative;
+    float: right;
+}
+
+.img-to-center{
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.content-fit-to {
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+    left:0;
+    top:0;
+    right: 0;
+    position: absolute;
+}
+.content-form {
+    overflow: scroll;
+    padding: 2px;
+    grid-area: form;
+}
+
+textarea {
+    width: 100%;
+}
+
+.content-form-tools {
+    height: 3em;
+    display: grid;
+    grid-template-columns: 1fr 75px auto;
+}
