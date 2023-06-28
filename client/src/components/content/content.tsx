@@ -1,8 +1,10 @@
 import React, { RefObject } from "react";
-import { IServerInfo, PlutchikError, serverCommand } from "../../common";
+import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import './content.css';
 import { EmotionType, Flower, emotions } from "../emotion/emotion";
 import Pending from "../pending/pending";
+import MLString from "../../model/mlstring";
+import { MLStringEditor } from "../mlstring/mlstring";
 export interface IContentItemsProps {
     serverInfo: IServerInfo;
     uid: string;
@@ -16,7 +18,11 @@ export interface IContentItemsState {
     items: any[];
     currentItem: any;
     currentItemStat: Map<EmotionType, number>;
-    currentItemAssessmentsCount: number
+    currentItemAssessmentsCount: number;
+    filter: {
+        language?: string;
+        name?: string;
+    }
 }
 
 export class ContentItems extends React.Component<IContentItemsProps, IContentItemsState> {
@@ -24,12 +30,16 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
         items: [],
         currentItem: {} as any,
         currentItemStat: new Map<EmotionType, number>(),
-        currentItemAssessmentsCount: NaN
+        currentItemAssessmentsCount: NaN,
+        filter: {
+            language: undefined,
+            name: undefined
+        }
     }
     langRef: RefObject<HTMLSelectElement> = React.createRef();
     groupsRef: RefObject<HTMLInputElement> = React.createRef();
-    nameRef: RefObject<HTMLInputElement> = React.createRef();
-    descRef: RefObject<HTMLTextAreaElement> = React.createRef();
+    nameRef: RefObject<MLStringEditor> = React.createRef();
+    descRef: RefObject<MLStringEditor> = React.createRef();
     urlRef: RefObject<HTMLTextAreaElement> = React.createRef();
     typeRef: RefObject<HTMLSelectElement> = React.createRef();
     blockedRef: RefObject<HTMLInputElement> = React.createRef();
@@ -38,6 +48,10 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
     loadContentItems() {
         this.props.pending?.current?.incUse();
         serverCommand(`getorgcontent`, this.props.serverInfo, JSON.stringify({oid: this.props.oid}), res=>{
+            for (const i in res) {
+                res[i].name = new MLString(res[i].name);
+                res[i].description = new MLString(res[i].description);
+            }
             const nState: IContentItemsState = this.state;
             nState.items = res;
             nState.currentItem = undefined;
@@ -83,21 +97,43 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
         }), res=>{
             this.props.onSuccess(`Success!\n${JSON.stringify(res)}`);
             this.loadContentItems();
+            this.clearContentForm();
             this.props.pending?.current?.decUse();
         }, err=>{
             this.props.onError(err);
             this.props.pending?.current?.decUse();
         })
     }
+    clearContentForm() {
+        if (this.nameRef.current) this.nameRef.current.value = new MLString("");
+        if (this.descRef.current) this.descRef.current.value = new MLString("");
+        if (this.urlRef.current) this.urlRef.current.value = "";
+        const nState: IContentItemsState = this.state;
+        nState.currentItem = undefined;            
+        this.setState(nState);
+    }
     render(): React.ReactNode {
+        const items = this.state.items.reverse().filter((item: any)=>(this.state.filter.language === undefined || item.language === this.state.filter.language) 
+        && (this.state.filter.name === undefined || item.name.includes(this.state.filter.name)));
         return (
             <div className="content-container">
                 <span className="content-controls">Content<button onClick={(e: any)=>{
-                    const nState: IContentItemsState = this.state;
-                    nState.currentItem = undefined;
+                    this.clearContentForm();
+                }}>New</button>
+                <button onClick={(e)=>this.onSaveForm(e)}>Save</button>
+                Filters: 
+                <input placeholder="language" onChange={(e)=>{
+                    let nState: IContentItemsState = this.state;
+                    nState.filter.language = e.currentTarget.value === ""?undefined:e.currentTarget.value;
                     this.setState(nState);
-                }}>📄</button></span>
-                {this.state.items.length > 0?<div className="content-items">{this.state.items.map((v: any, i)=>
+                }}/>
+                <input placeholder="name" onChange={(e)=>{
+                    let nState: IContentItemsState = this.state;
+                    nState.filter.name = e.currentTarget.value === ""?undefined:e.currentTarget.value;
+                    this.setState(nState);
+                }}/>
+                </span>
+                {items.length > 0?<div className="content-items">{items.map((v: any, i)=>
                     <ContentItem key={i} item={v} selected={v._id === this.state.currentItem?._id} onSelect={v=>{
                         const nState: IContentItemsState = this.state;
                         nState.currentItem = v;
@@ -123,12 +159,11 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                 </div>:<div></div>}
                 
                 {this.state.currentItem?._id?<div className="content-form">
-                    <div className="content-form-tools"><button onClick={(e)=>this.onSaveForm(e)}>Save</button>
+                    <div className="content-form-tools">
                         <Flower ref={this.flowerRef} vector={this.state.currentItemStat}/> <span>Count: {this.state.currentItemAssessmentsCount}</span>
                     </div>
                     <div>
-                        Name <input key={`${this.state.currentItem._id}_1`} ref={this.nameRef} defaultValue={this.state.currentItem.name}/>
-                        
+                        <MLStringEditor key={`mlse${this.state.currentItem?._id}`} caption="Name" defaultValue={this.state.currentItem.name} ref={this.nameRef}/>
                         Lang <select key={`${this.state.currentItem._id}_2`} ref={this.langRef} defaultValue={this.state.currentItem.language}>
                             <option value='en'>en</option>
                             <option value='uk'>uk</option>
@@ -146,8 +181,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
 
                         Groups <input key={`${this.state.currentItem._id}_6`} ref={this.groupsRef} defaultValue={this.state.currentItem.groups.map((v: any)=>v.name).join(';')}/>
                     </div>
-                    <div>
-                        Desc <textarea key={`${this.state.currentItem._id}_4`} ref={this.descRef} defaultValue={this.state.currentItem.description}/></div>
+                    <MLStringEditor key={`mlsd${this.state.currentItem?._id}`} caption="Desc" defaultValue={this.state.currentItem.description} ref={this.descRef}/>
                     <div className="">
                         Url <textarea key={`${this.state.currentItem._id}_5`} ref={this.urlRef} defaultValue={this.state.currentItem.url}/></div>
                     
@@ -159,10 +193,8 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                 </div>
                 :
                 <div className="content-form">
-                    <div><button onClick={(e)=>this.onSaveForm(e)}>Save</button></div>
                     <div>
-                        Name <input key={`${'new'}_1`} ref={this.nameRef} defaultValue={''}/>
-                        
+                        <MLStringEditor key={`${'new'}_1`} caption="Name" ref={this.nameRef}/>
                         Lang <select key={`${'new'}_2`} ref={this.langRef}>
                             <option value='en'>en</option>
                             <option value='uk'>uk</option>
@@ -179,8 +211,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                         Blocked <input type="checkbox" key={`${'new'}_7`} ref={this.blockedRef} defaultChecked={false}/>
                         Groups <input key={`${'new'}_6`} ref={this.groupsRef} defaultValue={''}/>
                     </div>
-                    <div>
-                        Desc <textarea key={`${'new'}_4`} ref={this.descRef} defaultValue={''}/></div>
+                    <MLStringEditor key={`${'new'}_11`} caption="Desc" ref={this.descRef}/>
                     <div>
                         Url <textarea key={`${'new'}_5`} ref={this.urlRef} defaultValue={''}/></div>
                     <div>

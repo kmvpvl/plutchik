@@ -1,0 +1,19 @@
+.mlstring-container {
+    border: 1px dotted var(--text-color);
+    display: grid;
+    grid-template-rows: auto auto auto;
+    padding: 2px;
+}
+
+.mlstring-caption {
+    font-weight: bold;
+}
+
+.mlstring-default {
+    font-style: italic;
+}
+
+.mlstring-values {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+}

@@ -1,4 +1,4 @@
-import { IServerInfo, PlutchikError, serverCommand } from '../../common';
+import { IServerInfo, PlutchikError, serverCommand } from '../../model/common';
 import { Charts, EmotionType, emotions } from '../emotion/emotion';
 import Pending from '../pending/pending';
 import './insights.css'

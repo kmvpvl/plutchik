@@ -1,5 +1,5 @@
 import React from 'react';
-import { IServerInfo } from '../../common';
+import { IServerInfo } from '../../model/common';
 import './user.css'
 
 export type UserModes = "user" | "psychologist" | "user:insights";

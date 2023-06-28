@@ -109,3 +109,23 @@ const pressToNew = new Map([
     ,['es', 'Haga clic en el botón para obtener contenido nuevo para calificar']
     ,['uk', 'Натисніть кнопку, щоб отримати новий контент для оцінки']
 ]);
+
+class MLString extends String {
+    constructor(def) {
+        super(typeof def !== 'string' ? def.default : def);
+        //this.values = new Map();
+        this.values = typeof def !== 'string' ? new Map(def.values) : new Map();
+    }
+    toString(lang){
+        return lang ? (this.values.has(lang) ? this.values.get(lang) : super.toString()) : super.toString();
+    }
+    toJSON() {
+        return {
+            default: super.toString(),
+            values: Array.from(this.values)
+        }
+    }
+    get default() {
+        return super.toString();
+    }
+}
