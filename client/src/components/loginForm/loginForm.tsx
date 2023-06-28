@@ -1,7 +1,30 @@
 import React, { RefObject } from 'react';
 import './loginForm.css';
-import { IServerInfo, PlutchikError, serverCommand, serverFetch } from '../../common';
+import { IServerInfo, PlutchikError, serverCommand, serverFetch } from '../../model/common';
 import Pending from '../pending/pending';
+import MLString from '../../model/mlstring';
+
+const strTryAgain = new MLString({
+    default: "Try again", 
+    values: new Map([
+        ["en-US", "Try again"],
+        /*["de", "vermutet"],
+        ["fr", "censé"],
+        ["es", "supuesto"],
+        ["uk", "очікуваний"],*/
+        ["ru", "Повторить"]])
+});
+
+const strSignOut = new MLString({
+    default: "Sign out", 
+    values: new Map([
+        ["en-US", "Sign out"],
+        /*["de", "vermutet"],
+        ["fr", "censé"],
+        ["es", "supuesto"],
+        ["uk", "очікуваний"],*/
+        ["ru", "Выйти"]])
+});
 
 export type LoginFormStates = 'connecting' | 'connected' | 'revealing_auth_code' | 'logging' | 'logged';
 
@@ -126,7 +149,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         return (
             <div className={ 'logged' === state ?'login-form logged':'login-form'}>
                 <span className='login-state'>
-                    <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>Try again</button>}
+                    <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
                 </span>
                 <span className='login-tguserid'>
                     {'connecting' !== state && 'logged' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
@@ -137,7 +160,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                 <span className='login-authcode'>
                     {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
                     {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>Log in</button>:<></>}
-                    {'logged' === state ? <button onClick={()=>this.logout()}>Sign out</button>:<></>}
+                    {'logged' === state ? <button onClick={()=>this.logout()}>{strSignOut}</button>:<></>}
                 </span>
                 {'connected' === state ? <span className='versions'>{JSON.stringify(this.serverInfo.version)}</span>:<span></span>}
             </div>

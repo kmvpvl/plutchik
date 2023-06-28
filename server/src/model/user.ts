@@ -2,7 +2,7 @@ import { Schema, Types, model } from "mongoose";
 import colours from "./colours";
 import { ContentGroup, IContent, mongoContent, mongoContentGroup, SourceType } from "./content";
 import PlutchikError from "./error";
-import IMLString, {MLStringSchema} from "./mlstring";
+import {MLStringSchema} from "./mlstring";
 import Organization, { DEFAULT_SESSION_DURATION, IOrganization, ISessionToken, mongoOrgs, mongoSessionTokens } from "./organization";
 import { IVector, mongoAssessments } from "./assessment";
 import TelegramBot from "node-telegram-bot-api";
@@ -236,15 +236,54 @@ export default class User extends MongoProto<IUser> {
     public async nextContentItemAll(language?: string, source_type?: SourceType): Promise <IContent>{
         //this.checkData();
         MongoProto.connectMongo();
-        const v = await mongoContent.aggregate([{
-            $match: {
-                'language': {
-                    '$regex': language?language:this.json?.nativelanguage, 
-                    '$options': 'i'
-                },
-                'blocked': false
-            }
-        },{$lookup: {
+        const v = await mongoContent.aggregate([
+            {
+                $match: {
+                    'blocked': false
+                }
+            },{
+                $addFields: {'newName': '$name'}
+            },
+            {
+                $unwind: '$newName.values'
+            }, 
+            {
+                $addFields: {
+                    'otherLang': {
+                        '$first': '$newName.values'
+                    }
+                }
+            }, {
+                $match: {
+                    'otherLang': {                                
+                        $regex: language?language:this.json?.nativelanguage, 
+                        $options: 'i'
+                    }
+                }
+            },
+            {
+                $project: {
+                        "newName":0,
+                        "otherLang":0
+                }
+            },
+            {
+                $unionWith: {
+                    'coll': 'contents', 
+                    'pipeline': [
+                      {
+                        $match: {
+                            'language': {
+                                '$regex': language?language:this.json?.nativelanguage, 
+                                '$options': 'i'
+                            },
+                            'blocked': false
+                        }
+                    }
+                    ]
+                  }
+            },
+        {$lookup: {
             from: "assessments",
             let: {
               contentid: "$_id",

@@ -1,8 +1,8 @@
-import { Types, Schema, model } from "mongoose";
+import mongoose, { Types, Schema, model } from "mongoose";
 import TelegramBot from "node-telegram-bot-api";
 import colours from "./colours";
 import PlutchikError from "./error";
-import { MLStringSchema } from "./mlstring";
+import { MLString, MLStringSchema } from "./mlstring";
 import MongoProto from "./mongoproto";
 
 export type ContentTypes = "text" | "image" | "audio" | "video";
@@ -13,9 +13,9 @@ export interface IContent {
     source: SourceType;
     tgData?: TelegramBot.Update;
     url?: string;
-    name: string;
+    name: MLString;
     tags: Array<string>;
-    description: string;
+    description: MLString;
     language: string;
     restrictions: Array<string>;
     organizationid?: Types.ObjectId;
@@ -48,8 +48,8 @@ export interface IContentGroup {
 export const ContentSchema = new Schema({
     organizationid: {type: Types.ObjectId, required: false},
     foruseronlyidref: {type: Types.ObjectId, required: false},
-    name: {type: String, required: true},
-    description: {type: String, required: true},
+    name: {type: Schema.Types.Mixed, required: true},
+    description: {type: Schema.Types.Mixed, required: true},
     language: {type: String, required: true},
     url: {type: String, required: false},
     type: {

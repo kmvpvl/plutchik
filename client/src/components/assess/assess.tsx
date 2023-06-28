@@ -1,8 +1,9 @@
 import React, { RefObject } from 'react';
-import { IServerInfo, PlutchikError, serverCommand } from '../../common';
+import { IServerInfo, PlutchikError, serverCommand } from '../../model/common';
 import './assess.css'
 import Emotion, { EmotionType, Flower, emotions } from '../emotion/emotion';
 import Pending from '../pending/pending';
+import MLString from '../../model/mlstring';
 interface IAssessProps {
     serverInfo: IServerInfo;
     userInfo: any;
@@ -38,6 +39,8 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
         this.flowerRef.current?.setState({});
         this.props.pending?.current?.incUse();
         serverCommand('getnextcontentitem', this.props.serverInfo, undefined, res=>{
+            res.name = new MLString(res.name);
+            res.description = new MLString(res.description);
             this.setState({
                 contentitem: res,
             });

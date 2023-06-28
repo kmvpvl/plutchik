@@ -1,13 +1,14 @@
 import { Schema } from "mongoose";
-export default interface IMLString {
+export type MLString = string | {
     default: string;
     values?: Map<string, string>
 }
 
 export const MLStringSchema = new Schema({
-    default: String,
+    default: {type: String, required: true},
     values: {
         type: Map,
         of: String,
+        required: false
     }
 });
