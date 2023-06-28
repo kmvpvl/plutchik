@@ -1,5 +1,5 @@
 import React, { RefObject } from "react";
-import { IServerInfo, PlutchikError, serverCommand } from "../../common";
+import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import Pending from "../pending/pending";
 
 interface IOrgsProps {

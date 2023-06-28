@@ -1,6 +1,6 @@
 import { Schema, Types, model } from "mongoose";
 import PlutchikError from "./error";
-import IMLString, {MLStringSchema} from "./mlstring";
+import {MLString, MLStringSchema} from "./mlstring";
 import User, { RoleType } from "./user";
 import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
@@ -24,7 +24,7 @@ export interface ISessionToken {
 }
 export interface IOrganization {
     _id?: Types.ObjectId;
-    name: string | IMLString;
+    name: MLString;
     participants: Array<IParticipant>;
     emails: Array<string>;
     created: Date;

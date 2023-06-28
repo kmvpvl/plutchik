@@ -371,7 +371,7 @@ function getnext(){
         if ('success' == status) {
             $('#user').text(JSON.stringify(data.user));
             $('#content').text(JSON.stringify(data.content));
-            $('#media-name').text(`${data.content.name}`);
+            $('#media-name').text(`${new MLString(data.content.name).toString(data.user.nativelanguage)}`);
             switch (data.content.source) {
                 case 'youtube':
                     $(".content").html(`<iframe width="100%" height="auto" src="https://www.youtube.com/embed/${yt_id(data.content.url)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`);

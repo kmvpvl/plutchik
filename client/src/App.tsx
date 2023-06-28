@@ -1,9 +1,9 @@
 import React, { RefObject } from 'react';
 import './App.css';
 import TGLogin, {LoginFormStates } from './components/loginForm/loginForm';
-import './common';
+import './model/common';
 import Organizations from './components/manageOrgs/organizations';
-import { IServerInfo, PlutchikError } from './common';
+import { IServerInfo, PlutchikError } from './model/common';
 import { ContentItems } from './components/content/content';
 import User, { UserModes } from './components/user/user';
 import Assess from './components/assess/assess';
@@ -15,7 +15,6 @@ interface IAppState {
     serverInfo: IServerInfo;
     userInfo?: any;
     orgs?: any[];
-    orgContent?: any[];
     currentOrg?: string;
     mode: UserModes;
 }
@@ -32,7 +31,6 @@ export default class App extends React.Component <{}, IAppState> {
         userInfo: {},
         currentOrg: undefined,
         orgs: [],
-        orgContent: [],
         mode: 'user'
     }
     messagesRef: RefObject<Infos> = React.createRef();
