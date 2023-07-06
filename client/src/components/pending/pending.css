@@ -1,3 +1,17 @@
+.pending-container {
+    display: block;
+    position: absolute;
+    margin: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.9;
+    z-index: 100;
+    background-color: var(--text-color);
+}
 .pending-squares-container {
     display: grid;
     grid-template-columns: auto auto auto;
@@ -12,7 +26,7 @@
     height: auto;
     max-height: fit-content;
     gap: 1em;
-    opacity: 0.8;
+    z-index: 101;
 }
 
 .pending-squares-square {
@@ -20,11 +34,11 @@
     height: 1em;
     background-color: silver;
     transform-origin: center center;
-    animation: squares-spin 1s cubic-bezier(.8, 0, .2, 1) infinite;
+    animation: squares-spin 3s cubic-bezier(.8, 0, .2, 1) infinite;
 }
 @keyframes squares-spin {
-    50% { transform: rotate(180deg) scale(1.5); }
-    100% { transform: rotate(360deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.5); background-color: gray;}
+    100% { transform: rotate(360deg) scale(1); background-color: silver;}
 }
 
 .pending-shattle-container {
