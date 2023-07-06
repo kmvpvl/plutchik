@@ -10,7 +10,7 @@ import checkSettings from './model/settings';
 import fs from 'fs';
 import path from 'path';
 import User from './model/user';
-import userinfo, {getinsights, ogranizationAttachedToUser} from './api/user';
+import userinfo, {getinsights, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
 import createorganization from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
@@ -46,7 +46,8 @@ api.register({
     getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user),
     getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
     getinsights: async (c, req, res, user) => getinsights(c, req, res, user),
-    
+    reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
+
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
     tgwebapp: async (c, req, res, user) => webapp(c, req, res, bot),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
