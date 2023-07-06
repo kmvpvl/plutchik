@@ -666,6 +666,14 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
                         return res.status(200).json({observe: ob, user: user.json});
                     }
                     break;
+                case 'reviewemotionaboveothers':
+                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
+                    const em = req.query["emotion"] as string;
+                    if (user) {
+                        const ob = await user.reviewByEmotion(em);
+                        return res.status(200).json({decoding: ob, user: user.json});
+                    }
+                    break;
                 case 'manage_content':
                     return res.status(200).json({});
                     break;

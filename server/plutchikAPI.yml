@@ -354,6 +354,13 @@ paths:
       responses:
         '200':
           description: OK
+  /reviewemotionaboveothers:
+    description: Returns assessments 
+    post:
+      operationId: reviewemotionaboveothers
+      responses:
+        '200':
+          description: OK
   /telegram:
     post:
       operationId: telegram
@@ -384,6 +391,11 @@ paths:
             type: string
         - in: query
           name: content
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: emotion
           required: false
           schema:
             type: string

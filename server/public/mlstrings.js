@@ -68,11 +68,11 @@ const othersEmotions = new Map([
 ]);
 
 const prompt = new Map([
-    ['en', 'Pay attention to the difference between your ratings and the ratings of other people. A strong excess of the level of individual emotions or their reduced level requires attention']
-    ,['ru', 'Обратите внимание на отличие Ваших оценок от оценок других людей. Сильное превышение уровня отдельных эмоций или их пониженный уровень требуют внимания']
-    ,['de', 'Achten Sie auf den Unterschied zwischen Ihren Bewertungen und den Bewertungen anderer Personen. Eine starke Überschreitung des Niveaus einzelner Emotionen oder deren Reduzierung erfordert Aufmerksamkeit']
-    ,['es', 'Preste atención a la diferencia entre sus calificaciones y las calificaciones de otras personas. Un fuerte exceso del nivel de emociones individuales o su nivel reducido requiere atención.']
-    ,['uk', 'Зверніть увагу на відміну Ваших оцінок від оцінок інших людей. Сильне перевищення рівня окремих емоцій чи їх знижений рівень потребують уваги']
+    ['en', 'Pay attention to the difference between your ratings and the ratings of other people. A strong excess of the level of individual emotions or their reduced level requires attention. Click on the columns of emotions and see the transcript']
+    ,['ru', 'Обратите внимание на отличие Ваших оценок от оценок других людей. Сильное превышение уровня отдельных эмоций или их пониженный уровень требуют внимания. Нажимайте на столбики эмоций и смотрите расшифровку']
+    ,['de', 'Achten Sie auf den Unterschied zwischen Ihren Bewertungen und den Bewertungen anderer Personen. Eine starke Überschreitung des Niveaus einzelner Emotionen oder deren Reduzierung erfordert Aufmerksamkeit. Klicken Sie auf die Emotionsspalten und sehen Sie sich das Transkript an']
+    ,['es', 'Preste atención a la diferencia entre sus calificaciones y las calificaciones de otras personas. Un fuerte exceso del nivel de emociones individuales o su nivel reducido requiere atención. Haga clic en las columnas de emociones y vea la transcripción.']
+    ,['uk', 'Зверніть увагу на відміну Ваших оцінок від оцінок інших людей. Сильне перевищення рівня окремих емоцій чи їх знижений рівень потребують уваги. Натискайте на стовпчики емоцій та дивіться розшифровку']
 ]);
 
 const assess = new Map([
@@ -129,3 +129,58 @@ class MLString extends String {
         return super.toString();
     }
 }
+
+const strBack = new MLString({
+    default: 'Back',
+    values: [
+        ['en', 'Back'],
+        ['ru', 'Назад'],
+        ['uk', 'назад'],
+        ['es', 'Atrás'],
+        ['de', 'zurück'],
+    ]
+});
+
+const strEmotion = new MLString({
+    default: 'Emotion',
+    values: [
+        ['en', 'Emotion'],
+        ['ru', 'Эмоция'],
+        ['uk', 'Емоція'],
+        ['es', 'Emoción'],
+        ['de', 'Emotion'],
+    ]
+});
+
+const strDecodingTip = new MLString({
+    default: 'Select different items one by one to see how your scores differ from other people\'s scores',
+    values: [
+        ['en', 'Select different items one by one to see how your scores differ from other people\'s scores'],
+        ['ru', 'Выберите поочередно разные элементы, чтобы посмотреть, как отличаются Ваши оценки и оценки других людей'],
+        ['uk', 'Виберіть по черзі різні елементи, щоб подивитися, як відрізняються Ваші оцінки та оцінки інших людей'],
+        ['es', 'Seleccione diferentes elementos uno por uno para ver cómo sus puntajes difieren de los puntajes de otras personas'],
+        ['de', 'Wählen Sie nacheinander verschiedene Elemente aus, um zu sehen, wie sich Ihre Ergebnisse von den Ergebnissen anderer Personen unterscheiden'],
+    ]
+});
+
+const strDecodingYouFound = new MLString({
+    default: 'You discovered',
+    values: [
+        ['en', 'You discovered'],
+        ['ru', 'Вы обнаружили'],
+        ['uk', 'Ви виявили'],
+        ['es', 'descubriste'],
+        ['de', 'Du hast es entdeckt'],
+    ]
+});
+
+const strDecodingOthersAssessed = new MLString({
+    default: 'Others assessed',
+    values: [
+        ['en', 'Others assessed'],
+        ['ru', 'Другие оценили'],
+        ['uk', 'Інші оцінили'],
+        ['es', 'Otro(a)s evaluados'],
+        ['de', 'Andere bewerteten'],
+    ]
+});

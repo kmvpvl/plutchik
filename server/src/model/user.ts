@@ -1,10 +1,10 @@
-import { Schema, Types, model } from "mongoose";
+import { PipelineStage, Schema, Types, model } from "mongoose";
 import colours from "./colours";
 import { ContentGroup, IContent, mongoContent, mongoContentGroup, SourceType } from "./content";
 import PlutchikError from "./error";
 import {MLStringSchema} from "./mlstring";
 import Organization, { DEFAULT_SESSION_DURATION, IOrganization, ISessionToken, mongoOrgs, mongoSessionTokens } from "./organization";
-import { IVector, mongoAssessments } from "./assessment";
+import Assessment, { IVector, mongoAssessments } from "./assessment";
 import TelegramBot from "node-telegram-bot-api";
 import MongoProto from "./mongoproto";
 import { randomInt } from "crypto";
@@ -633,5 +633,94 @@ export default class User extends MongoProto<IUser> {
             '$match': {'participants.uid': this.uid}
         }]);
         return orgs;
+    }
+    async reviewByEmotion(emotion: string): Promise<Array<Assessment>>{
+        const emMatch: any = 
+            {
+                '$match': {
+                  'uid': this.uid
+                }
+            };
+        emMatch['$match']['vector.'+emotion] = {
+            '$gt': 0
+        };
+
+        const a = await mongoAssessments.aggregate([
+            emMatch
+            , {
+              '$lookup': {
+                'from': 'assessments', 
+                'pipeline': [
+                  {
+                    '$match': {
+                      '$expr': {
+                        '$ne': [
+                          '$uid', this.uid
+                        ]
+                      }
+                    }
+                  }, {
+                    '$group': {
+                      '_id': '$cid', 
+                      'emotion': {
+                        '$avg': {
+                          '$toDouble': `$vector.${emotion}`
+                        }
+                      }
+                    }
+                  }
+                ], 
+                'localField': 'cid', 
+                'foreignField': 'cid', 
+                'as': 'others'
+              }
+            }, {
+              '$project': {
+                'others._id': 0
+              }
+            }, {
+              '$unwind': {
+                'path': '$others'
+              }
+            }, {
+              '$addFields': {
+                'diff': {
+                  '$sum': [
+                    `$vector.${emotion}`, {
+                      '$multiply': [
+                        '$others.emotion', -1
+                      ]
+                    }
+                  ]
+                }
+              }
+            }, {
+              '$match': {
+                '$expr': {
+                  '$gt': [
+                    {
+                      '$abs': '$diff'
+                    }, 0.1
+                  ]
+                }
+              }
+            }, {
+              '$sort': {
+                'diff': -1
+              }
+            }, {
+                '$lookup': {
+                    'from': 'contents',
+                    'localField': 'cid',
+                    'foreignField': '_id',
+                    'as': 'contentitem'
+                }
+            }, {
+                '$unwind': {
+                    'path': '$contentitem'
+                }
+            }
+          ]);
+        return a;
     }
 }
