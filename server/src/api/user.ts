@@ -15,3 +15,9 @@ export async function getinsights(c: any, req: Request, res: Response, user: Use
     const ob = await user.observeAssessments();
     return res.status(200).json(ob);
 }
+
+export async function reviewemotionaboveothers(c: any, req: Request, res: Response, user: User){
+    const em = req.body.emotion;
+    const ob = await user.reviewByEmotion(em);
+    return res.status(200).json(ob);
+}

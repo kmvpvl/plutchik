@@ -29,6 +29,8 @@ export default class Pending extends React.Component <IPendingProps, IPendingSta
         switch(this.props.type) {
             case "shattle":
                 return <>
+                <div className='pending-container'>
+                </div>
                 <div className='pending-shattle-container'>
                     <span className='pending-shattle-point'></span>
                 </div>
@@ -36,6 +38,8 @@ export default class Pending extends React.Component <IPendingProps, IPendingSta
             case 'squares':
             default:
                 return <>
+                <div className='pending-container'>
+                </div>
                 <div className='pending-squares-container'>
                     <span className='pending-squares-square' style={{transformOrigin:'left top'}}></span>
                     <span className='pending-squares-square' style={{transformOrigin:'center top'}}></span>
