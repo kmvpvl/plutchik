@@ -13,11 +13,11 @@ export async function ogranizationAttachedToUser(c: any, req: Request, res: Resp
 
 export async function getinsights(c: any, req: Request, res: Response, user: User){
     const ob = await user.observeAssessments();
-    return res.status(200).json(ob);
+    return res.status(200).json({observe: ob, user: user.json});
 }
 
 export async function reviewemotionaboveothers(c: any, req: Request, res: Response, user: User){
     const em = req.body.emotion;
     const ob = await user.reviewByEmotion(em);
-    return res.status(200).json(ob);
+    return res.status(200).json({decoding: ob, user: user.json});
 }

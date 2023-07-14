@@ -650,41 +650,6 @@ export async function webapp(c: any, req: Request, res: Response, bot: TelegramB
     try {
         if (req.query['command']) {
             switch(req.query['command']) {
-                case 'getnext':
-                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
-                    if (user) {
-                        const ci = await user.nextContentItem(bot, user.json?.nativelanguage);
-                        return res.status(200).json({result: 'OK', content: ci, user:user.json});
-                    } else {
-                        return res.status(404).json({result: 'FAIL', description: 'User not found'});
-                    }
-                    break;
-                case 'observe':
-                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
-                    if (user) {
-                        const ob = await user.observeAssessments();
-                        return res.status(200).json({observe: ob, user: user.json});
-                    }
-                    break;
-                case 'reviewemotionaboveothers':
-                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
-                    const em = req.query["emotion"] as string;
-                    if (user) {
-                        const ob = await user.reviewByEmotion(em);
-                        return res.status(200).json({decoding: ob, user: user.json});
-                    }
-                    break;
-                case 'manage_content':
-                    return res.status(200).json({});
-                    break;
-                case 'create_auth_code':
-                    user = await User.getUserByTgUserId(parseInt(req.query['tg_user_id'] as string));
-                    if (user) {
-                        const ac = await user.createAuthCode();
-                        if (ac) bot.sendMessage(parseInt(req.query['tg_user_id'] as string), ac, {disable_notification:true});
-                        return res.status(200).json({desc: 'Auth code sent by Telegram'});
-                    }
-                    break;
                 default:
                     return res.status(404).json({result: 'FAIL', description: 'Unknown command'});
             }

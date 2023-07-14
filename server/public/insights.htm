@@ -204,9 +204,11 @@ function init() {
     $.ajaxSetup({
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
+            'plutchik_tgquerycheckstring': tg.initData,
+            'plutchik_tguid': tg.initDataUnsafe.user.id
         }
     });
-    $.get(`/telegram?command=observe&tg_user_id=${tg.initDataUnsafe.user.id}`, (data, status, xhdr)=>{
+    $.post(`getinsights`, (data, status, xhdr)=>{
         if ('success' == status) {
             render(data.user.nativelanguage);
             const diff = vector_sub(data.observe.ownVector, data.observe.othersVector);
@@ -218,7 +220,14 @@ function init() {
             drawDiff($('#diff_desc'), diff, data.user.nativelanguage);
 
             $('g[emotion]').on('click', (e)=> {
-                $.get(`/telegram?command=reviewemotionaboveothers&tg_user_id=${tg.initDataUnsafe.user.id}&emotion=${e.currentTarget.attributes["emotion"].value}`, (data, status, xhdr)=>{
+                $.ajaxSetup({
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'plutchik_tgquerycheckstring': tg.initData,
+                        'plutchik_tguid': tg.initDataUnsafe.user.id
+                    }
+                });
+                $.post(`reviewemotionaboveothers`, JSON.stringify({emotion: e.currentTarget.attributes["emotion"].value}),  (data, status, xhdr)=>{
                     const strE = e.currentTarget.attributes["emotion"].value;
                     if ('success' == status) {
                         $('#btnBack').text(`← ${strBack.toString(data.user.nativelanguage)}`);

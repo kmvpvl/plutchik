@@ -367,29 +367,36 @@ $('button[action="assess"]').on('click', ()=>{
     });
 });
 function getnext(){
-    $.get(`/telegram?command=getnext&tg_user_id=${tg.initDataUnsafe.user.id}`, (data, status, xhdr)=>{
+    $.ajaxSetup({
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'plutchik_tgquerycheckstring': tg.initData,
+            'plutchik_tguid': tg.initDataUnsafe.user.id
+        }
+    });
+    $.post(`getnextcontentitem`, (data, status, xhdr)=>{
         if ('success' == status) {
             $('#user').text(JSON.stringify(data.user));
-            $('#content').text(JSON.stringify(data.content));
-            $('#media-name').text(`${new MLString(data.content.name).toString(data.user.nativelanguage)}`);
-            switch (data.content.source) {
+            $('#content').text(JSON.stringify(data.contentitem));
+            $('#media-name').text(`${new MLString(data.contentitem.name).toString(data.user.nativelanguage)}`);
+            switch (data.contentitem.source) {
                 case 'youtube':
                     $(".content").html(`<iframe width="100%" height="auto" src="https://www.youtube.com/embed/${yt_id(data.content.url)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`);
                     $('emotion[emotional-vector]').removeAttr('disabled');
                     break;
                 case 'web':
-                    switch (data.content.type) {
+                    switch (data.contentitem.type) {
                         case 'image':
-                            $(".content").html(`<img class="fit-img" src="${data.content.url}"></img>`);
+                            $(".content").html(`<img class="fit-img" src="${data.contentitem.url}"></img>`);
                             $('emotion[emotional-vector]').removeAttr('disabled');
                             break;
                         default:
                             ;
                     }
                 case 'embedded':
-                    switch (data.content.type) {
+                    switch (data.contentitem.type) {
                         case 'text':
-                            $(".content").html(`<quota>${data.content.description}</quota>`);
+                            $(".content").html(`<quota>${data.contentitem.description}</quota>`);
                             $('emotion[emotional-vector]').removeAttr('disabled');
                             break;
                         default:
@@ -397,7 +404,7 @@ function getnext(){
                     }
                     break;
                 default:
-                    $(".content").html(`Unfortunatelly there have unknown content type. Url: ${data.content.url}. You can assess this content item, or get next`);
+                    $(".content").html(`Unfortunatelly there have unknown content type. Url: ${data.contentitem.url}. You can assess this content item, or get next`);
                     ;
             }
             render(data.user.nativelanguage);
