@@ -17,6 +17,7 @@ import { Types } from 'mongoose';
 import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
 import addassessment from './api/addassessment';
 import getnextcontentitem from './api/getnextcontentitem';
+import { createHash, createHmac } from 'crypto';
 
 const PORT = process.env.PORT || 8000;
 checkSettings();
@@ -68,13 +69,23 @@ api.registerSecurityHandler('PlutchikAuthCode', async (context, req: Request, re
     const sauthcode = req.headers["plutchik_authcode"];
     const hash = Md5.hashStr(`${user.uid} ${sauthcode}`);
     return hash === user.json?.auth_code_hash;
-return true;    
 });
 
-api.registerSecurityHandler('PlutchikUserId', async (context, req: Request, res, user: User)=>{
-    const plutchik_userid = req.headers["plutchik_userid"];
-    return user.uid.equals(plutchik_userid as string);
-return true;    
+api.registerSecurityHandler('TGQueryCheckString', async (context, req: Request, res, user: User)=>{
+    try {
+        const plutchik_tgquerycheckstring = decodeURIComponent(req.headers["plutchik_tgquerycheckstring"] as string);
+        const arr = plutchik_tgquerycheckstring.split('&');
+        const hashIndex = arr.findIndex(str => str.startsWith('hash='));
+        const hash = arr.splice(hashIndex)[0].split('=')[1];
+
+        const secret_key = createHmac('sha256', "WebAppData").update(process.env.tg_bot_authtoken as string).digest();
+        arr.sort((a, b) => a.localeCompare(b));
+
+        const check_hash = createHmac('sha256', secret_key).update(arr.join('\n')).digest('hex');
+        return check_hash === hash;
+    } catch (e) {
+        return false;
+    }
 });
 
 

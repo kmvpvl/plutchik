@@ -24,10 +24,10 @@ components:
       type: apiKey
       in: header
       name: plutchik_authcode
-    PlutchikUserId:
+    TGQueryCheckString:
       type: apiKey
       in: header
-      name: plutchik_userid
+      name: plutchik_tgquerycheckstring
   schemas:
     version:
       type: object
@@ -317,10 +317,6 @@ paths:
     description: Add new assessment
     post:
       operationId: addassessment
-      security: 
-        - PlutchikTGUserId: []
-          PlutchikAuthSessionToken: []
-        - PlutchikTGUserId: []
       responses:
         '200':
           description: OK
@@ -410,4 +406,4 @@ security:
   - PlutchikTGUserId: []
     PlutchikAuthCode: []
   - PlutchikTGUserId: []
-    PlutchikUserId: []
+    TGQueryCheckString: []
