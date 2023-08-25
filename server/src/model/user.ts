@@ -723,4 +723,301 @@ export default class User extends MongoProto<IUser> {
           ]);
         return a;
     }
+    async getMatchList(dist: number = 3): Promise<Array<IUser>> {
+        const u = await mongoAssessments.aggregate([
+            {
+              '$match': {
+                'uid': this.uid
+              }
+            }, {
+              '$lookup': {
+                'let': {
+                  'uid': '$uid'
+                }, 
+                'from': 'assessments', 
+                'localField': 'cid', 
+                'foreignField': 'cid', 
+                'as': 'others', 
+                'pipeline': [
+                  {
+                    '$match': {
+                      '$expr': {
+                        '$ne': [
+                          '$uid', '$$uid'
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }, {
+              '$match': {
+                '$expr': {
+                  '$gt': [
+                    {
+                      '$size': '$others'
+                    }, 0
+                  ]
+                }
+              }
+            }, {
+              '$unwind': {
+                'path': '$others'
+              }
+            }, {
+              '$addFields': {
+                'sub_mod': {
+                  '$sqrt': {
+                    '$sum': [
+                      {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.joy'
+                              }, {
+                                '$toDouble': '$vector.joy'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.trust'
+                              }, {
+                                '$toDouble': '$vector.trust'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.fear'
+                              }, {
+                                '$toDouble': '$vector.fear'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.surprise'
+                              }, {
+                                '$toDouble': '$vector.surprise'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.sadness'
+                              }, {
+                                '$toDouble': '$vector.sadness'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.disgust'
+                              }, {
+                                '$toDouble': '$vector.disgust'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.anger'
+                              }, {
+                                '$toDouble': '$vector.anger'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }, {
+                        '$pow': [
+                          {
+                            '$subtract': [
+                              {
+                                '$toDouble': '$others.vector.anticipation'
+                              }, {
+                                '$toDouble': '$vector.anticipation'
+                              }
+                            ]
+                          }, 2
+                        ]
+                      }
+                    ]
+                  }
+                }, 
+                'sub_vector.joy': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.joy'
+                    }, {
+                      '$toDouble': '$vector.joy'
+                    }
+                  ]
+                }, 
+                'sub_vector.trust': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.trust'
+                    }, {
+                      '$toDouble': '$vector.trust'
+                    }
+                  ]
+                }, 
+                'sub_vector.fear': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.fear'
+                    }, {
+                      '$toDouble': '$vector.fear'
+                    }
+                  ]
+                }, 
+                'sub_vector.surprise': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.surprise'
+                    }, {
+                      '$toDouble': '$vector.surprise'
+                    }
+                  ]
+                }, 
+                'sub_vector.sadness': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.sadness'
+                    }, {
+                      '$toDouble': '$vector.sadness'
+                    }
+                  ]
+                }, 
+                'sub_vector.disgust': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.disgust'
+                    }, {
+                      '$toDouble': '$vector.disgust'
+                    }
+                  ]
+                }, 
+                'sub_vector.anger': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.anger'
+                    }, {
+                      '$toDouble': '$vector.anger'
+                    }
+                  ]
+                }, 
+                'sub_vector.anticipation': {
+                  '$subtract': [
+                    {
+                      '$toDouble': '$others.vector.anticipation'
+                    }, {
+                      '$toDouble': '$vector.anticipation'
+                    }
+                  ]
+                }
+              }
+            }, {
+              '$group': {
+                '_id': '$others.uid', 
+                'dist': {
+                  '$avg': '$sub_mod'
+                }, 
+                'joy': {
+                  '$avg': '$sub_vector.joy'
+                }, 
+                'trust': {
+                  '$avg': '$sub_vector.trust'
+                }, 
+                'fear': {
+                  '$avg': '$sub_vector.fear'
+                }, 
+                'surprise': {
+                  '$avg': '$sub_vector.surprise'
+                }, 
+                'sadness': {
+                  '$avg': '$sub_vector.sadness'
+                }, 
+                'disgust': {
+                  '$avg': '$sub_vector.disgust'
+                }, 
+                'anger': {
+                  '$avg': '$sub_vector.anger'
+                }, 
+                'anticipation': {
+                  '$avg': '$sub_vector.anticipation'
+                }, 
+                'cnt': {
+                  '$sum': 1
+                }
+              }
+            }, {
+              '$sort': {
+                'dist': 1
+              }
+            }, {
+              '$match': {
+                '$expr': {
+                  '$lt': [
+                    '$dist', dist
+                  ]
+                }
+              }
+            }, {
+              '$lookup': {
+                'from': 'users', 
+                'localField': '_id', 
+                'foreignField': '_id', 
+                'as': 'user'
+              }
+            }, {
+              '$unwind': {
+                'path': '$user'
+              }
+            }, {
+              '$addFields': {
+                'user.cnt': '$cnt', 
+                'user.dist': '$dist', 
+                'user.sub_vector.joy': '$joy', 
+                'user.sub_vector.trust': '$trust', 
+                'user.sub_vector.fear': '$fear', 
+                'user.sub_vector.surprise': '$surprise', 
+                'user.sub_vector.sadness': '$sadness', 
+                'user.sub_vector.disgust': '$disgust', 
+                'user.sub_vector.anger': '$anger', 
+                'user.sub_vector.anticipation': '$anticipation'
+              }
+            }, {
+              '$replaceRoot': {
+                'newRoot': '$user'
+              }
+            }
+          ]);
+        return u;
+    }
 }

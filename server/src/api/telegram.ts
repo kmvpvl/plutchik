@@ -246,6 +246,16 @@ function decline_invitation(lang: string):string {
         default: return 'I decline';
     }
 }
+function str_getMatched(lang: string):string {
+    switch(lang) {
+        case 'de': return 'Gematcht werden';
+        case 'es': return 'Ser emparejado';
+        case 'ru': return 'Получить соответствие';
+        case 'uk': return 'Отримати відповідність';
+        case 'en':
+        default: return 'Get matched';
+    }
+}
 
 const tg_bot_accept_group = (lang: string, groupname: string, from?: TelegramBot.User) => {
     return {
@@ -270,23 +280,23 @@ function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.Se
                     {
                         text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
                         web_app: {
-                            url: `${process.env.tg_web_hook_server}/telegram`
+                            url: `${process.env.tg_web_hook_server}/assess.htm`
                         }
                     }
                     ,{
                         text: insights(lang),
                         web_app: {
-                            url: `${process.env.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/insights.htm`
                         }
                     }
-                ],manage?[
+                ],[
                     {
-                        text: `Content management`,
+                        text: str_getMatched(lang),
                         web_app: {
-                            url: `${process.env.tg_web_hook_server}/telegram?content`
+                            url: `${process.env.tg_web_hook_server}/match.htm`
                         }
                     }
-                ]: [],[
+                ,
                     {
                         text: my_settings(lang),
                         callback_data: 'settings'
@@ -644,35 +654,6 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     }
 }
 
-export async function webapp(c: any, req: Request, res: Response, bot: TelegramBot) {
-    console.log(`${colours.fg.green}API: telegram webapp${colours.reset}`);
-    let user: User | undefined;
-    try {
-        if (req.query['command']) {
-            switch(req.query['command']) {
-                default:
-                    return res.status(404).json({result: 'FAIL', description: 'Unknown command'});
-            }
-            return res.status(200).json('OK');
-        } else {
-            const staticroot = path.join(__dirname, '..', '..', '/public');
-            if (req.query ['insights'] === '')
-                return res.sendFile("insights.htm", {root: staticroot});
-            else if (req.query ['content'] === '')
-                return res.sendFile("content.htm", {root: staticroot});
-            else 
-                return res.sendFile("assess.htm", {root: staticroot});
-        }
-    } catch(e: any) {
-        switch (e.code as ErrorCode) {
-            case "user:nonextcontent":
-                if (user) e.user = user.json;
-                return res.status(404).json(e);
-            default:
-                return res.status(400).json(e);
-        }
-    }
-}
 
 const tgWelcome = (lang: string, userid: number)=>{
     switch(lang){

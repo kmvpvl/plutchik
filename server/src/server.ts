@@ -4,13 +4,13 @@ import morgan from "morgan";
 import cors from 'cors';
 import version from './api/version';
 import { tggetsessiontoken, tgcreateauthcode } from './api/auth';
-import telegram, { webapp } from './api/telegram';
+import telegram from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import checkSettings from './model/settings'; 
 import fs from 'fs';
 import path from 'path';
 import User from './model/user';
-import userinfo, {getinsights, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
+import userinfo, {getinsights, getmatchlist, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
 import createorganization from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
@@ -48,9 +48,9 @@ api.register({
     getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
     getinsights: async (c, req, res, user) => getinsights(c, req, res, user),
     reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
+    getmatchlist: async (c, req, res, user) => getmatchlist(c, req, res, user),
 
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
-    tgwebapp: async (c, req, res, user) => webapp(c, req, res, bot),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
     notFound: (c, req, res) => notFound(c, req, res),
     notImplemented: (c, req, res) => res.status(500).json({ err: 'not implemented' }),
