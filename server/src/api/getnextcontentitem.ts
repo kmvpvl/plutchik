@@ -8,7 +8,10 @@ export default async function getnextcontentitem(c: any, req: Request, res: Resp
     console.log(`${colours.fg.green}API: getnextcontentitem function${colours.reset}`);
     try {
         const ci = await user.nextContentItem(undefined, user.json?.nativelanguage);
-        return res.status(200).json(ci);
+        return res.status(200).json({
+            contentitem: ci,
+            user: user.json
+        });
     } catch (err: any) {
         return res.status(404).json({result: 'FAIL', description: 'Could not get next content item'});
     }
