@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="plutchik.css"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="mlstrings.js"></script>
+<style>
+* {
+    box-sizing: border-box;
+}    
+html {
+    height: 100%;
+    font-family: "UbuntuMono", monospace;
+}
+body {
+    min-height: 100%;
+    max-height: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    width: 100%;
+    height:100%;
+    margin: 0;
+    padding: 2px;
+    color: var(--tg-theme-text-color);
+    background-color: var(--tg-theme-bg-color);
+    display: grid;
+    grid-template-rows: 1fr;
+    position: relative;
+}
+.disabled{
+  fill:silver;
+  background-color:silver;
+}
+.flower {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+.content {
+    min-height: 100%;
+    max-height: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    overflow:hidden;
+    width: 100%;
+    height:100%;
+    margin: 0;
+}
+
+.popup-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--tg-theme-bg-color);
+    opacity: 0.8;
+    display: none;
+    z-index: 100;
+}
+
+.popup {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    width: 80%;
+    height: fit-content;
+    z-index: 101;
+}
+image[type=user] {
+    cursor: pointer;
+
+}
+.user-info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    border: 1px var(--tg-theme-text-color) solid;
+    border-radius: 10px;
+    padding: 5px;
+    gap: 5px;
+}
+.valign {
+    height: fit-content;
+    display: grid;
+    grid-template-rows: repeat(auto);
+    gap: 5px;
+}
+</style>
+</head>
+<body>
+<div class="content">
+</div>
+<div class="popup-container"></div>
+<div class="popup"></div>
+<script>
+const emotions = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
+
+let tg = window.Telegram.WebApp;
+tg.MainButton.hide();
+
+function drawDiff(element, vector, lang='en') {
+    let s = '';
+    for (i in vector) {
+        if (Math.abs(vector[i]) > 0.1) {
+            s += `<span class="${i} diff-element">${vector[i]>0?'⭡':'⭣'}${getMLEmotion(lang, i)}</span>`;
+        }
+    }
+    //debugger;
+    element.html(s);
+}
+
+function max_dir (emotion) {
+    const em_arr = [...emotion];
+}
+
+function init() {
+    $.ajaxSetup({
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'plutchik_tgquerycheckstring': tg.initData,
+            'plutchik_tguid': tg.initDataUnsafe.user.id
+        }
+    });
+    $.post(`getmatchlist`, (data, status, xhdr)=>{
+        if ('success' == status) {
+            document.plutchik = data;
+            drawRadar($('.content'), data.matchlist);
+            //debugger
+        } else {
+            $('.content').text(status);
+        }
+    })
+    .fail((xhr, status, errorObj)=>{
+        $('.content').text(xhr.status);
+    });
+    $('#btnBack').click(e=>{
+        $('div.decoding-container').hide();
+    });
+    $('.popup').click(e=>{
+        $('.popup-container').hide();
+        $('.popup').hide();
+    });
+    $('.popup-container').click(e=>{
+        $('.popup-container').hide();
+        $('.popup').hide();
+    });
+}
+init();
+render();
+function render(lang = 'en') {
+    $('#own-header').text(myEmotions.get(lang));
+    $('#others-header').text(othersEmotions.get(lang));
+    $('#prompt').text(prompt.get(lang));
+}
+tg.expand();
+
+function drawCharts (element, emotion, lang='en') {
+	const w = element.innerWidth();
+	const h = element.innerHeight();
+	const N = 8;
+    const we = w/N;
+    const wc = 20; 
+    const mm = vector_min_max(emotion);
+    const z = (mm.min > 0)?0:mm.min;
+	var s = `<svg class="flower" viewbox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width: ${w}px;height: ${h}px;">`;
+	if (emotion) {
+		for (i=0; i<N; i++) {
+            s += `<g emotion="${emotions[i]}">`
+            const v = emotion[emotions[i]]?emotion[emotions[i]]:0;
+            const y = h*(v);
+            s += `<rect class="${emotions[i]}" x="${i* we}" y="${h-y}" width="${wc}" height="${y-z*h}"></rect>`;
+            s += `<text class="${v?emotions[i]:'disabled'}" x="0" y="0" transform="rotate(270) translate(${-h},${we*i+1.5*wc})">${getMLEmotion(lang, emotions[i])}</text>`;
+            s += `</g>`;
+        }
+    }
+    s += '</svg>';
+    element.html(s);
+    
+}
+
+function drawFlower (element, emotion) {
+	var w = element.innerHeight();
+	var R = w / 2;
+	var r = R * 0.6;
+	var N = 8;
+	var s = '<svg class="flower" viewbox="-'+R+' -'+R+' '+w+' '+w+'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width:'+w+'px;height:'+w+'px;">';
+	if (emotion) {
+		for (i=0; i<N; i++) {
+			var axis = parseFloat(emotion[emotions[i]]);
+			if (!axis) R = w/2;
+			else R = axis * w/2;
+			r = R * 0.6;
+			av = 2 * Math.PI * i / N;
+			xv = Math.round(R * Math.sin(av));
+			yv = -Math.round(R * Math.cos(av));
+			ac1 = 2 * Math.PI * i / N + Math.PI/N;
+			ac2 = 2 * Math.PI * i / N - Math.PI/N;
+			xc1 = Math.round(r * Math.sin(ac1));
+			xc2 = Math.round(r * Math.sin(ac2));
+			yc1 = -Math.round(r * Math.cos(ac1));
+			yc2 = -Math.round(r * Math.cos(ac2));
+			s += '<path class="'+(axis?emotions[i]:'dotted')+'" d="M 0,0 L '+xc1+','+yc1+' Q '+xv+','+yv+' '+xc2+','+yc2+' L 0,0 z"></path>\n';
+		}
+	}
+	s += '</svg>';
+	element.html(s);
+}
+
+function showMessage(text) {
+    $('.popup-container').show();
+    $('.popup').html(text);
+    $('.popup').show();
+}
+
+function getnderIcon(gender) {
+    let gender_icon = '';
+    switch(gender) {
+        case 'male':
+            gender_icon = 'man-svgrepo-com.svg';
+            break;
+        case 'female':
+            gender_icon = 'girl-svgrepo-com.svg';
+            break;
+        default: gender_icon = 'people-unknown-svgrepo-com.svg';
+    }
+    return gender_icon;
+};
+
+function drawRadar (element, arr) {
+    const emotion_number = (str_emotion)=>emotions.indexOf(str_emotion);
+    const vOrt = (str_emotion, val)=> {
+        av = 2 * Math.PI * emotion_number(str_emotion) / 8;
+        xv = Math.round(val * Math.sin(av));
+        yv = -Math.round(val * Math.cos(av));
+        return {x:xv, y:yv};
+    }
+    const max_emotion = (vector)=>{
+        let r = -1;
+        let s = '';
+        for (const [n, v] of Object.entries(vector)) {
+            if (Math.abs(v) > r) {
+                r = Math.abs(v);
+                if (v > 0) {
+                    s = n;
+                } else {
+                    let nn = emotion_number(n);
+                    nn -= 4;
+                    if (nn < 0) nn += 8;
+                    s = emotions[nn];
+                }
+            }
+        }
+        return s;
+    }
+    const min_dist = (arr.reduce((a, c)=>c.dist<a.dist?c:a, {dist:8}).dist);
+    const max_dist = (arr.reduce((a, c)=>c.dist>a.dist?c:a, {dist:0}).dist) * 1.1;
+	let w = element.innerWidth();
+	const h = element.innerHeight();
+    w = Math.min(w, h);
+	var R = w / 2;
+	var r = R * 0.9;
+	var N = 8;
+	var s = '<svg class="flower" viewbox="-'+R+' -'+R+' '+w+' '+w+'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="width:'+w+'px;height:'+w+'px;">';
+    for (i=0; i<N; i++) {
+        const axis = 1;
+        if (!axis) R = w/2;
+        else R = axis * w/2;
+        r = R * 1;
+        av = 2 * Math.PI * i / N;
+        xv = Math.round(R * Math.sin(av));
+        yv = -Math.round(R * Math.cos(av));
+        ac1 = 2 * Math.PI * i / N + Math.PI/N;
+        ac2 = 2 * Math.PI * i / N - Math.PI/N;
+        xc1 = Math.round(r * Math.sin(ac1));
+        xc2 = Math.round(r * Math.sin(ac2));
+        yc1 = -Math.round(r * Math.cos(ac1));
+        yc2 = -Math.round(r * Math.cos(ac2));
+        s += '<path class="'+(axis?emotions[i]:'dotted')+'" d="M 0,0 L '+xc1+','+yc1+' Q '+xv+','+yv+' '+xc2+','+yc2+' L 0,0 z"></path>\n';
+    }
+    for (let i = 0; i < 5; i++) {
+        s += `<circle cx="0" cy="0" r="${10*i}%" stroke="black" fill="none"></circle>\n`;
+    }
+    s = arr.reduce((p, v)=>{
+        const e = max_emotion(v.sub_vector);
+        const xy = vOrt(e, v.dist / max_dist * R);
+        return p + `<image x="${xy.x-10}px" y="${xy.y-10}px" width="20px" height="20px" uid="${v._id}" type="user" href="${getnderIcon(v.gender)}"></image>`
+    }, s);
+
+	s += '</svg>';
+	element.html(s);
+    $('[type=user]').on('click', e=>{
+        const uid = e.currentTarget.attributes["uid"].value;
+        const u = document.plutchik.matchlist.filter(v=> v._id === uid)[0];
+        const age = Math.round((new Date().getTime() - new Date(u.birthdate).getTime())/1000/60/60/24/365.25);
+        s = `<div class="user-info"><div class="valign"><img src="${getnderIcon(u.gender)}" width="100px"></div><div class="valign"><span>${isNaN(age)?'':`${age} ${strMLYO(u.nativelanguage)}`}</span><span>${strMLLanguage(u.nativelanguage)}: ${u.nativelanguage}</span><span>${strMLCommonContentItems(u.nativelanguage)}: ${u.cnt}</span><span>${strMLDistance(u.nativelanguage)}: ${Math.round(u.dist*100)/100}</span><span>${strMLCloseEmotions(u.nativelanguage)}: ${Object.entries(u.sub_vector).map( v => Math.abs(v[1])<0.1?`<span class="${v[0]}">${getMLEmotion(u.nativelanguage, v[0])}</span>`:undefined).join(' ')}</span><span>${strMLSeparatingEmotions(u.nativelanguage)}: ${Object.entries(u.sub_vector).map( v => Math.abs(v[1])>0.2?`<span class="${v[0]}">${getMLEmotion(u.nativelanguage, v[0])}</span>`:undefined).join(' ')}</span></div>`;
+        showMessage(s);
+    });
+}
+
+function vector_sub(v1, v2) {
+    ret = {};
+    for (i in emotions) {
+        vv1 = v1[emotions[i]]?v1[emotions[i]]:0;
+        vv2 = v2[emotions[i]]?v2[emotions[i]]:0;
+        ret[emotions[i]] = vv1 - vv2;
+    }
+    return ret;
+}
+
+function vector_adjust(v) {
+    const mm = vector_min_max(v);
+    ret = {};
+    for (i in emotions) {
+        ret[emotions[i]] = v[emotions[i]] - mm.min;
+    }
+    return ret;
+}
+
+function vector_min_max(v) {
+    min = undefined;
+    max = undefined;
+    for (i in emotions) {
+        vv = v[emotions[i]]?v[emotions[i]]:0;
+        min = min!==undefined?Math.min(min, vv):vv;
+        max = max!==undefined?Math.max(max, vv):vv;
+    }
+    return {min: min, max: max};
+}
+
+function vector_norm (v){
+    ret = {};
+    const mm = vector_min_max(v);
+    for (i in emotions) {
+        vv = v[emotions[i]]?v[emotions[i]]:0;
+        ret[emotions[i]] = (vv - mm.min)/(mm.max - mm.min);
+    }
+    return ret;
+}
+
+</script>
+</body>
+</html>

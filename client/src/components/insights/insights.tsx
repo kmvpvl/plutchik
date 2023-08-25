@@ -32,13 +32,13 @@ export default class Insights extends React.Component<IInsightsProps, IInsightsS
     loadInsightsData() {
         this.props.pending?.current?.incUse();
         serverCommand('getinsights', this.props.serverInfo, undefined, res=>{
-            if (res.ownVector){
+            if (res.observe.ownVector){
                 const nState: IInsightsState = this.state;
-                nState.my_count = res.ownVector.count;
-                nState.others_count = res.othersVector.count;
+                nState.my_count = res.observe.ownVector.count;
+                nState.others_count = res.observe.othersVector.count;
                 for (const i in emotions) {
-                    nState.my_vector.set(emotions[i], res.ownVector[emotions[i]]);
-                    nState.others_vector.set(emotions[i], res.othersVector[emotions[i]]);
+                    nState.my_vector.set(emotions[i], res.observe.ownVector[emotions[i]]);
+                    nState.others_vector.set(emotions[i], res.observe.othersVector[emotions[i]]);
                 }
                 this.setState(nState);
             }

@@ -39,10 +39,10 @@ export default class Assess extends React.Component<IAssessProps, IAssessState> 
         this.flowerRef.current?.setState({});
         this.props.pending?.current?.incUse();
         serverCommand('getnextcontentitem', this.props.serverInfo, undefined, res=>{
-            res.name = new MLString(res.name);
-            res.description = new MLString(res.description);
+            res.contentitem.name = new MLString(res.contentitem.name);
+            res.contentitem.description = new MLString(res.contentitem.description);
             this.setState({
-                contentitem: res,
+                contentitem: res.contentitem,
             });
             this.emotionRefs.forEach((v, k)=>v.current?.setState({value: 0}));
             this.props.pending?.current?.decUse();

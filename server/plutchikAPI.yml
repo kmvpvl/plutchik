@@ -24,10 +24,10 @@ components:
       type: apiKey
       in: header
       name: plutchik_authcode
-    PlutchikUserId:
+    TGQueryCheckString:
       type: apiKey
       in: header
-      name: plutchik_userid
+      name: plutchik_tgquerycheckstring
   schemas:
     version:
       type: object
@@ -317,10 +317,6 @@ paths:
     description: Add new assessment
     post:
       operationId: addassessment
-      security: 
-        - PlutchikTGUserId: []
-          PlutchikAuthSessionToken: []
-        - PlutchikTGUserId: []
       responses:
         '200':
           description: OK
@@ -361,6 +357,13 @@ paths:
       responses:
         '200':
           description: OK
+  /getmatchlist:
+    description: Returns users which closer to user by thier assessments
+    post:
+      operationId: getmatchlist
+      responses:
+        '200':
+          description: OK
   /telegram:
     post:
       operationId: telegram
@@ -370,44 +373,10 @@ paths:
           description: OK
         '401':
           $ref: '#/components/responses/NotAuthorized'
-    get:
-      operationId: tgwebapp
-      security: []
-      parameters:
-        - in: query
-          name: command
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: tg_user_id
-          required: false
-          schema:
-            type: number
-        - in: query
-          name: insights
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: content
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: emotion
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-        '401':
-          $ref: '#/components/responses/NotAuthorized'
 security:
+  - PlutchikTGUserId: []
+    TGQueryCheckString: []
   - PlutchikTGUserId: []
     PlutchikAuthSessionToken: []
   - PlutchikTGUserId: []
     PlutchikAuthCode: []
-  - PlutchikTGUserId: []
-    PlutchikUserId: []

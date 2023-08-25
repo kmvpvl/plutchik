@@ -51,6 +51,12 @@ const ml_emotions = new Map([
     ])]
 ]);
 
+function getMLEmotion(lang, emotion) {
+    if (!lang) lang = 'en';
+    if (!ml_emotions.get(lang)) lang = 'en';
+    return ml_emotions.get(lang).get(emotion);
+}
+
 const myEmotions = new Map([
     ['en', 'My emotions']
     ,['ru', 'Мои эмоции']
@@ -91,6 +97,71 @@ function txt_skip (lang = 'en') {
         case 'ru': return 'Пропустить';
         case 'en':
         default: return 'Skip';
+    }
+}
+
+function strMLLanguage (lang = 'en') {
+    switch(lang) {
+        case 'es': return 'idioma';
+        case 'de': return 'Sprache';
+        case 'uk': return 'мова';
+        case 'ru': return 'Язык';
+        case 'en':
+        default: return 'language';
+    }
+}
+
+function strMLYO (lang = 'en') {
+    switch(lang) {
+        case 'es': return 'y.o.';
+        case 'de': return 'Jahre alt.';
+        case 'uk': return 'років';
+        case 'ru': return 'лет';
+        case 'en':
+        default: return 'y.o.';
+    }
+}
+
+function strMLDistance (lang = 'en') {
+    switch(lang) {
+        case 'es': return 'Distancia emocional';
+        case 'de': return 'Emotionale Distanz';
+        case 'uk': return 'Емоційна дистанція';
+        case 'ru': return 'Эмоциональная дистанция';
+        case 'en':
+        default: return 'Emotional distance';
+    }
+}
+
+function strMLCloseEmotions (lang = 'en') {
+    switch(lang) {
+        case 'es': return 'Cerrar emociones';
+        case 'de': return 'Enge Emotionen';
+        case 'uk': return 'Близькі емоції';
+        case 'ru': return 'Близкие эмоции';
+        case 'en':
+        default: return 'Close emotions';
+    }
+}
+
+function strMLSeparatingEmotions (lang = 'en') {
+    switch(lang) {
+        case 'es': return 'Separando emociones';
+        case 'de': return 'Emotionen trennen';
+        case 'uk': return 'Розділяючі емоції';
+        case 'ru': return 'Разделяющие эмоции';
+        case 'en':
+        default: return 'Separating emotions';
+    }
+}
+function strMLCommonContentItems(lang = 'en') {
+    switch(lang) {
+        case 'es': return 'Elementos de contenido comunes';
+        case 'de': return 'Gemeinsame Inhaltselemente';
+        case 'uk': return 'Загальні елементи вмісту';
+        case 'ru': return 'Общих элементов';
+        case 'en':
+        default: return 'Common content items';
     }
 }
 

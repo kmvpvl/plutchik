@@ -4,19 +4,20 @@ import morgan from "morgan";
 import cors from 'cors';
 import version from './api/version';
 import { tggetsessiontoken, tgcreateauthcode } from './api/auth';
-import telegram, { webapp } from './api/telegram';
+import telegram from './api/telegram';
 import TelegramBot from 'node-telegram-bot-api';
 import checkSettings from './model/settings'; 
 import fs from 'fs';
 import path from 'path';
 import User from './model/user';
-import userinfo, {getinsights, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
+import userinfo, {getinsights, getmatchlist, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
 import createorganization from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
 import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
 import addassessment from './api/addassessment';
 import getnextcontentitem from './api/getnextcontentitem';
+import { createHash, createHmac } from 'crypto';
 
 const PORT = process.env.PORT || 8000;
 checkSettings();
@@ -47,9 +48,9 @@ api.register({
     getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
     getinsights: async (c, req, res, user) => getinsights(c, req, res, user),
     reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
+    getmatchlist: async (c, req, res, user) => getmatchlist(c, req, res, user),
 
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
-    tgwebapp: async (c, req, res, user) => webapp(c, req, res, bot),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
     notFound: (c, req, res) => notFound(c, req, res),
     notImplemented: (c, req, res) => res.status(500).json({ err: 'not implemented' }),
@@ -68,13 +69,23 @@ api.registerSecurityHandler('PlutchikAuthCode', async (context, req: Request, re
     const sauthcode = req.headers["plutchik_authcode"];
     const hash = Md5.hashStr(`${user.uid} ${sauthcode}`);
     return hash === user.json?.auth_code_hash;
-return true;    
 });
 
-api.registerSecurityHandler('PlutchikUserId', async (context, req: Request, res, user: User)=>{
-    const plutchik_userid = req.headers["plutchik_userid"];
-    return user.uid.equals(plutchik_userid as string);
-return true;    
+api.registerSecurityHandler('TGQueryCheckString', async (context, req: Request, res, user: User)=>{
+    try {
+        const plutchik_tgquerycheckstring = decodeURIComponent(req.headers["plutchik_tgquerycheckstring"] as string);
+        const arr = plutchik_tgquerycheckstring.split('&');
+        const hashIndex = arr.findIndex(str => str.startsWith('hash='));
+        const hash = arr.splice(hashIndex)[0].split('=')[1];
+
+        const secret_key = createHmac('sha256', "WebAppData").update(process.env.tg_bot_authtoken as string).digest();
+        arr.sort((a, b) => a.localeCompare(b));
+
+        const check_hash = createHmac('sha256', secret_key).update(arr.join('\n')).digest('hex');
+        return check_hash === hash;
+    } catch (e) {
+        return false;
+    }
 });
 
 
