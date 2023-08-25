@@ -298,9 +298,10 @@ function drawRadar (element, arr) {
 	element.html(s);
     $('[type=user]').on('click', e=>{
         const uid = e.currentTarget.attributes["uid"].value;
+        const me = document.plutchik.user; 
         const u = document.plutchik.matchlist.filter(v=> v._id === uid)[0];
         const age = Math.round((new Date().getTime() - new Date(u.birthdate).getTime())/1000/60/60/24/365.25);
-        s = `<div class="user-info"><div class="valign"><img src="${getnderIcon(u.gender)}" width="100px"></div><div class="valign"><span>${isNaN(age)?'':`${age} ${strMLYO(u.nativelanguage)}`}</span><span>${strMLLanguage(u.nativelanguage)}: ${u.nativelanguage}</span><span>${strMLCommonContentItems(u.nativelanguage)}: ${u.cnt}</span><span>${strMLDistance(u.nativelanguage)}: ${Math.round(u.dist*100)/100}</span><span>${strMLCloseEmotions(u.nativelanguage)}: ${Object.entries(u.sub_vector).map( v => Math.abs(v[1])<0.1?`<span class="${v[0]}">${getMLEmotion(u.nativelanguage, v[0])}</span>`:undefined).join(' ')}</span><span>${strMLSeparatingEmotions(u.nativelanguage)}: ${Object.entries(u.sub_vector).map( v => Math.abs(v[1])>0.2?`<span class="${v[0]}">${getMLEmotion(u.nativelanguage, v[0])}</span>`:undefined).join(' ')}</span></div>`;
+        s = `<div class="user-info"><div class="valign"><img src="${getnderIcon(u.gender)}" width="100px"></div><div class="valign"><span>${isNaN(age)?'':`${age} ${strMLYO(me.nativelanguage)}`}</span><span>${strMLLanguage(me.nativelanguage)}: ${me.nativelanguage}</span><span>${strMLCommonContentItems(me.nativelanguage)}: ${u.cnt}</span><span>${strMLDistance(me.nativelanguage)}: ${Math.round(u.dist*100)/100}</span><span>${strMLCloseEmotions(me.nativelanguage)}: ${Object.entries(u.sub_vector).map( v => Math.abs(v[1])<0.1?`<span class="${v[0]}">${getMLEmotion(me.nativelanguage, v[0])}</span>`:undefined).join(' ')}</span><span>${strMLSeparatingEmotions(me.nativelanguage)}: ${Object.entries(u.sub_vector).map( v => Math.abs(v[1])>0.2?`<span class="${v[0]}">${getMLEmotion(me.nativelanguage, v[0])}</span>`:undefined).join(' ')}</span></div>`;
         showMessage(s);
     });
 }
