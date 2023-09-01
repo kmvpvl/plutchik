@@ -1,9 +1,21 @@
 .user-header {
     padding-right: 100px;
 }
+.user-thumb {
+    width: 10em;
+    border: 1px solid var(--text-color);
+    display: block;
+}
 .user-properties{
     display: flex;
     justify-content: space-between;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.user-properties-thumb{
+    display: flex;
+    justify-content:left;
     gap: 5px;
     flex-wrap: wrap;
 }

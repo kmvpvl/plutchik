@@ -187,7 +187,7 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
                     
                     {this.state.currentItem.type==='image'?
                     <div className="img-to-center">
-                        <img className="content-fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>
+                        <img key={`img_${Math.random()}`} className="content-fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>
                     </div>
                     :<></>}
                 </div>
