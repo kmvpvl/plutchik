@@ -2,7 +2,7 @@ import React from 'react';
 import { IServerInfo } from '../../model/common';
 import './user.css'
 
-export type UserModes = "user" | "psychologist" | "user:insights";
+export type UserModes = "user" | "psychologist" | "user:insights" | "psychologist:chat" | "psychologist:content";
 
 interface IUserProps {
     serverInfo: IServerInfo;
@@ -37,8 +37,8 @@ export default class User extends React.Component<IUserProps, IUserState> {
                 <span>🪪 Telegram id: {this.props.serverInfo.tguserid}</span> <span>🌐 language: {this.props.userInfo.nativelanguage}</span> <span>🧑‍🤝‍🧑 gender: {this.props.userInfo.gender}</span> <span>🎂 {age} y.o.</span>
             </span>
             <span onChange={(e)=>this.onModeChanged(e)}>
-            <input name="mode" type="radio" value={'user'} defaultChecked={'user'===this.state.mode}/>user
-            <input name="mode" type="radio" value={'psychologist'} defaultChecked={'psychologist'===this.state.mode}/>psychologist
+            <input name="mode" type="radio" value={'user'} defaultChecked={'user'===this.state.mode.split(":")[0]}/>user
+            <input name="mode" type="radio" value={'psychologist'} defaultChecked={'psychologist'===this.state.mode.split(":")[0]}/>psychologist
             </span>
         </span>
     }

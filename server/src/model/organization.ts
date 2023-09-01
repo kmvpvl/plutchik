@@ -6,6 +6,7 @@ import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
 import MongoProto from "./mongoproto";
+import { mongoAssessments } from "./assessment";
 
 export const DEFAULT_SESSION_DURATION = 10080;
 
@@ -131,5 +132,54 @@ export default class Organization extends MongoProto <IOrganization>{
         ) return true;
         return false;
     }
+    async getUsersAssessedContent(): Promise <User[]> {
+        await this.checkData();
+        const users = await mongoAssessments.aggregate(
+      [
+          {
+            '$lookup': {
+              'from': 'contents', 
+              'localField': 'cid', 
+              'foreignField': '_id', 
+              'as': 'content'
+            }
+          }, {
+            '$match': {
+              'content.organizationid': this.uid
+            }
+          }, {
+            '$group': {
+              '_id': '$uid', 
+              'assessedcount': {
+                '$count': {}
+              }
+            }
+          }, {
+            '$lookup': {
+              'from': 'users', 
+              'localField': '_id', 
+              'foreignField': '_id', 
+              'as': 'user'
+            }
+          }, {
+            '$unwind': {
+              'path': '$user'
+            }
+          }, {
+            '$addFields': {
+              'user.assessedcount': '$assessedcount'
+            }
+          }, {
+            '$replaceRoot': {
+              'newRoot': '$user'
+            }
+          }, {
+            '$sort': {
+              'assessedcount': -1
+            }
+          }
+        ]);
+        return users;
+  } 
 
 }

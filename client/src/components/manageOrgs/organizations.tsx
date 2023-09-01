@@ -1,25 +1,29 @@
 import React, { RefObject } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import Pending from "../pending/pending";
+import { UserModes } from "../user/user";
 
 interface IOrgsProps {
     serverInfo: IServerInfo,
     onError?: (err: PlutchikError)=>void,
     onCreateNewOrg?: ( org: any)=>void,
-    onOrganizationListLoaded?: (orgs: Array<any>)=>void
-    onOrgSelected:(orgid: string)=>void
+    onOrganizationListLoaded?: (orgs: Array<any>)=>void,
+    onOrgSelected:(orgid: string)=>void,
+    onChangeMode: (oldmode: UserModes, newmode: UserModes)=>void,
     pending?: RefObject<Pending>
 }
 
 interface IOrgsState {
     orgs:any[]
     currentOrg?: string | null;
+    mode: string;
 }
 
 export default class Organizations extends React.Component<IOrgsProps, IOrgsState> {
     state = {
         orgs: [],
-        currentOrg: localStorage.getItem('currentOrg')
+        currentOrg: localStorage.getItem('currentOrg'),
+        mode: "content"
     }
     componentDidMount(): void {
         this.loadOrganizations();
@@ -52,22 +56,34 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
             this.props.pending?.current?.decUse();
         })
     }
-    orgSelected(e: any) {
+    orgSelected(orgid: string) {
         const nState: IOrgsState = this.state;
-        nState.currentOrg = e.currentTarget.value;
-        localStorage.setItem('currentOrg', e.currentTarget.value);
+        nState.currentOrg = orgid;
+        localStorage.setItem('currentOrg', orgid);
         this.setState(nState);
-        this.props.onOrgSelected(e.currentTarget.value);
+        this.props.onOrgSelected(orgid);
     }
     
     render(): React.ReactNode {
         return (
             <div>{this.state.orgs.length?<><span>Organization</span> 
-                <select onChange={e=>this.orgSelected(e)} defaultValue={this.state.currentOrg?this.state.currentOrg:''} onCompositionEnd={()=>console.log('test')}>
+                <select onChange={e=>this.orgSelected(e.currentTarget.value)} defaultValue={this.state.currentOrg?this.state.currentOrg:''} onCompositionEnd={()=>console.log('test')}>
                     {this.state.orgs.map((v, i)=>(<option key={i} value={(v as any)._id}>{(v as any).name}</option>))}
                 </select></>:<></>}
                 <button onClick={()=>this.createNewOrganization()}>📄</button>
-                <button>🖊️</button>            
+                <button>🖊️</button>
+                <span onChange={(e: any)=>{
+                    const nState: IOrgsState = this.state;
+                    const old = nState.mode;
+                    nState.mode = e.target.value;
+                    this.setState(nState);
+
+                    localStorage.setItem('mode', "psychologist:"+e.target.value as UserModes);
+                    this.props.onChangeMode("psychologist:"+old as UserModes, "psychologist:"+e.target.value as UserModes);
+                }}>
+                <input name="psymode" type="radio" value={'content'} defaultChecked={this.state.mode !== "chat"}/>content
+                <input name="psymode" type="radio" value={'chat'} defaultChecked={this.state.mode === "chat"}/>chat
+                </span>
             </div>
         );
     }

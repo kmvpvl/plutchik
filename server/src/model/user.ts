@@ -1020,4 +1020,56 @@ export default class User extends MongoProto<IUser> {
           ]);
         return u;
     }
+
+    async getSutableTimeToChat (): Promise<Date | undefined> {
+        //let's get hour to chat in GMT
+        const u = await mongoAssessments.aggregate([
+            {
+              '$match': {
+                'uid': this.uid
+              }
+            }, {
+              '$addFields': {
+                'hour': {
+                  '$hour': {
+                    'date': '$created', 
+                    'timezone': 'GMT'
+                  }
+                }, 
+                'weightl': {
+                  '$toLong': '$created'
+                }
+              }
+            }, {
+              '$group': {
+                '_id': '$hour', 
+                'weight': {
+                  '$sum': {
+                    '$divide': [
+                      '$weightl', 10000
+                    ]
+                  }
+                }
+              }
+            }, {
+              '$sort': {
+                'weight': -1
+              }
+            }, {
+              '$limit': 2
+            }, {
+              '$group': {
+                '_id': 1, 
+                'hour': {
+                  '$avg': '$_id'
+                }
+              }
+            }
+        ]);
+        if (u.length === 0) return undefined;
+        let d = new Date();
+        d.setUTCHours(u[0].hour);
+        if (d < new Date()) d = new Date(d.getTime() + 24*60*60*1000);
+        return d;
+    }
 }
