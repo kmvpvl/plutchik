@@ -364,6 +364,46 @@ paths:
       responses:
         '200':
           description: OK
+  /getusersassessedorganizationcontent:
+    description: Returns all users who assessed at least one content item of organization with count of assessments
+    post:
+      operationId: getusersassessedorganizationcontent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oid
+              properties:
+                oid:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /informuserbytg:
+    description: Informs user by Telegram, returns time when message scheduled
+    post:
+      operationId: informuserbytg
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tguserid
+                - message
+                - organizationid
+              properties:
+                tguserid:
+                  type: number
+                message:
+                  type: string
+                organizationid:
+                  type: string
+      responses:
+        '200':
+          description: OK
   /telegram:
     post:
       operationId: telegram
