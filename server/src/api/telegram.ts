@@ -344,7 +344,7 @@ function tg_bot_set_location_menu(lang: string):TelegramBot.SendMessageOptions {
                 ,{
                     text: insights(lang),
                     web_app: {
-                        url: `${process.env.tg_web_hook_server}/telegram?insights`
+                        url: `${process.env.tg_web_hook_server}/insights.htm`
                     }
                 }
         ]]
@@ -400,7 +400,7 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
                     ,{
                         text: insights(lang),
                         web_app: {
-                            url: `${process.env.tg_web_hook_server}/telegram?insights`
+                            url: `${process.env.tg_web_hook_server}/insights.htm`
                         }
                     }
                 ]
