@@ -353,6 +353,28 @@ function tg_bot_set_location_menu(lang: string):TelegramBot.SendMessageOptions {
 }
 
 function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageOptions {
+    function strMyName(lang: string):string {
+        switch(lang) {
+            case 'de': return 'Mein Name';
+            case 'es': return 'Mi nombre';
+            case 'ru': return 'Мое имя';
+            case 'uk': return 'Моє ім\'я';
+            case 'en':
+            default: return 'My name';
+        }
+    }
+        
+    function strMyStudyGroup(lang: string):string {
+        switch(lang) {
+            case 'de': return 'Meine Lerngruppe';
+            case 'es': return 'mi grupo de estudio';
+            case 'ru': return 'Моя группа исследования';
+            case 'uk': return 'Моя навчальна група';
+            case 'en':
+            default: return 'My study group';
+        }
+    }
+
     const age = user.json?.birthdate? new Date().getFullYear() - user.json?.birthdate.getFullYear():'??';
     let gender = '??';
     switch(user.json?.gender) {
@@ -368,6 +390,11 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
         reply_markup: {
             inline_keyboard:[
                 [
+                    {
+                        text: `${strMyName(lang)}: ${user.json?.name?user.json?.name:'??'}`,
+                        callback_data: 'select_name'
+                    }
+                ],[
                     {
                         text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string,
                         callback_data: 'select_language'
@@ -389,8 +416,12 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
                         text: deleteMyAccount(lang),
                         callback_data: 'delete_account'
                     }
-                ]
-                ,[
+                ],[
+                    {
+                        text: `${strMyStudyGroup(lang)}: ${user.json?.studygroup?user.json?.studygroup:'??'}`,
+                        callback_data: 'select_studygroup'
+                    }
+                ],[
                     {
                         text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
                         web_app: {
@@ -402,6 +433,18 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
                         web_app: {
                             url: `${process.env.tg_web_hook_server}/insights.htm`
                         }
+                    }
+                ],[
+                    {
+                        text: str_getMatched(lang),
+                        web_app: {
+                            url: `${process.env.tg_web_hook_server}/match.htm`
+                        }
+                    }
+                ,
+                    {
+                        text: my_settings(lang),
+                        callback_data: 'settings'
                     }
                 ]
             ]
@@ -444,6 +487,55 @@ const tg_bot_set_language_menu:TelegramBot.SendMessageOptions = {
         ]
     }
 }
+const tg_bot_set_studygroup:TelegramBot.SendMessageOptions = {
+    reply_markup: {
+        inline_keyboard:[
+            [
+                {
+                    text: 'МЭК-23-1',
+                    callback_data: 'set_studygroup:МЭК-23-1'
+                }
+            ],
+            [
+                {
+                    text: 'МЭК-23-2',
+                    callback_data: 'set_studygroup:МЭК-23-2'
+                }
+            ],
+            [
+                {
+                    text: 'МЭК-23-3',
+                    callback_data: 'set_studygroup:МЭК-23-3'
+                }
+            ],
+            [
+                {
+                    text: 'ММН-23-1',
+                    callback_data: 'set_studygroup:ММН-23-1'
+                }
+            ],
+            [
+                {
+                    text: 'ММН-23-2',
+                    callback_data: 'set_studygroup:ММН-23-2'
+                }
+            ],
+            [
+                {
+                    text: '-',
+                    callback_data: 'set_studygroup:'
+                }
+            ],
+            [
+                {
+                    text: 'My settings',
+                    callback_data: 'settings'
+                }
+            ]
+        ]
+    }
+}
+
 function strMale (lang: string){
     switch(lang) {
         case 'de': return 'Männlich';
@@ -501,6 +593,60 @@ function tg_bot_set_gender_menu(lang: string): TelegramBot.SendMessageOptions{
 
 }
 
+function tg_bot_select_name_menu(lang: string): TelegramBot.SendMessageOptions{
+    function strSelectTelegramName(lang: string): string {
+        switch(lang) {
+            case 'de': return 'Mein Name von Telegram';
+            case 'es': return 'Mi nombre de Telegram';
+            case 'ru': return 'Мое имя в Телеграм';
+            case 'uk': return 'Моє ім \'я з Telegram';
+            case 'en':
+            default: return 'My name from Telegram';
+        }
+    }
+    function strIEnterMyName(lang: string): string {
+        switch(lang) {
+            case 'de': return 'Ich gebe meinen Namen ein';
+            case 'es': return 'ingresaré mi nombre';
+            case 'ru': return 'Я введу свое имя';
+            case 'uk': return 'Я введу своє ім\'я';
+            case 'en':
+            default: return 'I\'ll enter my name';
+        }
+    }
+    function strClearMyName(lang: string): string {
+        switch(lang) {
+            case 'de': return 'Lösche meinen Namen';
+            case 'es': return 'Limpiar mi nombre';
+            case 'ru': return 'Удалите мое имя';
+            case 'uk': return 'Очистіть моє ім\'я';
+            case 'en':
+            default: return 'Clear my name';
+        }
+    }
+    return     {
+        reply_markup: {
+        inline_keyboard:[
+            [
+                {
+                    text: strSelectTelegramName(lang),
+                    callback_data: 'set_name:tguser'
+                },
+                {
+                    text: strIEnterMyName(lang),
+                    callback_data: 'set_name:input'
+                }
+            ], [
+                {
+                    text: strClearMyName(lang),
+                    callback_data: 'set_name:clear'
+                }
+            ]
+        ]}
+    }
+
+}
+
 function invitation_accepted (lang: string){
     switch(lang) {
         case 'de': return 'Sie haben die Einladung angenommen. Vielen Dank und viel Spaß. Button „Neue Inhalte bewerten“ drücken';
@@ -535,6 +681,39 @@ function invitation_declined (lang: string){
 }
 
 export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {
+    function strStudyGroupChanged(lang: string) {
+        switch(lang) {
+            case 'de': return 'Ihre Lerngruppe hat sich geändert';
+            case 'es': return 'Tu grupo de estudio ha cambiado.';
+            case 'ru': return 'Ваша группа изменена';
+            case 'uk': return 'Ваша навчальна група змінилася';
+            case 'en':
+            default: return 'Your study group has changed';
+        }
+    }
+
+    function strNameChanged(lang: string) {
+        switch(lang) {
+            case 'de': return 'Ihr Name wurde geändert';
+            case 'es': return 'Tu nombre ha sido cambiado';
+            case 'ru': return 'Ваше имя изменено';
+            case 'uk': return 'Ваше ім\'я змінено';
+            case 'en':
+            default: return 'Your name\'s been changed ';
+        }
+    }
+    
+    function strEnterYourName(lang: string) {
+        switch(lang) {
+            case 'de': return 'Gib deinen Namen ein';
+            case 'es': return 'Introduzca su nombre';
+            case 'ru': return 'Введите имя';
+            case 'uk': return 'Введіть ім\'я';
+            case 'en':
+            default: return 'Enter your name';
+        }
+    }
+
     console.log(`${colours.fg.green}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
     if (tgData.callback_query){
@@ -561,6 +740,34 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     const gender = cbcommand[1];
                     u.setGender(gender);
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, str_gender_changed(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
+                    break;
+                case 'select_name':
+                    menuSetName(bot, tgData.callback_query?.message?.chat.id as number, u as User);
+                    break;
+                case 'set_name':
+                    const setnameway = cbcommand[1];
+                    if ("input" === setnameway) {
+                        bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strEnterYourName(u?.json?.nativelanguage as string));
+                        await u.setAwaitCommandData("set_name");
+                        break;
+                    }
+                    switch (setnameway) {
+                        case 'tguser':
+                            await u.setName(`${tgData.callback_query?.from.first_name} ${tgData.callback_query?.from.last_name}`);
+                            break;
+                        case 'clear':
+                            await u.setName();
+                            break;                            
+                    }
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strNameChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
+                    break;
+                case 'select_studygroup':
+                    menuSetStudyGroup(bot, tgData.callback_query?.message?.chat.id as number, u as User);
+                    break;
+                case 'set_studygroup':
+                    const studygroup = cbcommand[1] === ''?undefined:cbcommand[1];
+                    u.setStudyGroup(studygroup);
+                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strStudyGroupChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
                     break;
                 case 'select_language':
                     menuSetLanguage(bot, tgData.callback_query?.message?.chat.id as number, u as User);
@@ -634,7 +841,13 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                 }
                 return res.status(200).json("OK");
                 break;
-
+            
+                case 'set_name':
+                await u.setName(tgData.message?.text);
+                await u.setAwaitCommandData();
+                bot.sendMessage(tgData.message?.chat.id as number, strNameChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
+                return res.status(200).json("OK");
+                break;
             default:
                 await u.setAwaitCommandData();
                 return res.status(200).json("OK");
@@ -736,6 +949,34 @@ function menuSetAge(bot: TelegramBot, chat_id: number, user: User){
 
 function menuSetGender(bot: TelegramBot, chat_id: number, user: User){
     bot.sendMessage(chat_id, choose_gender(user.json?.nativelanguage as string), tg_bot_set_gender_menu(user.json?.nativelanguage as string));
+}
+
+function menuSetName(bot: TelegramBot, chat_id: number, user: User){
+    function strChooseNameSource(lang: string){
+        switch(lang) {
+            case 'de': return 'Wählen Sie die Namensquelle';
+            case 'es': return 'Elige la fuente del nombre';
+            case 'ru': return 'Выберите, откуда взять имя';
+            case 'uk': return 'Виберіть джерело імені';
+            case 'en':
+            default: return 'Choose name source';
+        }
+    }
+    bot.sendMessage(chat_id, strChooseNameSource(user.json?.nativelanguage as string), tg_bot_select_name_menu(user.json?.nativelanguage as string));
+}
+
+function menuSetStudyGroup(bot: TelegramBot, chat_id: number, user: User){
+    function strChooseNameSource(lang: string){
+        switch(lang) {
+            case 'de': return 'Wählen Sie Ihre Lerngruppe';
+            case 'es': return 'Elige tu grupo de estudio';
+            case 'ru': return 'Выберите свою группу';
+            case 'uk': return 'Виберіть свою навчальну групу';
+            case 'en':
+            default: return 'Choose your study group';
+        }
+    }
+    bot.sendMessage(chat_id, strChooseNameSource(user.json?.nativelanguage as string), tg_bot_set_studygroup);
 }
 
 function menuDeleteAccount(bot: TelegramBot, chat_id: number, user: User){

@@ -24,6 +24,7 @@ export interface IAssign {
 
 export interface IUser {
     _id?: Types.ObjectId;
+    name?: string;
     tguserid: number;
     birthdate?: Date;
     birthdateapproximately?: boolean;
@@ -34,6 +35,7 @@ export interface IUser {
     maritalstatus?: string;
     features?: string;
     assignedgroups?: Array<IAssign>;
+    studygroup?: string;
     blocked: boolean;
     auth_code_hash?: string;
     created: Date;
@@ -49,6 +51,7 @@ interface IObserveAssessments {
 
 export const UserSchema = new Schema({
     tguserid: {type: Number, require: true},
+    name: {type: String, require: false},
     birthdate: {type: Date, require: false},
     birthdateapproximately: {type: Boolean, require: false},
     nativelanguage: {type: String, require: false},
@@ -60,6 +63,7 @@ export const UserSchema = new Schema({
     assignedgroups: {type: Array, require: false},
     awaitcommanddata: {type: String, require: false},
     auth_code_hash: {type: String, require: false},
+    studygroup: {type: String, require: false},
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -132,6 +136,24 @@ export default class User extends MongoProto<IUser> {
         await this.checkData();
         if (this.data) {
             this.data.gender = gender;
+        }
+        await this.save();
+    }
+
+    public async setName(name?: string) {
+        await this.checkData();
+        if (this.data) {
+            this.data.name = name;
+            if (undefined === name) delete this.data.name;
+        }
+        await this.save();
+    }
+
+    public async setStudyGroup(name?: string) {
+        await this.checkData();
+        if (this.data) {
+            this.data.studygroup = name;
+            if (undefined === name) delete this.data.studygroup;
         }
         await this.save();
     }
