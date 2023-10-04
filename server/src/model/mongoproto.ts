@@ -82,7 +82,7 @@ export default class MongoProto<T> {
         }
         
         if (this.id && this.data){
-            await this.model.findByIdAndUpdate(this.id, this.data);
+            await this.model.findOneAndReplace({_id: this.id}, this.data);
             console.log(`✅ Object data was successfully updated.  type='${this.constructor.name}'; id = '${this.id}'`);
         } else { 
             const objectInserted = await this.model.insertMany([this.data]);
