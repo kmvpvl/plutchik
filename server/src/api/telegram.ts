@@ -766,7 +766,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     break;
                 case 'set_studygroup':
                     const studygroup = cbcommand[1] === ''?undefined:cbcommand[1];
-                    u.setStudyGroup(studygroup);
+                    await u.setStudyGroup(studygroup);
                     bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strStudyGroupChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
                     break;
                 case 'select_language':
