@@ -1,3 +1,11 @@
 .banner-container {
     grid-area: banner;
+    --border: 2px solid var(--trust-color);
+    display: block;
+    padding: 10px;
+    font-size: xx-large;
+    margin: 10px;
+    -webkit-text-fill-color: white;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: gray;
 }

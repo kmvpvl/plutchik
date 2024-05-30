@@ -1,3 +1,17 @@
 .logo-container {
     grid-area: logo;
+    position: relative;
+}
+.logo-center {
+    position: relative;
+    margin: 0;
+    top:30%;
+    transform: translateY(-50%);
+}
+.logo-letters-container {
+    font-size: xx-large;
+    color: var(--anticipation-color);
+    display: block;
+    min-width: fit-content;
+    white-space: nowrap;
 }
