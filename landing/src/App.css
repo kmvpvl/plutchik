@@ -13,7 +13,7 @@
   .app-container {
     grid-template-columns: repeat(9, 11.1%);
     grid-template-areas: 
-      "logo logo banner banner banner banner banner banner login"
+      "logo logo logo banner banner banner banner login login"
       "HRD HRD HRD psychologists psychologists psychologists everyone everyone everyone"
       "safety_manifest safety_manifest safety_manifest safety_manifest safety_manifest safety_manifest safety_manifest safety_manifest safety_manifest"
       "q_n_a q_n_a q_n_a q_n_a q_n_a q_n_a q_n_a q_n_a q_n_a";

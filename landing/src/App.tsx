@@ -3,8 +3,10 @@ import './App.css';
 import Logo from './components/logo/logo';
 import Banner from './components/banner/banner';
 import Market from './components/market/market';
-import MLString from './mlstrings';
+import MLString from './components/mlstrings';
 import Manifest from './components/manifest/manifest';
+import QNA from './components/qna/qna';
+import Login from './components/login/login';
 
 export interface AppProps {
 
@@ -53,13 +55,12 @@ export default class App extends React.Component <AppProps, AppState> {
     return <div className='app-container'>
       <Logo/>
       <Banner/>
-      <span style={{gridArea: 'login'}}>login</span>
-
+      <Login/>
       <Market area='HRD' emotion='joy' caption={strForHRD.toString()} description={desc}/>
       <Market area='psychologists' emotion='trust' caption={strForPsychologists.toString()} description={desc}/>
       <Market area='everyone' emotion='surprise' caption={strForEveryone.toString()} description={desc}/>
       <Manifest/>
-      <span style={{gridArea: 'q_n_a'}}>Q&A</span>
+      <QNA/>
     </div>
   }
 }
