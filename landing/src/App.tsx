@@ -8,6 +8,8 @@ import Manifest from './components/manifest/manifest';
 import QNA from './components/qna/qna';
 import Login from './components/login/login';
 
+console.log(JSON.stringify(process.env));
+
 export interface AppProps {
 
 }

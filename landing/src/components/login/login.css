@@ -6,11 +6,17 @@
     display: flex;
     gap: 5px;
 }
-.login-container > span > button {
+.login-button {
     color: var(--anticipation-color);
     border: 1px solid var(--anticipation-color);
     border-radius: 5px;
     background-color: white;
+    padding: 5px;
+    cursor: pointer;
+}
+.login-button:hover {
+    background-color: var(--anticipation-color);
+    color: white;
 }
 .login-language {
     position: relative;
