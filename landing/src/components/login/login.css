@@ -1,17 +1,29 @@
 .login-container {
-    position: relative;
     grid-area: login;
     font-size: small;
     text-align: center;
+    margin: auto;
+    display: flex;
+    gap: 5px;
 }
-.login-container > button {
+.login-container > span > button {
     color: var(--anticipation-color);
     border: 1px solid var(--anticipation-color);
     border-radius: 5px;
     background-color: white;
 }
 .login-language {
+    position: relative;
+    margin: auto;
+    cursor: pointer;
+    font-size: x-large;
+}
+
+.choosing {
+    background-color: white;
+    border: 1px solid gray;
+    font-size: x-large;
+    border-radius: 5px;
+    box-shadow: 2px 2px 2px gray;
     position: absolute;
-    right: 0;
-    top: 0;
 }

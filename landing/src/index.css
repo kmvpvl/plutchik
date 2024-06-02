@@ -22,6 +22,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   min-width: 100%;
   min-height: 100%;
+  max-width: 100%;
   width: 100%;
   height: 100%;
   overflow-y: hidden;
@@ -33,6 +34,7 @@ html, body {
   min-height: 100%;
   width: 100%;
   height: 100%;
+  max-width: 100%;
   overflow-y: hidden;
 }
 

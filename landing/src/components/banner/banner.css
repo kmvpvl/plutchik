@@ -3,9 +3,25 @@
     --border: 2px solid var(--trust-color);
     display: block;
     padding: 10px;
-    font-size: xx-large;
+    font-size: x-large;
     margin: 10px;
     -webkit-text-fill-color: white;
     -webkit-text-stroke-width: 1px;
     -webkit-text-stroke-color: gray;
+    max-width: 100%;
+    width: 100%;
+    overflow: hidden;
+    height: max-content;
+}
+.banner-slogan {
+    animation: slide 20s;
+    --white-space: nowrap;
+}
+@keyframes slide {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-200px);
+    }
 }

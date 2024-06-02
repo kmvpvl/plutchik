@@ -3,11 +3,12 @@ import "./login.css";
 import React from "react";
 import MLString from "../mlstrings";
 export interface LoginProps {
-
+    onLanguageChanged: (newLang: string)=>void;
 }
 
 export interface LoginState {
     language: string;
+    lang_choosing: boolean; 
 }
 
 const strSignIn = new MLString({
@@ -34,7 +35,10 @@ const strSignUp = new MLString({
 
 
 export default class Login extends React.Component<LoginProps, LoginState> {
-    state:LoginState  = {language: MLString.getLang()};
+    state:LoginState  = {
+        language: MLString.getLang(),
+        lang_choosing: false
+    };
     private getLangEmoji(): string {
         switch(this.state.language.split('-')[0]) {
             case 'ru': return '🇷🇺';
@@ -46,11 +50,32 @@ export default class Login extends React.Component<LoginProps, LoginState> {
             default: return '🇬🇧'
         }
     }
+    private callOnLanguageChanged(lang: string) {
+        this.setState({language: lang, lang_choosing: false})
+        this.props.onLanguageChanged(lang);
+    }
     render(): ReactNode {
         return <span className="login-container">
-            <button>{strSignIn.toString()}</button><span className="login-language">{this.getLangEmoji()}</span>
-            <br/><br/>
-            <button>{strSignUp.toString()}</button>
+            <span>
+                <button>{strSignIn.toString()}</button>
+                <br/><br/>
+                <button>{strSignUp.toString()}</button>
+            </span>
+            {this.state.lang_choosing?<span className="login-language choosing" onMouseLeave={()=>this.setState({})}>
+            <span onClick={()=>this.callOnLanguageChanged('en')}>🇬🇧</span>
+            <span onClick={()=>this.callOnLanguageChanged('fr')}>🇫🇷</span>
+            <span onClick={()=>this.callOnLanguageChanged('de')}>🇩🇪</span>
+            <span onClick={()=>this.callOnLanguageChanged('es')}>🇪🇸</span>
+            <span onClick={()=>this.callOnLanguageChanged('uk')}>🇺🇦</span>
+            <span onClick={()=>this.callOnLanguageChanged('ru')}>🇷🇺</span>
+            </span>:<></>}
+            <span className="login-language" onClick={()=>{
+                this.setState({
+                    language: this.state.language,
+                    lang_choosing: true
+                    });
+                }}>{this.state.lang_choosing?"":this.getLangEmoji()}
+            </span>
         </span>
     }
 }

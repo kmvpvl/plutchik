@@ -23,4 +23,5 @@
     display: block;
     padding: 1em;
     padding-top: 2em;
+    white-space: pre-wrap;
 }

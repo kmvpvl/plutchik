@@ -14,6 +14,7 @@ export interface IMLString {
     }
     public toString(lang?: string): string {
       if (!lang) lang = MLString.getLang();
+      if (!this.values.has(lang)) lang = lang.split('-')[0];
       return (lang ? (this.values.has(lang) ? this.values.get(lang) : super.toString()) : super.toString()) as string;
     }
     public toJSON() {
@@ -27,15 +28,9 @@ export interface IMLString {
     }
     public static getLang(): string {
       const params: string[] = window.location.search.substring(1).split('&');
-      let lang = '';
-      params.forEach((v: string) => {
-        const l: string[] = v.split('=');
-        if ('lang' === l[0]) {
-          lang = l[1];
-        } else {
-          lang = window.navigator.language;
-        }
-      });
+      let lang = window.navigator.language;
+      const lang_param = params.filter(v=>v.split('=')[0]==='lang');
+      if (lang_param !== undefined && lang_param.length > 0) lang = lang_param[0].split('=')[1];
       return lang;
     }
   }

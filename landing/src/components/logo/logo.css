@@ -1,12 +1,9 @@
 .logo-container {
     grid-area: logo;
     position: relative;
+    margin: auto;
 }
 .logo-center {
-    position: relative;
-    margin: 0;
-    top:30%;
-    transform: translateY(-50%);
 }
 .logo-letters-container {
     font-size: xx-large;
@@ -14,4 +11,5 @@
     display: block;
     min-width: fit-content;
     white-space: nowrap;
+    text-align: center;
 }
