@@ -2,42 +2,97 @@
     font-family: "UbuntuMono";
     src: url("UbuntuMono-Regular.ttf");
 }
+@font-face {
+  font-family: "Teko";
+  src: url("Teko-Light.ttf");
+}
+
+@font-face {
+  font-family: "AROne";
+  src: url("AROneSans-VariableFont_ARRR,wght.ttf");
+}
+
+.brand-name {
+  font-family: 'AROne';
+  font-size: 3em;
+  fill: #cde608
+}
+.brand-slogan {
+  font-family: Teko;
+  font-size: 2em;
+  fill: white;
+}
+.brand-back {
+  fill: #9c1900;
+}
+
 .joy{
-    fill:#edc500;
-    background-color:#edc500;
-  } 
-  .trust{
-    fill:#7abd0d;
-    background-color:#7abd0d;
-  }
-  .fear{
-    fill:#007b33;
-    background-color:#007b33;
-  }
-  .surprise{
-    fill:#0080ab;
-    background-color:#0080ab;
-  }
-  .sadness{
-    fill:#1f6dad;
-    background-color:#1f6dad;
-  }
-  .disgust{
-    fill:#7b4ea3;
-    background-color:#7b4ea3;
-  }
-  .anger{
-    fill:#dc0047;
-    background-color:#dc0047;
-  }
-  .anticipation{
-    fill:#e87200;
-    background-color:#e87200;
-  }
-  .dotted {
-    fill:transparent;
-    stroke-width: 1px;
-    opacity: 0.5;
-    stroke: var(--tg-theme-text-color);
-  }
-  
+  fill:#edc500;
+  background-color:#edc500;
+} 
+.trust{
+  fill:#7abd0d;
+  background-color:#7abd0d;
+}
+.fear{
+  fill:#007b33;
+  background-color:#007b33;
+}
+.surprise{
+  fill:#0080ab;
+  background-color:#0080ab;
+}
+.sadness{
+  fill:#1f6dad;
+  background-color:#1f6dad;
+}
+.disgust{
+  fill:#7b4ea3;
+  background-color:#7b4ea3;
+}
+.anger{
+  fill:#dc0047;
+  background-color:#dc0047;
+}
+.anticipation{
+  fill:#e87200;
+  background-color:#e87200;
+}
+.dotted {
+  fill:transparent;
+  stroke-width: 1px;
+  opacity: 0.5;
+  stroke: var(--tg-theme-text-color);
+}
+.serenity{
+  fill:#ffffb1;
+  background-color:#ffffb1;
+}
+.acceptance{
+  fill:#8dff8d;
+  background-color:#8dff8d;
+}
+.apprehension{
+  fill:#8cc68c;
+  background-color:#8cc68c;
+}
+.distraction{
+  fill:#a5dbff;
+  background-color:#a5dbff;
+}
+.persiveness{
+  fill:#8d8dff;
+  background-color:#8d8dff;
+}
+.boredom{
+  fill:#ffc7ff;
+  background-color:#ffc7ff;
+}
+.annoyance {
+  fill:#ed8383;
+  background-color:#ed8383;
+}
+.interest {
+  fill:#ffc58d;
+  background-color:#ffc58d;
+}

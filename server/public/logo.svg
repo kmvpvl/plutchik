@@ -1,0 +1,40 @@
+<?xml version="1.0" standalone="no"?>
+<?xml-stylesheet href="./plutchik.css" type="text/css"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<rect x="0" y="0" class="brand-back" width="100%" height="100%" rx="10" />
+<g transform="matrix(1,0,0,1,0,5)" fill="#ffffff" id="points">
+<circle cx="18" cy="18" r="8" class="anticipation"></circle>
+<circle cx="34" cy="18" r="4"></circle>
+<circle cx="50" cy="18" r="7" class="joy"></circle>
+<circle cx="66" cy="18" r="4"></circle>
+<circle cx="82" cy="18" r="8" class="trust"></circle>
+
+<circle cx="18" cy="34" r="4"></circle>
+<circle cx="34" cy="34" r="7" class="interest"></circle>
+<circle cx="50" cy="34" r="4" class="serenity"></circle>
+<circle cx="66" cy="34" r="7" class="acceptance"></circle>
+<circle cx="82" cy="34" r="4"></circle>
+
+<circle cx="18" cy="50" r="7" class="anger"></circle>
+<circle cx="34" cy="50" r="4" class="annoyance"></circle>
+<circle cx="50" cy="50" r="3"></circle>
+<circle cx="66" cy="50" r="4" class="apprehension"></circle>
+<circle cx="82" cy="50" r="7" class="fear"></circle>
+
+<circle cx="18" cy="66" r="4"></circle>
+<circle cx="34" cy="66" r="7" class="boredom"></circle>
+<circle cx="50" cy="66" r="4" class="persiveness"></circle>
+<circle cx="66" cy="66" r="7" class="distraction"></circle>
+<circle cx="82" cy="66" r="4"></circle>
+
+<circle cx="18" cy="82" r="8" class="disgust"></circle>
+<circle cx="34" cy="82" r="4"></circle>
+<circle cx="50" cy="82" r="7" class="sadness"></circle>
+<circle cx="66" cy="82" r="4"></circle>
+<circle cx="82" cy="82" r="8" class="surprise"></circle>
+</g>
+<text class="brand-name" x="105" y="50" textLength="185">iSOUL</text>
+<text class="brand-slogan" x="110" y="90" textLength="165">Match mind first</text>
+</svg>
