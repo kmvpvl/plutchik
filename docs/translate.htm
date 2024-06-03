@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <textarea type="text" id="str" style="width:100%;" rows="7"></textarea>
+        <button lang="de">DE Translate</button>
+        <button lang="fr">FR Translate</button>
+        <button lang="es">ES Translate</button>
+        <button lang="uk">UK Translate</button>
+        <button lang="ru">RU Translate</button>
+        <button lang="it">IT Translate</button>
+        <br>
+        <iframe src="" width="100%" height="100%"></iframe>
+<script>
+    $(document).ready(()=>{
+        $('button').click((ev)=> {
+            const tl = ev.currentTarget.attributes['lang'].value;
+            const st = encodeURI($('#str').val());
+            //https://translate.google.com/?sl=en&tl=es&text=OPTIMISM%20%3D%20ANTICIPATION%20%2B%20JOY&op=translate
+            const url = `https://translate.google.com/?sl=en&tl=${tl}&text=${st}&op=translate`;
+            window.open(url, '_blank');
+        })
+
+    });
+</script>
+    </body>
+</html>

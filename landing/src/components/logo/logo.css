@@ -1,0 +1,15 @@
+.logo-container {
+    grid-area: logo;
+    position: relative;
+    margin: auto;
+}
+.logo-center {
+}
+.logo-letters-container {
+    font-size: xx-large;
+    color: var(--anticipation-color);
+    display: block;
+    min-width: fit-content;
+    white-space: nowrap;
+    text-align: center;
+}
