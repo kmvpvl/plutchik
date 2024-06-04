@@ -714,6 +714,17 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
         }
     }
 
+    function strSupportGotYourRequest (lang: string) {
+        switch(lang) {
+            case 'de': return 'Unser Supportteam hat Ihre Anfrage erhalten und wird in Kürze antworten.';
+            case 'es': return 'Nuestro equipo de soporte ha recibido su solicitud y responderá en breve.';
+            case 'ru': return 'Сотрудники поддержки получили Ваше обращение и скоро ответят';
+            case 'uk': return 'Наша служба підтримки отримала ваш запит і незабаром відповість.';
+            case 'en':
+            default: return 'Our support team has received your request and will respond shortly.';
+        }
+    }
+
     console.log(`${colours.fg.green}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
     if (tgData.callback_query){
@@ -858,7 +869,27 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
             !await processCommands(bot, tgData) 
             //&& !await processURLs(bot, tgData)) 
             ){
-                bot.sendMessage(tgData.message?.chat.id as number, `Sorry, i couldn't apply this content. Check spelling`);
+                const staff = process.env.help_support_staff?.split(',');
+                if (staff !== undefined) {
+                    //to check is it reply from support staff
+                    const isMsgFromStaff = staff.filter(v=>v === tgData.message?.from?.id.toString()).length > 0;
+                    const isReply = tgData.message?.reply_to_message !== undefined;
+
+                    if (isMsgFromStaff && isReply) {
+                        //staff reply
+                        const parent_message = tgData.message?.reply_to_message?.text;
+                        const parent_message_struct = JSON.parse(parent_message as string);
+                        console.log(parent_message);
+                        bot.sendMessage(parent_message_struct.SUPPORT.FROM_ID as number, tgData.message?.text as string, {reply_to_message_id: parent_message_struct.SUPPORT.MSG_ID});
+                    } else {
+                        // message from user
+                        bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(u?.json?.nativelanguage as string), {disable_notification: true});
+                        for (let istaff = 0; istaff < staff?.length; istaff++ ){
+                            const nstaff = parseInt(staff[istaff]);
+                            bot.sendMessage(nstaff, `{"SUPPORT":{\n"FROM_ID":${tgData.message?.from?.id},\n"FROM_NAME": "${tgData.message?.from?.first_name}",\n"MSG_ID":${tgData.message?.message_id},\n"MSGTEXT": "${tgData.message?.text}"}}`/*, {reply_to_message_id: tgData.message?.message_id}*/)
+                        }
+                    }
+                }
             };
         
         return res.status(200).json("OK");
@@ -880,6 +911,18 @@ const tgWelcome = (lang: string, userid: number)=>{
     }
 }
 
+const strSupportInvitation = (lang: string)=>{
+    switch(lang){
+        case 'uk': return `Якщо у вас виникають проблеми з використанням бота, просто напишіть повідомлення боту.`;
+        case 'ru': return `Если у Вас есть проблемы при использовании бота, то просто напишите сообщение в бот.`;
+        case 'es': return `Si tiene problemas para usar el bot, simplemente escriba un mensaje al bot.`;
+        case 'de': return `Solltest du Probleme bei der Nutzung des Bots haben, dann schreib einfach eine Nachricht an den Bot.`;
+        case 'en':
+        default:
+            return `If you have problems using the bot, then simply write a message to the bot.`;
+    }
+}
+
 async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
     // looking for bot-command from user
     const commands = tgData.message?.entities?.filter(v => v.type == "bot_command");
@@ -891,7 +934,7 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
         const u = await User.getUserByTgUserId(tgData.message?.from?.id as number);
         switch (command_name) {
             case '/start': 
-                 if (u){
+                if (u){
                     bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(u.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(u.json?.nativelanguage as string));
                 } else {
                     const user = new User(undefined, {
@@ -917,6 +960,12 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                     } else {
                         bot.sendMessage(parseInt(sp[2]), invitation_to_assign(u?.json?.nativelanguage as string, tgData.message?.from, sp[1]), tg_bot_accept_group(u?.json?.nativelanguage as string, sp[1], tgData.message?.from));
                     }
+                }
+            break;
+
+            case '/help':
+                if (process.env.help_support_staff !== undefined) {
+                    bot.sendMessage(tgData.message?.chat.id as number, strSupportInvitation(u?.json?.nativelanguage as string));
                 }
             break;
 
