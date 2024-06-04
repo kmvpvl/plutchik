@@ -4,7 +4,7 @@
   "description": "Plutchik API for dating services",
   "main": "dist/server.js",
   "scripts": {
-    "build": "npx tsc -p .",
+    "build": "npm i && npx tsc -p .",
     "start:debug": "npx nodemon --watch '**/*.{ts,json,yml}' --ext 'ts,json,yml' src/server.ts",
     "start:prod": "node dist/server.js",
     "test": "jest --detectOpenHandles"
