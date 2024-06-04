@@ -876,12 +876,14 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
                     const isReply = tgData.message?.reply_to_message !== undefined;
 
                     if (isMsgFromStaff && isReply) {
+                        //staff reply
                         const parent_message = tgData.message?.reply_to_message?.text;
                         const parent_message_struct = JSON.parse(parent_message as string);
                         console.log(parent_message);
                         bot.sendMessage(parent_message_struct.SUPPORT.FROM_ID as number, tgData.message?.text as string, {reply_to_message_id: parent_message_struct.SUPPORT.MSG_ID});
                     } else {
-                        bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(u?.json?.nativelanguage as string));
+                        // message from user
+                        bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(u?.json?.nativelanguage as string), {disable_notification: true});
                         for (let istaff = 0; istaff < staff?.length; istaff++ ){
                             const nstaff = parseInt(staff[istaff]);
                             bot.sendMessage(nstaff, `{"SUPPORT":{\n"FROM_ID":${tgData.message?.from?.id},\n"FROM_NAME": "${tgData.message?.from?.first_name}",\n"MSG_ID":${tgData.message?.message_id},\n"MSGTEXT": "${tgData.message?.text}"}}`/*, {reply_to_message_id: tgData.message?.message_id}*/)
