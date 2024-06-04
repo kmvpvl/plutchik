@@ -1,0 +1,27 @@
+.qna-container {
+    grid-area: q_n_a;
+    position: relative;
+    margin: 1em;
+}
+
+.qna-header {
+    position: absolute;
+    left: 0.5em;
+    top: -0.5em;
+    background-color: var(--surprise-color);
+    border: 2px solid var(--surprise-color);
+    color: white;
+    padding: 2px;
+    border-radius: 5px;
+    font-size: xx-large;
+    white-space: nowrap;
+
+}
+
+.qna-content {
+    border: 2px solid var(--surprise-color);
+    display: block;
+    padding: 1em;
+    padding-top: 2em;
+    white-space: pre-wrap;
+}

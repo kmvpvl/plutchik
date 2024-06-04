@@ -1,0 +1,27 @@
+.manifest-container {
+    grid-area: safety_manifest;
+    position: relative;
+    margin: 1em;
+}
+
+.manifest-header {
+    position: absolute;
+    left: 0.5em;
+    top: -0.5em;
+    background-color: var(--trust-color);
+    border: 2px solid var(--trust-color);
+    color: white;
+    padding: 2px;
+    border-radius: 5px;
+    font-size: xx-large;
+    white-space: nowrap;
+
+}
+
+.manifest-content {
+    border: 2px solid var(--trust-color);
+    display: block;
+    padding: 1em;
+    padding-top: 2em;
+    white-space: pre-wrap;
+}
