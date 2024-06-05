@@ -907,7 +907,7 @@ const tgWelcome = (lang: string, userid: number)=>{
         case 'de': return `Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden. Ihre ID = ${userid}. Teilen Sie es der Person mit, die den Inhalt für Sie zur Bewertung vorbereitet hat`;
         case 'en':
         default:
-            return `Welcome! This bot helps evaluate you psycology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request. Your ID is ${userid}.`;
+            return `Welcome! This bot helps evaluate you psychology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request. Your ID is ${userid}.`;
     }
 }
 
