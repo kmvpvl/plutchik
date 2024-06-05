@@ -86,7 +86,7 @@ export default class MongoProto<T> {
             console.log(`✅ Object data was successfully updated.  type='${this.constructor.name}'; id = '${this.id}'`);
         } else { 
             const objectInserted = await this.model.insertMany([this.data]);
-            this.id = new Types.ObjectId(objectInserted[0]._id);
+            this.id = new Types.ObjectId(objectInserted[0]._id as string);
             this.load(objectInserted[0]);
             console.log(`✅ New object was created. type='${this.constructor.name}'; id = '${this.id}'`);
         }
