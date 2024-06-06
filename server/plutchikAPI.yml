@@ -203,6 +203,7 @@ paths:
     head:
       description: For Render
       operationId: headAnswer
+      security: []
       responses:
         '200': 
           description: OK
