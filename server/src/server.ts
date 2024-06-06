@@ -40,7 +40,7 @@ if (process.env.tg_web_hook_server) {
             bot.setChatMenuButton({menu_button: {type: "default"}}).then(res=>{
                 console.log(`${colours.fg.green}TG SetChatMenuButton return '${res}' ${colours.reset}`);
                 bot.setMyCommands([{command: "start", description: "Register me"}, 
-                    {command: "help", description: "I have an issue, pls help me"}], {language_code:"en"})
+                    {command: "help", description: "I have an issue, pls help me"}])
                     .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Registriere mich"}, 
                     {command: "help", description: "Ich habe ein Problem, bitte helfen Sie mir"}], {language_code:"de"})
