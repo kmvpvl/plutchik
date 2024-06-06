@@ -36,6 +36,7 @@ if (process.env.tg_web_hook_server) {
         .catch(reason=>console.log(`${colours.fg.red}Setting TG webhook error '${JSON.stringify(reason)}'${colours.reset}`))
         .then(()=>{
         //bot menu
+        bot.setChatMenuButton({menu_button: {type: "commands"}});
         console.log(`${colours.fg.green}TG web hook created successfully${colours.reset}`);
         bot.setMyCommands([{command: "start", description: "Register me"}, 
             {command: "help", description: "I have an issue, pls help me"}], {language_code:"en"})
