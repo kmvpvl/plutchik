@@ -40,26 +40,33 @@ if (process.env.tg_web_hook_server) {
             bot.setChatMenuButton({menu_button: {type: "default"}}).then(res=>{
                 console.log(`${colours.fg.green}TG SetChatMenuButton return '${res}' ${colours.reset}`);
                 bot.setMyCommands([{command: "start", description: "Register me"}, 
-                    {command: "help", description: "I have an issue, pls help me"}])
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    {command: "help", description: "I have an issue, pls help me"}], {language_code:"en"})
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand en successful '${JSON.stringify(ret)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Registriere mich"}, 
                     {command: "help", description: "Ich habe ein Problem, bitte helfen Sie mir"}], {language_code:"de"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand de successful '${JSON.stringify(ret)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
                     {command: "help", description: "Мне нужна помощь, помогите мне, пожалуста"}], {language_code:"ru"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand ru successful '${JSON.stringify(ret)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Registrame"}, 
                     {command: "help", description: "Tengo un problema por favor ayúdenme."}], {language_code:"es"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand es successful '${JSON.stringify(ret)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Inscrivez-moi"}, 
                     {command: "help", description: "J'ai un problème, aidez-moi s'il vous plaît"}], {language_code:"fr"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand fr successful '${JSON.stringify(ret)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
                     {command: "help", description: "У мене проблема, будь ласка, допоможіть мені"}], {language_code:"uk"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand uk successful '${JSON.stringify(ret)}'${colours.reset}`));
                 bot.setMyCommands([{command: "start", description: "Registrami"}, 
                     {command: "help", description: "Ho un problema, per favore aiutami"}], {language_code:"it"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`));
+                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
+                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand it successful '${JSON.stringify(ret)}'${colours.reset}`));
             });
     });
 };
