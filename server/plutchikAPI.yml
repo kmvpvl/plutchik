@@ -199,6 +199,13 @@ components:
         $ref: "#/components/schemas/assessment"
       #explode: false
 paths:
+  /:
+    head:
+      description: For Render
+      operationId: headAnswer
+      responses:
+        '200': 
+          description: OK
   /version:
     get:
       description: Reveal versions of components
