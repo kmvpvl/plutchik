@@ -31,22 +31,23 @@ async function notFound(c: any, req: Request, res: Response){
 }
 const bot = new TelegramBot(process.env.tg_bot_authtoken as string);
 if (process.env.tg_web_hook_server) {
-    bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`).catch(reason=>console.log(`Setting TG webhook error '${JSON.stringify(reason)}'`));
-//bot menu
-    bot.setMyCommands([{command: "start", description: "Register me"}, 
-        {command: "help", description: "I have an issue, pls help me"}], {language_code:"en"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
-    bot.setMyCommands([{command: "start", description: "Registriere mich"}, 
-        {command: "help", description: "Ich habe ein Problem, bitte helfen Sie mir"}], {language_code:"de"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
-    bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
-        {command: "help", description: "Мне нужна помощь, помогите мне, пожалуста"}], {language_code:"ru"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
-    bot.setMyCommands([{command: "start", description: "Registrame"}, 
-        {command: "help", description: "Tengo un problema por favor ayúdenme."}], {language_code:"es"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
-    bot.setMyCommands([{command: "start", description: "Inscrivez-moi"}, 
-        {command: "help", description: "J'ai un problème, aidez-moi s'il vous plaît"}], {language_code:"fr"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
-    bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
-        {command: "help", description: "У мене проблема, будь ласка, допоможіть мені"}], {language_code:"uk"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
-    bot.setMyCommands([{command: "start", description: "Registrami"}, 
-        {command: "help", description: "Ho un problema, per favore aiutami"}], {language_code:"it"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+    bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`).catch(reason=>console.log(`Setting TG webhook error '${JSON.stringify(reason)}'`)).then(()=>{
+        //bot menu
+        bot.setMyCommands([{command: "start", description: "Register me"}, 
+            {command: "help", description: "I have an issue, pls help me"}], {language_code:"en"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+        bot.setMyCommands([{command: "start", description: "Registriere mich"}, 
+            {command: "help", description: "Ich habe ein Problem, bitte helfen Sie mir"}], {language_code:"de"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+        bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
+            {command: "help", description: "Мне нужна помощь, помогите мне, пожалуста"}], {language_code:"ru"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+        bot.setMyCommands([{command: "start", description: "Registrame"}, 
+            {command: "help", description: "Tengo un problema por favor ayúdenme."}], {language_code:"es"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+        bot.setMyCommands([{command: "start", description: "Inscrivez-moi"}, 
+            {command: "help", description: "J'ai un problème, aidez-moi s'il vous plaît"}], {language_code:"fr"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+        bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
+            {command: "help", description: "У мене проблема, будь ласка, допоможіть мені"}], {language_code:"uk"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+        bot.setMyCommands([{command: "start", description: "Registrami"}, 
+            {command: "help", description: "Ho un problema, per favore aiutami"}], {language_code:"it"}).catch(reason=>console.log(`Setting TG setMyCommand error '${JSON.stringify(reason)}'`));
+    });
 };
 
 const api = new OpenAPIBackend({ 
