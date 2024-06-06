@@ -30,6 +30,10 @@ async function notFound(c: any, req: Request, res: Response){
     }
     return res.status(404).json('Not found');
 }
+
+async function headAnswer (c: any, req: Request, res: Response) {
+    return res.status(200).json();
+}
 const bot = new TelegramBot(process.env.tg_bot_authtoken as string);
 if (process.env.tg_web_hook_server) {
     bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`)
@@ -37,7 +41,7 @@ if (process.env.tg_web_hook_server) {
         .then(()=>{
             console.log(`${colours.fg.green}TG web hook created successfully${colours.reset}`);
             //bot menu
-            bot.setChatMenuButton({menu_button: {type: "default"}}).then(res=>{
+            bot.setChatMenuButton({menu_button: {type: "commands"}}).then(res=>{
                 console.log(`${colours.fg.green}TG SetChatMenuButton return '${res}' ${colours.reset}`);
                 bot.setMyCommands([{command: "start", description: "Register me"}, 
                     {command: "help", description: "I have an issue, pls help me"}])
@@ -94,6 +98,8 @@ api.register({
     informuserbytg: async (c, req, res, user) => informuserbytg(c, req, res, user, bot),
 
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
+
+    headAnswer: async (c, req, res) => headAnswer(c, req, res),
     validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
     notFound: (c, req, res) => notFound(c, req, res),
     notImplemented: (c, req, res) => res.status(500).json({ err: 'not implemented' }),
