@@ -19,6 +19,7 @@ import addassessment from './api/addassessment';
 import getnextcontentitem from './api/getnextcontentitem';
 import { createHash, createHmac } from 'crypto';
 import colours from './model/colours';
+import colours from './model/colours';
 
 const PORT = process.env.PORT || 8000;
 checkSettings();
