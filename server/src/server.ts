@@ -41,7 +41,7 @@ if (process.env.tg_web_hook_server) {
         .then(()=>{
             console.log(`${colours.fg.green}TG web hook created successfully${colours.reset}`);
             //bot menu
-            bot.setChatMenuButton({menu_button: {type: "default"}}).then(res=>{
+            bot.setChatMenuButton({menu_button: {type: "commands"}}).then(res=>{
                 console.log(`${colours.fg.green}TG SetChatMenuButton return '${res}' ${colours.reset}`);
                 bot.setMyCommands([{command: "start", description: "Register me"}, 
                     {command: "help", description: "I have an issue, pls help me"}])
