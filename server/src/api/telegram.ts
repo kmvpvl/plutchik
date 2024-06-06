@@ -945,6 +945,14 @@ async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Pr
                     });
                     await user.save();
                     bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(user.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(user.json?.nativelanguage as string));
+
+                    const staff = process.env.help_support_staff?.split(',');
+                    if (staff !== undefined) {
+                        for (let istaff = 0; istaff < staff?.length; istaff++ ){
+                            const nstaff = parseInt(staff[istaff]);
+                            bot.sendMessage(nstaff, `New user id:'${tgData.message?.chat.id}' name:'${tgData.message?.from?.username}' text: '${tgData.message?.text}'`)
+                        }
+                    }
                 }
             break;
 
