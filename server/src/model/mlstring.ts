@@ -12,6 +12,7 @@ export const MLStringSchema = new Schema({
         required: false
     }
 });
+
 const plutchik_strings = new Map([
     ['Type region or country', 
         new Map([
@@ -102,14 +103,94 @@ const plutchik_strings = new Map([
     ,   ['ru', 'Ваше имя изменено']
         ])
     ], ['Options to share location',
-        new Map([
-            ['de', 'Optionen zum Teilen des Standorts']
-        ,   ['fr', 'Options pour partager l\'emplacement']
-        ,   ['es', 'Opciones para compartir ubicación']
-        ,   ['uk', 'Варіанти поділитися місцем розташування']
-        ,   ['ru', 'Варианты поделиться местоположением']
-            ])
-        ]
+    new Map([
+        ['de', 'Optionen zum Teilen des Standorts']
+    ,   ['fr', 'Options pour partager l\'emplacement']
+    ,   ['es', 'Opciones para compartir ubicación']
+    ,   ['uk', 'Варіанти поділитися місцем розташування']
+    ,   ['ru', 'Варианты поделиться местоположением']
+        ])
+    ], ['My name',
+    new Map([
+        ['de', 'Mein Name']
+    ,   ['fr', 'Mon nom']
+    ,   ['es', 'Mi nombre']
+    ,   ['uk', 'Моє ім\'я']
+    ,   ['ru', 'Мое имя']
+        ])
+    ], ['Share my location',
+    new Map([
+        ['de', 'Meinen Standort teilen']
+    ,   ['fr', 'Partager ma position']
+    ,   ['es', 'compartir mi ubicación']
+    ,   ['uk', 'Поділитися моїм розташуванням']
+    ,   ['ru', 'Мое местоположение']
+        ])
+    ], ['Male',
+    new Map([
+        ['de', 'Männlich']
+    ,   ['fr', 'Mâle']
+    ,   ['es', 'Masculina']
+    ,   ['uk', 'Чоловік']
+    ,   ['ru', 'Мужчина']
+        ])
+    ], ['Female',
+    new Map([
+        ['de', 'Weiblich']
+    ,   ['fr', 'Femelle']
+    ,   ['es', 'Femenina']
+    ,   ['uk', 'Жінка']
+    ,   ['ru', 'Женщина']
+        ])
+    ], ['Their',
+    new Map([
+        ['de', 'Anderes Geschlecht']
+    ,   ['fr', 'Leur']
+    ,   ['es', 'Otro género']
+    ,   ['uk', 'Інша стать']
+    ,   ['ru', 'Другой']
+        ])
+    ], ['Your location hidden',
+    new Map([
+        ['de', 'Ihr Standort ist ausgeblendet']
+    ,   ['fr', 'Votre position masquée']
+    ,   ['es', 'Tu ubicación oculta']
+    ,   ['uk', 'Ваше місцезнаходження приховано']
+    ,   ['ru', 'Ваше местоположение скрыто']
+        ])
+    ], ['Type your place where you live',
+    new Map([
+        ['de', 'Geben Sie Ihren Wohnort ein']
+    ,   ['fr', 'Tapez votre endroit où vous habitez']
+    ,   ['es', 'Escribe tu lugar donde vives']
+    ,   ['uk', 'Введіть своє місце проживання']
+    ,   ['ru', 'Введите место, где вы живете']
+        ])
+    ], ['Press button to share you location',
+    new Map([
+        ['de', 'Drücken Sie die Taste, um Ihren Standort freizugeben']
+    ,   ['fr', 'Appuyez sur le bouton pour partager votre position']
+    ,   ['es', 'Presione el botón para compartir su ubicación']
+    ,   ['uk', 'Натисніть кнопку, щоб поділитися своїм місцезнаходженням']
+    ,   ['ru', 'Нажмите кнопку, чтобы поделиться своим местоположением']
+        ])
+    ], ['Your location accepted',
+    new Map([
+        ['de', 'Ihr Standort akzeptiert']
+    ,   ['fr', 'Votre localisation acceptée']
+    ,   ['es', 'Tu ubicación aceptada']
+    ,   ['uk', 'Ваше місцезнаходження прийнято']
+    ,   ['ru', 'Ваше местоположение принято']
+        ])
+    ], ['Your message does not contain real coordinates and accepted as your region or country',
+    new Map([
+        ['de', 'Ihre Nachricht enthält keine echten Koordinaten und wird als Ihre Region oder Ihr Land akzeptiert']
+    ,   ['fr', 'Votre message ne contient pas de coordonnées réelles et est accepté comme votre région ou pays']
+    ,   ['es', 'Su mensaje no contiene coordenadas reales y se acepta como su región o país.']
+    ,   ['uk', 'Ваше повідомлення не містить реальних координат і прийнято як ваш регіон або країна']
+    ,   ['ru', 'Ваше сообщение не содержит реальных координат и принято за ваш регион или страну.']
+        ])
+    ]
 ]);
 
 export default function ML(str?: string, lang?: string): string {

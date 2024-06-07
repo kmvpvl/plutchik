@@ -30,7 +30,7 @@ export interface IUser {
     birthdateapproximately?: boolean;
     nativelanguage?: string;
     secondlanguages?: Array<string>,
-    location?: string;
+    location?: any;
     gender?: string;
     maritalstatus?: string;
     features?: string;
@@ -56,7 +56,7 @@ export const UserSchema = new Schema({
     birthdateapproximately: {type: Boolean, require: false},
     nativelanguage: {type: String, require: false},
     secondlanguages: {type: Array<string>, require: false},
-    location: {type: String, require: false},
+    location: {type: Object, require: false},
     gender: {type: String, require: false},
     maritalstatus: {type: String, require: false},
     features: {type: String, require: false},
@@ -148,6 +148,15 @@ export default class User extends MongoProto<IUser> {
         }
         await this.save();
     }
+
+    public async setLocation(location?: any) {
+        await this.checkData();
+        if (this.data) {
+          this.data.location = location;
+          if (undefined === location) delete this.data.location;
+      }
+      await this.save();
+  }
 
     public async setStudyGroup(name?: string) {
         await this.checkData();

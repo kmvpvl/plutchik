@@ -233,232 +233,49 @@ function tg_bot_set_delete_menu(lang: string):TelegramBot.SendMessageOptions {
 };
 
 function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageOptions {
-    function strMyName(lang: string):string {
-        switch(lang) {
-            case 'de': return 'Mein Name';
-            case 'es': return 'Mi nombre';
-            case 'ru': return 'Мое имя';
-            case 'uk': return 'Моє ім\'я';
-            case 'en':
-            default: return 'My name';
-        }
-    }
-        
-    function strMyStudyGroup(lang: string):string {
-        switch(lang) {
-            case 'de': return 'Meine Lerngruppe';
-            case 'es': return 'mi grupo de estudio';
-            case 'ru': return 'Моя группа исследования';
-            case 'uk': return 'Моя навчальна група';
-            case 'en':
-            default: return 'My study group';
-        }
-    }
-
-    function strShareLocation(lang: string):string {
-        switch(lang) {
-            case 'de': return 'Meinen Standort teilen';
-            case 'fr': return 'Partager ma position';
-            case 'es': return 'compartir mi ubicación';
-            case 'ru': return 'Мое местоположение';
-            case 'uk': return 'Поділитися моїм розташуванням';
-            case 'en':
-            default: return 'Share my location';
-        }
-    }
-
     const age = user.json?.birthdate? new Date().getFullYear() - user.json?.birthdate.getFullYear():'??';
     let gender = '??';
     switch(user.json?.gender) {
-        case 'male':  gender = strMale(lang);
+        case 'male': gender = ML('Male', lang);
             break;
-        case 'female':  gender = strFemale(lang);
+        case 'female': gender = ML('Female', lang);
         break;
-        case 'other':  gender = strOther(lang);
+        case 'other': gender = ML('Their', lang);
             break;
         default: gender = '??';
     }
-    return {
-        reply_markup: {
-            inline_keyboard:[
-                [
-                    {
-                        text: `${strMyName(lang)}: ${user.json?.name?user.json?.name:'??'}`,
-                        callback_data: 'select_name'
-                    }
+    let location = '??';
+    if (user.json?.location?.coords !== undefined) location = '✔️';//JSON.stringify(user.json?.location?.coords);
+    if (user.json?.location?.country !== undefined) location = user.json?.location?.country;
+    return { disable_notification: true,
+        reply_markup: {inline_keyboard:[[
+                    {text: `${ML('My name', lang)}: ${user.json?.name?user.json?.name:'??'}`, callback_data: 'select_name'}
                 ],[
-                    {
-                        text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string,
-                        callback_data: 'select_language'
-                    }
-                    ,{
-                        text: `${set_age(lang)}: ${age}`,
-                        callback_data: 'set_age'
-                    }
+                    {text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string, callback_data: 'select_language'},
+                    {text: `${set_age(lang)}: ${age}`, callback_data: 'set_age'}
                 ],[
-                    {
-                        text: strShareLocation(lang),
-                        callback_data: 'share_location'
-                    }
+                    {text: `${ML('Share my location', lang)}: ${location}`, callback_data: 'share_location'}
                 ], [
-                    {
-                        text: `${set_gender(lang)}: ${gender}`,
-                        callback_data: 'select_gender'
-                    },
-                    {
-                        text: deleteMyAccount(lang),
-                        callback_data: 'delete_account'
-                    }
-                ],[
-                    {
-                        text: `${strMyStudyGroup(lang)}: ${user.json?.studygroup?user.json?.studygroup:'??'}`,
-                        callback_data: 'select_studygroup'
-                    }
+                    {text: `${set_gender(lang)}: ${gender}`, callback_data: 'select_gender'},
+                    {text: deleteMyAccount(lang), callback_data: 'delete_account'}
                 ]
-            ]
-        }
+            ]}
     }
 };
 
 const tg_bot_set_language_menu:TelegramBot.SendMessageOptions = {
     reply_markup: {
-        inline_keyboard:[
-            [
-                {
-                    text: 'English',
-                    callback_data: 'set_language:en'
-                }
-                ,{
-                    text: 'Español',
-                    callback_data: 'set_language:es'
-                }
-                ,{
-                    text: 'Deutsch',
-                    callback_data: 'set_language:de'
-                }
+        inline_keyboard:[[
+                {text: 'English', callback_data: 'set_language:en'}
+                ,{text: 'Español', callback_data: 'set_language:es'}
+                ,{text: 'Deutsch', callback_data: 'set_language:de'}
             ], [
-                {
-                    text: 'Українська',
-                    callback_data: 'set_language:uk'
-                }
-                ,{
-                    text: 'Русский',
-                    callback_data: 'set_language:ru'
-                }
-            ]
-            ,[
-                {
-                    text: 'My settings',
-                    callback_data: 'settings'
-                }
-            ]
-        ]
+                {text: 'Українська', callback_data: 'set_language:uk'}
+                ,{text: 'Русский', callback_data: 'set_language:ru'}
+            ] ,[
+                {text: 'My settings', callback_data: 'settings'}
+            ]]
     }
-}
-const tg_bot_set_studygroup:TelegramBot.SendMessageOptions = {
-    reply_markup: {
-        inline_keyboard:[
-            [
-                {
-                    text: 'МЭК-23-1',
-                    callback_data: 'set_studygroup:МЭК-23-1'
-                }
-            ],
-            [
-                {
-                    text: 'МЭК-23-2',
-                    callback_data: 'set_studygroup:МЭК-23-2'
-                }
-            ],
-            [
-                {
-                    text: 'МЭК-23-3',
-                    callback_data: 'set_studygroup:МЭК-23-3'
-                }
-            ],
-            [
-                {
-                    text: 'ММН-23-1',
-                    callback_data: 'set_studygroup:ММН-23-1'
-                }
-            ],
-            [
-                {
-                    text: 'ММН-23-2',
-                    callback_data: 'set_studygroup:ММН-23-2'
-                }
-            ],
-            [
-                {
-                    text: '-',
-                    callback_data: 'set_studygroup:'
-                }
-            ],
-            [
-                {
-                    text: 'My settings',
-                    callback_data: 'settings'
-                }
-            ]
-        ]
-    }
-}
-
-function strMale (lang: string){
-    switch(lang) {
-        case 'de': return 'Männlich';
-        case 'es': return 'Masculina';
-        case 'ru': return 'Мужчина';
-        case 'uk': return 'Чоловік';
-        case 'en':
-        default: return 'Male';
-    }
-}
-function strFemale(lang: string){
-    switch(lang) {
-        case 'de': return 'Weiblich';
-        case 'es': return 'Femenina';
-        case 'ru': return 'Женщина';
-        case 'uk': return 'Жінка';
-        case 'en':
-        default: return 'Female';
-    }
-}
-
-function strOther(lang: string){
-    switch(lang) {
-        case 'de': return 'Anderes Geschlecht';
-        case 'es': return 'Otro género';
-        case 'ru': return 'Другой';
-        case 'uk': return 'Інша стать';
-        case 'en':
-        default: return 'FemOther genderale';
-    }
-}
-
-function tg_bot_set_gender_menu(lang: string): TelegramBot.SendMessageOptions{
-    return     {
-        reply_markup: {
-        inline_keyboard:[
-            [
-                {
-                    text: strMale(lang),
-                    callback_data: 'set_gender:male'
-                },
-                {
-                    text: strFemale(lang),
-                    callback_data: 'set_gender:female'
-                }
-            ],
-            [
-                {
-                    text: strOther(lang),
-                    callback_data: 'set_gender:other'
-                }
-            ]
-        ]}
-    }
-
 }
 
 function tg_bot_select_name_menu(lang: string): TelegramBot.SendMessageOptions{
@@ -593,12 +410,17 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
             bot.sendMessage(chat_id, ML('Here\'s what we know about you so far', ulang), tg_bot_settings_menu(ulang, user));
             break;
         case 'select_gender':
-            menuSetGender(bot, chat_id as number, user);
+            bot.sendMessage(chat_id, choose_gender(user.json?.nativelanguage as string), {reply_markup: {inline_keyboard:[[
+                {text: ML('Male', ulang), callback_data: 'set_gender:male'},
+                {text: ML('Female', ulang), callback_data: 'set_gender:female'}
+            ],[
+                {text: ML('Their', ulang), callback_data: 'set_gender:other'}
+            ]]}});
             break;
         case 'set_gender':
             const gender = cbcommand[1];
             await user.setGender(gender);
-            bot.sendMessage(chat_id as number, str_gender_changed(ulang));
+            bot.sendMessage(chat_id as number, str_gender_changed(ulang), {disable_notification: true, reply_markup:{inline_keyboard: mainKeyboard}});
             break;
         case 'select_name':
             menuSetName(bot, chat_id as number, user);
@@ -619,24 +441,6 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
                     break;                            
             }
             bot.sendMessage(chat_id, ML('Your name\'s been changed', ulang as string), tg_bot_settings_menu(ulang, user));
-            break;
-        case 'select_studygroup':
-            menuSetStudyGroup(bot, chat_id as number, user);
-            break;
-        case 'set_studygroup':
-            function strStudyGroupChanged(lang: string) {
-                switch(lang) {
-                    case 'de': return 'Ihre Lerngruppe hat sich geändert';
-                    case 'es': return 'Tu grupo de estudio ha cambiado.';
-                    case 'ru': return 'Ваша группа изменена';
-                    case 'uk': return 'Ваша навчальна група змінилася';
-                    case 'en':
-                    default: return 'Your study group has changed';
-                }
-            }
-            const studygroup = cbcommand[1] === ''?undefined:cbcommand[1];
-            await user.setStudyGroup(studygroup);
-            bot.sendMessage(chat_id, strStudyGroupChanged(ulang), tg_bot_settings_menu(ulang, user));
             break;
         case 'select_language':
             menuSetLanguage(bot, chat_id, user);
@@ -698,11 +502,23 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
             break;
 
         case 'share_real_location':
-            bot.sendMessage(tgData.callback_query?.message?.chat.id as number, ML('Press button to share you location below'), 
-            {reply_markup:{keyboard:[[{text: 'Location', request_location: true}]], one_time_keyboard: true}});
+            await user.setAwaitCommandData('share_real_location');
+            bot.sendMessage(chat_id as number, ML('Press button to share you location', ulang), 
+            {disable_notification: true, reply_markup:{keyboard:[[{text: ML('Press button to share you location', ulang), request_location: true}]], one_time_keyboard: true}});
             break;
 
-        default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query?.data}'`);
+        case 'share_country_location':
+            await user.setAwaitCommandData('share_country_location');
+            bot.sendMessage(chat_id as number, ML('Type your place where you live', ulang), 
+            {disable_notification: true});
+            break;
+
+        case 'hide_location':
+            await user.setLocation();
+            bot.sendMessage(chat_id as number, ML('Your location hidden', ulang), 
+            {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard, remove_keyboard: true}});
+            break;
+        default: bot.sendMessage(chat_id as number, `Unknown callback command '${tgData.callback_query?.data}'`);
     }
     return true;
 }
@@ -729,6 +545,18 @@ async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                 await user.setAwaitCommandData();
                 bot.sendMessage(tgData.message?.chat.id as number, ML('Your name\'s been changed', lang), tg_bot_settings_menu(lang, user));
                 break;
+            case 'share_real_location':
+            case 'share_country_location':
+                //if user sent his location?
+                if (tgData.message?.location !== undefined) {
+                    user.setLocation({coords: tgData.message?.location});
+                    bot.sendMessage(tgData.message?.chat.id as number, ML('Your location accepted', lang), {disable_notification: true, reply_markup: {remove_keyboard: true}});
+                } else {
+                    user.setLocation({country: tgData.message?.text});
+                    bot.sendMessage(tgData.message?.chat.id as number, ML('Your message does not contain real coordinates and accepted as your region or country', lang), {disable_notification: true, reply_markup: {remove_keyboard: true}});
+                }
+                await user.setAwaitCommandData();
+                break;
             default:
                 await user.setAwaitCommandData();
         }
@@ -747,22 +575,18 @@ async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, use
 
             if (isMsgFromStaff && isReply) {
                 //staff reply
+                console.log(`${colours.fg.cyan}Reply of support staff to user${colours.reset}`)
                 const parent_message = tgData.message?.reply_to_message?.text;
                 const parent_message_struct = JSON.parse(parent_message as string);
-                console.log(parent_message);
+                console.log(`Original message of user: ${parent_message}, \nreply of support staff: '${tgData.message?.text}'`);
                 bot.sendMessage(parent_message_struct.SUPPORT.FROM_ID as number, tgData.message?.text as string, {reply_to_message_id: parent_message_struct.SUPPORT.MSG_ID});
             } else {
                 // message from user
-                //if user sent his location?
-                if (tgData.message?.location !== undefined) {
-                    bot.sendMessage(tgData.message?.chat.id as number, ML('Your location accepted'), {disable_notification: true, reply_markup: {remove_keyboard: true}});
-                } else {
-                    // this message to support
-                    bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(lang), {disable_notification: true, reply_markup: {remove_keyboard: true}});
-                    for (let istaff = 0; istaff < staff?.length; istaff++ ){
-                        const nstaff = parseInt(staff[istaff]);
-                        bot.sendMessage(nstaff, `{"SUPPORT":{\n"FROM_ID":${tgData.message?.from?.id},\n"FROM_NAME": "${tgData.message?.from?.first_name}",\n"MSG_ID":${tgData.message?.message_id},\n"MSGTEXT": "${tgData.message?.text}"}}`, {reply_to_message_id: tgData.message?.message_id})
-                    }
+                // this message to support
+                bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(lang), {disable_notification: true, reply_markup: {remove_keyboard: true}});
+                for (let istaff = 0; istaff < staff?.length; istaff++ ){
+                    const nstaff = parseInt(staff[istaff]);
+                    bot.sendMessage(nstaff, `{"SUPPORT":{\n"FROM_ID":${tgData.message?.from?.id},\n"FROM_NAME": "${tgData.message?.from?.first_name}",\n"MSG_ID":${tgData.message?.message_id},\n"MSGTEXT": "${tgData.message?.text}"}}`, {reply_to_message_id: tgData.message?.message_id})
                 }
             }
         }
@@ -782,7 +606,7 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
         switch (command_name) {
             case '/start': 
                 if (user){
-                    bot.sendMessage(chat_id, tgWelcome(lang, chat_id), {reply_markup: {keyboard: mainKeyboard}});
+                    bot.sendMessage(chat_id, tgWelcome(lang, chat_id), {reply_markup: {inline_keyboard: mainKeyboard}});
                 } else {
                     const user = new User(undefined, {
                         tguserid: tgData.message?.from?.id as number,
@@ -802,7 +626,9 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                     }
                 }
             break;
-
+            case '/home':
+                bot.sendMessage(chat_id, tgWelcome(lang, chat_id), {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
+                break;
             case '/assign':
                 const sp = tgData.message?.text?.split(' ');
                 if (!sp || sp?.length != 3) {
@@ -872,10 +698,6 @@ function menuSetAge(bot: TelegramBot, chat_id: number, user: User){
     user.setAwaitCommandData("set_age");
 }
 
-function menuSetGender(bot: TelegramBot, chat_id: number, user: User){
-    bot.sendMessage(chat_id, choose_gender(user.json?.nativelanguage as string), tg_bot_set_gender_menu(user.json?.nativelanguage as string));
-}
-
 function menuSetName(bot: TelegramBot, chat_id: number, user: User){
     function strChooseNameSource(lang: string){
         switch(lang) {
@@ -888,20 +710,6 @@ function menuSetName(bot: TelegramBot, chat_id: number, user: User){
         }
     }
     bot.sendMessage(chat_id, strChooseNameSource(user.json?.nativelanguage as string), tg_bot_select_name_menu(user.json?.nativelanguage as string));
-}
-
-function menuSetStudyGroup(bot: TelegramBot, chat_id: number, user: User){
-    function strChooseNameSource(lang: string){
-        switch(lang) {
-            case 'de': return 'Wählen Sie Ihre Lerngruppe';
-            case 'es': return 'Elige tu grupo de estudio';
-            case 'ru': return 'Выберите свою группу';
-            case 'uk': return 'Виберіть свою навчальну групу';
-            case 'en':
-            default: return 'Choose your study group';
-        }
-    }
-    bot.sendMessage(chat_id, strChooseNameSource(user.json?.nativelanguage as string), tg_bot_set_studygroup);
 }
 
 function menuDeleteAccount(bot: TelegramBot, chat_id: number, user: User){
