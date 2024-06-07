@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import PlutchikError, { ErrorCode } from '../model/error';
 import colours from "../model/colours";
-import TelegramBot from 'node-telegram-bot-api';
+import TelegramBot, { KeyboardButton } from 'node-telegram-bot-api';
 import Organization, { IOrganization, mongoOrgs } from '../model/organization';
 import Content, { ContentGroup, IContent, mongoContent } from '../model/content';
 import User, { mongoUsers } from '../model/user';
@@ -9,47 +9,7 @@ import { google } from 'googleapis';
 import { Types } from 'mongoose';
 import path from 'path';
 import MongoProto from '../model/mongoproto';
-
-const assess_new_content: Map<string, string> = new Map([
-    ['en', 'Assess new content']
-    ,['uk', 'Оцінити емоції']
-    ,['ru', 'Оценить ещё']
-    ,['es', 'Evaluar emociones']
-    ,['de', 'Emotionen bewerten']
-]);
-
-function insights(lang: string) {
-    switch(lang) {
-        case 'de': return 'Einblicke';
-        case 'es': return 'Perspectivas';
-        case 'ru': return 'Инсайты';
-        case 'uk': return 'Інсайти';
-        case 'en':
-        default: return 'Insights';
-    }
-}
-
-function my_settings(lang: string){
-    switch(lang) {
-        case 'de': return 'Meine Einstellungen';
-        case 'es': return 'Mi configuración';
-        case 'ru': return 'Мои настройки';
-        case 'uk': return 'Мої налаштування';
-        case 'en':
-        default: return 'My settings';
-    }
-}
-
-function awareness(lang: string){
-    switch(lang) {
-        case 'de': return 'Hier ist, was wir bisher über Sie wissen';
-        case 'es': return 'Esto es lo que sabemos de ti hasta ahora';
-        case 'ru': return 'Вот что нам известно о Вас на данный момент';
-        case 'uk': return 'Ось що нам відомо про Вас на даний момент';
-        case 'en':
-        default: return "Here's what we know about you so far";
-    }
-}
+import ML from '../model/mlstring';
 
 const set_language: Map<string, string> = new Map([
     ['en', 'Set language']
@@ -170,17 +130,6 @@ function accountDeleted(lang: string):string {
     }
 }
 
-function userNotFound(lang: string):string {
-    switch(lang) {
-        case 'de': return 'Entschuldigung, Ihr Konto wurde nicht gefunden. Drücke /start';
-        case 'es': return 'Lo sentimos, no se encontró su cuenta. Presiona /start';
-        case 'ru': return 'Ваша учетная запись не найдена. Чтобы возобновить введите /start';
-        case 'uk': return 'Вибачте, ваш обліковий запис не знайдено. Натисніть /start';
-        case 'en':
-        default: return 'Sorry, your account not found. Press /start';
-    }
-}
-
 function deleteMyAccountA(lang: string):string {
     switch(lang) {
         case 'de': return 'Lassen Sie Bewertungen anonym. Nur Konto löschen';
@@ -246,16 +195,6 @@ function decline_invitation(lang: string):string {
         default: return 'I decline';
     }
 }
-function str_getMatched(lang: string):string {
-    switch(lang) {
-        case 'de': return 'Gematcht werden';
-        case 'es': return 'Ser emparejado';
-        case 'ru': return 'Получить соответствие';
-        case 'uk': return 'Отримати відповідність';
-        case 'en':
-        default: return 'Get matched';
-    }
-}
 
 const tg_bot_accept_group = (lang: string, groupname: string, from?: TelegramBot.User) => {
     return {
@@ -272,40 +211,6 @@ const tg_bot_accept_group = (lang: string, groupname: string, from?: TelegramBot
         }
     }
 }
-function tg_bot_start_menu(lang: string, manage: boolean = false):TelegramBot.SendMessageOptions {
-    return  {
-        reply_markup: {
-            inline_keyboard:[
-                [
-                    {
-                        text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
-                        web_app: {
-                            url: `${process.env.tg_web_hook_server}/assess.htm`
-                        }
-                    }
-                    ,{
-                        text: insights(lang),
-                        web_app: {
-                            url: `${process.env.tg_web_hook_server}/insights.htm`
-                        }
-                    }
-                ],[
-                    {
-                        text: str_getMatched(lang),
-                        web_app: {
-                            url: `${process.env.tg_web_hook_server}/match.htm`
-                        }
-                    }
-                ,
-                    {
-                        text: my_settings(lang),
-                        callback_data: 'settings'
-                    }
-                ]
-            ]
-        }
-    }
-};
 
 function tg_bot_set_delete_menu(lang: string):TelegramBot.SendMessageOptions {
     return {
@@ -327,31 +232,6 @@ function tg_bot_set_delete_menu(lang: string):TelegramBot.SendMessageOptions {
     }
 };
 
-function tg_bot_set_location_menu(lang: string):TelegramBot.SendMessageOptions {
-    return {
-        reply_markup: {
-            keyboard: [[
-                {
-                    text: "Send location",
-                    request_location: true
-                }
-                ,{
-                    text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
-                    web_app: {
-                        url: `${process.env.tg_web_hook_server}/assess.htm`
-                    }
-                }
-                ,{
-                    text: insights(lang),
-                    web_app: {
-                        url: `${process.env.tg_web_hook_server}/insights.htm`
-                    }
-                }
-        ]]
-        }
-    };
-}
-
 function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageOptions {
     function strMyName(lang: string):string {
         switch(lang) {
@@ -372,6 +252,18 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
             case 'uk': return 'Моя навчальна група';
             case 'en':
             default: return 'My study group';
+        }
+    }
+
+    function strShareLocation(lang: string):string {
+        switch(lang) {
+            case 'de': return 'Meinen Standort teilen';
+            case 'fr': return 'Partager ma position';
+            case 'es': return 'compartir mi ubicación';
+            case 'ru': return 'Мое местоположение';
+            case 'uk': return 'Поділитися моїм розташуванням';
+            case 'en':
+            default: return 'Share my location';
         }
     }
 
@@ -399,15 +291,16 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
                         text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string,
                         callback_data: 'select_language'
                     }
-                    /*,{
-                        text: 'Set my location',
-                        callback_data: 'set_location'
-                    }*/
                     ,{
                         text: `${set_age(lang)}: ${age}`,
                         callback_data: 'set_age'
                     }
                 ],[
+                    {
+                        text: strShareLocation(lang),
+                        callback_data: 'share_location'
+                    }
+                ], [
                     {
                         text: `${set_gender(lang)}: ${gender}`,
                         callback_data: 'select_gender'
@@ -420,31 +313,6 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
                     {
                         text: `${strMyStudyGroup(lang)}: ${user.json?.studygroup?user.json?.studygroup:'??'}`,
                         callback_data: 'select_studygroup'
-                    }
-                ],[
-                    {
-                        text: assess_new_content.get(lang)?assess_new_content.get(lang) as string:assess_new_content.get('en') as string,
-                        web_app: {
-                            url: `${process.env.tg_web_hook_server}/assess.htm`
-                        }
-                    }
-                    ,{
-                        text: insights(lang),
-                        web_app: {
-                            url: `${process.env.tg_web_hook_server}/insights.htm`
-                        }
-                    }
-                ],[
-                    {
-                        text: str_getMatched(lang),
-                        web_app: {
-                            url: `${process.env.tg_web_hook_server}/match.htm`
-                        }
-                    }
-                ,
-                    {
-                        text: my_settings(lang),
-                        callback_data: 'settings'
                     }
                 ]
             ]
@@ -680,224 +548,289 @@ function invitation_declined (lang: string){
     }
 }
 
-export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {
-    function strStudyGroupChanged(lang: string) {
-        switch(lang) {
-            case 'de': return 'Ihre Lerngruppe hat sich geändert';
-            case 'es': return 'Tu grupo de estudio ha cambiado.';
-            case 'ru': return 'Ваша группа изменена';
-            case 'uk': return 'Ваша навчальна група змінилася';
-            case 'en':
-            default: return 'Your study group has changed';
-        }
-    }
-
-    function strNameChanged(lang: string) {
-        switch(lang) {
-            case 'de': return 'Ihr Name wurde geändert';
-            case 'es': return 'Tu nombre ha sido cambiado';
-            case 'ru': return 'Ваше имя изменено';
-            case 'uk': return 'Ваше ім\'я змінено';
-            case 'en':
-            default: return 'Your name\'s been changed ';
-        }
-    }
-    
-    function strEnterYourName(lang: string) {
-        switch(lang) {
-            case 'de': return 'Gib deinen Namen ein';
-            case 'es': return 'Introduzca su nombre';
-            case 'ru': return 'Введите имя';
-            case 'uk': return 'Введіть ім\'я';
-            case 'en':
-            default: return 'Enter your name';
-        }
-    }
-
-    function strSupportGotYourRequest (lang: string) {
-        switch(lang) {
-            case 'de': return 'Unser Supportteam hat Ihre Anfrage erhalten und wird in Kürze antworten.';
-            case 'es': return 'Nuestro equipo de soporte ha recibido su solicitud y responderá en breve.';
-            case 'ru': return 'Сотрудники поддержки получили Ваше обращение и скоро ответят';
-            case 'uk': return 'Наша служба підтримки отримала ваш запит і незабаром відповість.';
-            case 'en':
-            default: return 'Our support team has received your request and will respond shortly.';
-        }
-    }
-
-    console.log(`${colours.fg.green}API: telegram function${colours.reset}`);
+export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {    
+    console.log(`${colours.fg.blue}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
-    if (tgData.callback_query){
-        try {
-            const u = await User.getUserByTgUserId(tgData.callback_query.from.id as number);
-            if (!u) {
-                bot.sendMessage(tgData.callback_query?.message?.chat.id as number, userNotFound(tgData.callback_query.from.language_code as string));
-                return res.status(200).json("User not found");
-            }
 
-            console.log(`Callback command '${tgData.callback_query.data}'`);
-            // waiting command with : separator, f.e. accept_assign:userid
-            // or without :, f.e. settings
-            const cbcommand = tgData.callback_query.data?tgData.callback_query.data?.split(':'):'';
-
-            switch(cbcommand[0]) {
-                case 'settings':
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, awareness(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
-                    break;
-                case 'select_gender':
-                    menuSetGender(bot, tgData.callback_query?.message?.chat.id as number, u as User);
-                    break;
-                case 'set_gender':
-                    const gender = cbcommand[1];
-                    u.setGender(gender);
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, str_gender_changed(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
-                    break;
-                case 'select_name':
-                    menuSetName(bot, tgData.callback_query?.message?.chat.id as number, u as User);
-                    break;
-                case 'set_name':
-                    const setnameway = cbcommand[1];
-                    if ("input" === setnameway) {
-                        bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strEnterYourName(u?.json?.nativelanguage as string));
-                        await u.setAwaitCommandData("set_name");
-                        break;
-                    }
-                    switch (setnameway) {
-                        case 'tguser':
-                            await u.setName(`${tgData.callback_query?.from.first_name} ${tgData.callback_query?.from.last_name}`);
-                            break;
-                        case 'clear':
-                            await u.setName();
-                            break;                            
-                    }
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strNameChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
-                    break;
-                case 'select_studygroup':
-                    menuSetStudyGroup(bot, tgData.callback_query?.message?.chat.id as number, u as User);
-                    break;
-                case 'set_studygroup':
-                    const studygroup = cbcommand[1] === ''?undefined:cbcommand[1];
-                    await u.setStudyGroup(studygroup);
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, strStudyGroupChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
-                    break;
-                case 'select_language':
-                    menuSetLanguage(bot, tgData.callback_query?.message?.chat.id as number, u as User);
-                    break;
-                case 'set_language':
-                    const lang = cbcommand[1];
-                    console.log(`Changing user's language to '${lang}'`);
-                    await u?.changeNativeLanguage(lang);
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, language_changed.get(lang)?language_changed.get(lang) as string:language_changed.get('en') as string, tg_bot_start_menu(u?.json?.nativelanguage as string));
-                    break;
-                case 'set_age':
-                    menuSetAge(bot, tgData.callback_query?.message?.chat.id as number, u as User);
-                    break;
-                case 'accept_assignment':
-                    console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
-                    const g = await ContentGroup.findContentGroup(cbcommand[1]);
-                    const from_user = await User.getUserByTgUserId(parseInt(cbcommand[2]));
-                    if (from_user && g) {
-                        await u.assignContentGroup(from_user, g);
-                        //sending message to psycologist
-                        bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} accepted your invitation`);
-                        //sending message to patient
-                        bot.sendMessage(tgData.callback_query.from.id, invitation_accepted(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
-                    } else {
-                        //something was wrong either from_user or content group
-                        //sending message to psycologist
-                        bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} couldn't accept your invitation. But tried. Group name = '${cbcommand[1]}'`);
-                        //sending message to patient
-                        bot.sendMessage(tgData.callback_query.from.id, invitation_failed(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
-                    }
-                    break;
-                case 'decline_assignment':
-                    console.log(`Decline assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
-                    bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query.from.first_name} ${tgData.callback_query.from.last_name} declined your invitation. Group name = '${cbcommand[1]}'`);
-                    //sending message to patient
-                    bot.sendMessage(tgData.callback_query.from.id, invitation_declined(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
-                break;
-                case 'delete_account':
-                    menuDeleteAccount(bot, tgData.callback_query?.message?.chat.id as number, u as User);
-                    break;
-                case 'delete_my_account_a':
-                case 'delete_my_account_b':
-                    await u.deleteTgUser();
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, accountDeleted(u?.json?.nativelanguage as string));
-                    break;
-
-                case 'set_location':
-                    bot.sendMessage(tgData.callback_query?.message?.chat.id as number, 'get location', tg_bot_set_location_menu(u?.json?.nativelanguage as string));
-                    break;
-                
-                default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query.data}'`, tg_bot_start_menu(u?.json?.nativelanguage as string));
-            }
-            return res.status(200).json("OK");
-        } catch (e: any) {
-            return res.status(400).json(e);
-        }
-    }
-    console.log(`${colours.fg.blue}Telegram userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${tgData.message?.chat.id}'`);
-
-    const u = await User.getUserByTgUserId(tgData.message?.from?.id as number);
-    if (u?.json?.awaitcommanddata){
-        switch(u?.json?.awaitcommanddata) {
-            case 'set_age':
-                const age = parseInt(tgData.message?.text as string);
-                if (isNaN(age)) {
-                    bot.sendMessage(tgData.message?.chat.id as number, notANumber(u?.json?.nativelanguage as string));
-                } else {
-                    await u.setAge(age);
-                    await u.setAwaitCommandData();
-                    bot.sendMessage(tgData.message?.chat.id as number, ageSet(u?.json?.nativelanguage as string), tg_bot_start_menu(u?.json?.nativelanguage as string));
-                }
-                return res.status(200).json("OK");
-                break;
-            
-                case 'set_name':
-                await u.setName(tgData.message?.text);
-                await u.setAwaitCommandData();
-                bot.sendMessage(tgData.message?.chat.id as number, strNameChanged(u?.json?.nativelanguage as string), tg_bot_settings_menu(u?.json?.nativelanguage as string, u));
-                return res.status(200).json("OK");
-                break;
-            default:
-                await u.setAwaitCommandData();
-                return res.status(200).json("OK");
-        }
-    }
-    try{
-        if (
-            !await processCommands(bot, tgData) 
-            //&& !await processURLs(bot, tgData)) 
-            ){
-                const staff = process.env.help_support_staff?.split(',');
-                if (staff !== undefined) {
-                    //to check is it reply from support staff
-                    const isMsgFromStaff = staff.filter(v=>v === tgData.message?.from?.id.toString()).length > 0;
-                    const isReply = tgData.message?.reply_to_message !== undefined;
-
-                    if (isMsgFromStaff && isReply) {
-                        //staff reply
-                        const parent_message = tgData.message?.reply_to_message?.text;
-                        const parent_message_struct = JSON.parse(parent_message as string);
-                        console.log(parent_message);
-                        bot.sendMessage(parent_message_struct.SUPPORT.FROM_ID as number, tgData.message?.text as string, {reply_to_message_id: parent_message_struct.SUPPORT.MSG_ID});
-                    } else {
-                        // message from user
-                        bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(u?.json?.nativelanguage as string), {disable_notification: true});
-                        for (let istaff = 0; istaff < staff?.length; istaff++ ){
-                            const nstaff = parseInt(staff[istaff]);
-                            bot.sendMessage(nstaff, `{"SUPPORT":{\n"FROM_ID":${tgData.message?.from?.id},\n"FROM_NAME": "${tgData.message?.from?.first_name}",\n"MSG_ID":${tgData.message?.message_id},\n"MSGTEXT": "${tgData.message?.text}"}}`/*, {reply_to_message_id: tgData.message?.message_id}*/)
-                        }
-                    }
-                }
-            };
+    const tgUserId = tgData.callback_query?.message?.chat.id?tgData.callback_query?.message?.chat.id:tgData.message?.from?.id as number;
+    let tgLanguageCode = tgData.callback_query?.from.language_code?tgData.callback_query?.from.language_code:tgData.message?.from?.language_code;
+    console.log(`${colours.fg.blue}tgUserId = '${tgUserId}', tgLanguage = '${tgLanguageCode}' ${colours.reset}`);
+    try {
+        const userDraft = await User.getUserByTgUserId(tgUserId);
         
+        tgLanguageCode = userDraft?.json?.nativelanguage?userDraft.json?.nativelanguage:'en';
+        const MainKeyboardMenu = [[
+            {text: ML('Assess new content', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/assess.htm`}}, 
+            {text: ML('Insights', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/insights.htm`}},
+        ],[
+            {text: ML('Get matched', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/match.htm`}},
+            {text: ML('My settings', tgLanguageCode), callback_data: 'settings'}
+        ]];
+        if (tgData.callback_query !== undefined) {
+            // it's callback
+            callback_process(tgData, bot, userDraft as User, tgLanguageCode, MainKeyboardMenu);
+            return res.status(200).json("OK");
+        }
+        // it isn't callback. This message may be command or data from user or message to support
+        message_process(tgData, bot, userDraft as User, tgLanguageCode, MainKeyboardMenu);
         return res.status(200).json("OK");
-    } catch (e: any) {
-        return res.status(400).json(e);
+
+    } catch (e) {
+        bot.sendMessage(tgUserId, ML('Sorry, your account not found. Press /start', tgLanguageCode));
+        return res.status(200).json("User not found");
     }
 }
 
+async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User, ulang: string, mainKeyboard: KeyboardButton[][]): Promise<boolean> {
+    const callback = tgData.callback_query?.data as string;
+    const chat_id = tgData.callback_query?.message?.chat.id as number;
+    console.log(`Callback command '${callback}'`);
+    // waiting command with : separator, f.e. accept_assign:userid
+    // or without :, f.e. settings
+    const cbcommand = callback.split(':');
+    switch(cbcommand[0]) {
+        case 'settings':
+            bot.sendMessage(chat_id, ML('Here\'s what we know about you so far', ulang), tg_bot_settings_menu(ulang, user));
+            break;
+        case 'select_gender':
+            menuSetGender(bot, chat_id as number, user);
+            break;
+        case 'set_gender':
+            const gender = cbcommand[1];
+            await user.setGender(gender);
+            bot.sendMessage(chat_id as number, str_gender_changed(ulang));
+            break;
+        case 'select_name':
+            menuSetName(bot, chat_id as number, user);
+            break;
+        case 'set_name':
+            const setnameway = cbcommand[1];
+            if ("input" === setnameway) {
+                bot.sendMessage(chat_id, ML('Enter your name', ulang));
+                await user.setAwaitCommandData("set_name");
+                break;
+            }
+            switch (setnameway) {
+                case 'tguser':
+                    await user.setName(`${tgData.callback_query?.from.first_name} ${tgData.callback_query?.from.last_name}`);
+                    break;
+                case 'clear':
+                    await user.setName();
+                    break;                            
+            }
+            bot.sendMessage(chat_id, ML('Your name\'s been changed', ulang as string), tg_bot_settings_menu(ulang, user));
+            break;
+        case 'select_studygroup':
+            menuSetStudyGroup(bot, chat_id as number, user);
+            break;
+        case 'set_studygroup':
+            function strStudyGroupChanged(lang: string) {
+                switch(lang) {
+                    case 'de': return 'Ihre Lerngruppe hat sich geändert';
+                    case 'es': return 'Tu grupo de estudio ha cambiado.';
+                    case 'ru': return 'Ваша группа изменена';
+                    case 'uk': return 'Ваша навчальна група змінилася';
+                    case 'en':
+                    default: return 'Your study group has changed';
+                }
+            }
+            const studygroup = cbcommand[1] === ''?undefined:cbcommand[1];
+            await user.setStudyGroup(studygroup);
+            bot.sendMessage(chat_id, strStudyGroupChanged(ulang), tg_bot_settings_menu(ulang, user));
+            break;
+        case 'select_language':
+            menuSetLanguage(bot, chat_id, user);
+            break;
+        case 'set_language':
+            const lang = cbcommand[1];
+            console.log(`Changing user's language to '${lang}'`);
+            await user.changeNativeLanguage(lang);
+            bot.sendMessage(chat_id, language_changed.get(lang)?language_changed.get(lang) as string:language_changed.get('en') as string);
+            break;
+        case 'set_age':
+            menuSetAge(bot, chat_id, user);
+            break;
+        case 'accept_assignment':
+            console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
+            const g = await ContentGroup.findContentGroup(cbcommand[1]);
+            const from_user = await User.getUserByTgUserId(parseInt(cbcommand[2]));
+            if (from_user && g) {
+                await user.assignContentGroup(from_user, g);
+                //sending message to psycologist
+                bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query?.from.first_name} ${tgData.callback_query?.from.last_name} accepted your invitation`);
+                //sending message to patient
+                bot.sendMessage(tgData.callback_query?.from.id as number, invitation_accepted(ulang));
+            } else {
+                //something was wrong either from_user or content group
+                //sending message to psycologist
+                bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query?.from.first_name} ${tgData.callback_query?.from.last_name} couldn't accept your invitation. But tried. Group name = '${cbcommand[1]}'`);
+                //sending message to patient
+                bot.sendMessage(tgData.callback_query?.from.id as number, invitation_failed(ulang));
+            }
+            break;
+        case 'decline_assignment':
+            console.log(`Decline assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
+            bot.sendMessage(parseInt(cbcommand[2]), `User ${tgData.callback_query?.from.first_name} ${tgData.callback_query?.from.last_name} declined your invitation. Group name = '${cbcommand[1]}'`);
+            //sending message to patient
+            bot.sendMessage(tgData.callback_query?.from.id as number, invitation_declined(ulang));
+        break;
+        case 'delete_account':
+            menuDeleteAccount(bot, chat_id, user);
+            break;
+        case 'delete_my_account_a':
+        case 'delete_my_account_b':
+            await user.deleteTgUser();
+            bot.sendMessage(chat_id, accountDeleted(ulang));
+            break;
+
+        case 'share_location':
+            bot.sendMessage(chat_id, ML('Options to share location', ulang), 
+                {reply_markup: {inline_keyboard: [
+                        [{text: ML('Share real location', ulang),
+                        callback_data: 'share_real_location'}]
+                        ,[{text: ML('Type region or country', ulang),
+                        callback_data: 'share_country_location'}]
+                        ,[{text: ML("Hide my location", ulang),
+                        callback_data: 'hide_location'}]
+                        ,[{text: ML('My settings', ulang),
+                        callback_data: 'settings'}]
+                ]}})
+            break;
+
+        case 'share_real_location':
+            bot.sendMessage(tgData.callback_query?.message?.chat.id as number, ML('Press button to share you location below'), 
+            {reply_markup:{keyboard:[[{text: 'Location', request_location: true}]], one_time_keyboard: true}});
+            break;
+
+        default: bot.sendMessage(tgData.callback_query?.message?.chat.id as number, `Unknown callback command '${tgData.callback_query?.data}'`);
+    }
+    return true;
+}
+
+async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User, lang: string, mainKeyboard: KeyboardButton[][]): Promise<boolean> {
+    const chat_id = tgData.message?.chat.id as number;
+    console.log(`${colours.fg.blue}Telegram message processing userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${chat_id}'`);
+    // is waiting data from user?
+    if (user.json?.awaitcommanddata){
+        switch(user.json?.awaitcommanddata) {
+            case 'set_age':
+                const age = parseInt(tgData.message?.text as string);
+                if (isNaN(age)) {
+                    bot.sendMessage(tgData.message?.chat.id as number, notANumber(lang));
+                } else {
+                    await user.setAge(age);
+                    await user.setAwaitCommandData();
+                    bot.sendMessage(tgData.message?.chat.id as number, ageSet(lang));
+                }
+                break;
+            
+            case 'set_name':
+                await user.setName(tgData.message?.text);
+                await user.setAwaitCommandData();
+                bot.sendMessage(tgData.message?.chat.id as number, ML('Your name\'s been changed', lang), tg_bot_settings_menu(lang, user));
+                break;
+            default:
+                await user.setAwaitCommandData();
+        }
+        return true;
+    }
+    // is command?
+    if (await command_process(tgData, bot, user, lang, mainKeyboard)) {
+        return true;
+    } else {
+        //message to support
+        const staff = process.env.help_support_staff?.split(',');
+        if (staff !== undefined) {
+            //to check is it reply from support staff
+            const isMsgFromStaff = staff.filter(v=>v === tgData.message?.from?.id.toString()).length > 0;
+            const isReply = tgData.message?.reply_to_message !== undefined;
+
+            if (isMsgFromStaff && isReply) {
+                //staff reply
+                const parent_message = tgData.message?.reply_to_message?.text;
+                const parent_message_struct = JSON.parse(parent_message as string);
+                console.log(parent_message);
+                bot.sendMessage(parent_message_struct.SUPPORT.FROM_ID as number, tgData.message?.text as string, {reply_to_message_id: parent_message_struct.SUPPORT.MSG_ID});
+            } else {
+                // message from user
+                //if user sent his location?
+                if (tgData.message?.location !== undefined) {
+                    bot.sendMessage(tgData.message?.chat.id as number, ML('Your location accepted'), {disable_notification: true, reply_markup: {remove_keyboard: true}});
+                } else {
+                    // this message to support
+                    bot.sendMessage(tgData.message?.chat.id as number, strSupportGotYourRequest(lang), {disable_notification: true, reply_markup: {remove_keyboard: true}});
+                    for (let istaff = 0; istaff < staff?.length; istaff++ ){
+                        const nstaff = parseInt(staff[istaff]);
+                        bot.sendMessage(nstaff, `{"SUPPORT":{\n"FROM_ID":${tgData.message?.from?.id},\n"FROM_NAME": "${tgData.message?.from?.first_name}",\n"MSG_ID":${tgData.message?.message_id},\n"MSGTEXT": "${tgData.message?.text}"}}`, {reply_to_message_id: tgData.message?.message_id})
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
+async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User | undefined, lang: string, mainKeyboard: KeyboardButton[][]): Promise<boolean> {
+    // looking for bot-command from user
+    const chat_id = tgData.message?.chat.id as number;
+    const commands = tgData.message?.entities?.filter(v => v.type == "bot_command");
+    if (!commands || !(commands as any).length ) return false;
+    console.log(`command(s) found: ${tgData.message?.text}`);
+    for (let [i, c] of Object.entries(commands as Array<TelegramBot.MessageEntity>)) {
+        const command_name = tgData.message?.text?.substring(c.offset, c.offset + c.length);
+        console.log(`${colours.fg.green}Processing command = '${command_name}'${colours.reset}`);
+        switch (command_name) {
+            case '/start': 
+                if (user){
+                    bot.sendMessage(chat_id, tgWelcome(lang, chat_id), {reply_markup: {keyboard: mainKeyboard}});
+                } else {
+                    const user = new User(undefined, {
+                        tguserid: tgData.message?.from?.id as number,
+                        nativelanguage: tgData.message?.from?.language_code,
+                        blocked: false,
+                        created: new Date()
+                    });
+                    await user.save();
+                    bot.sendMessage(chat_id, tgWelcome(lang, tgData.message?.from?.id as number), {reply_markup: {keyboard: mainKeyboard}});
+
+                    const staff = process.env.help_support_staff?.split(',');
+                    if (staff !== undefined) {
+                        for (let istaff = 0; istaff < staff?.length; istaff++ ){
+                            const nstaff = parseInt(staff[istaff]);
+                            bot.sendMessage(nstaff, `New user id:'${tgData.message?.chat.id}' name:'${tgData.message?.from?.username}' text: '${tgData.message?.text}'`)
+                        }
+                    }
+                }
+            break;
+
+            case '/assign':
+                const sp = tgData.message?.text?.split(' ');
+                if (!sp || sp?.length != 3) {
+                    bot.sendMessage(chat_id as number, `ASSIGN command format: /assign <group_name> <userid>`, {disable_notification: true});
+                } else {
+                    console.log(`User ${user?.uid} wants to assign group '${sp[1]}' to user '${sp[2]}'`);
+                    const assign_user = parseInt(sp[2])?User.getUserByTgUserId(parseInt(sp[2])):undefined;
+                    if (!assign_user) {
+                        bot.sendMessage(chat_id as number, `User #${sp[2]} not found`, {disable_notification: true});
+                    } else {
+                        bot.sendMessage(parseInt(sp[2]), invitation_to_assign(user?.json?.nativelanguage as string, tgData.message?.from, sp[1]), tg_bot_accept_group(lang, sp[1], tgData.message?.from));
+                    }
+                }
+            break;
+
+            case '/help':
+                if (process.env.help_support_staff !== undefined) {
+                    bot.sendMessage(chat_id as number, strSupportInvitation(user?.json?.nativelanguage as string));
+                }
+            break;
+
+            default: 
+                bot.sendMessage(chat_id, `'${command_name}' is unknoun command. Check spelling`);
+                return false;
+        }
+    }
+    return true;
+}
 
 const tgWelcome = (lang: string, userid: number)=>{
     switch(lang){
@@ -923,71 +856,6 @@ const strSupportInvitation = (lang: string)=>{
     }
 }
 
-async function processCommands(bot: TelegramBot, tgData: TelegramBot.Update): Promise<boolean> {
-    // looking for bot-command from user
-    const commands = tgData.message?.entities?.filter(v => v.type == "bot_command");
-    if (!commands || !(commands as any).length ) return false;
-    console.log(`command(s) found: ${tgData.message?.text}`);
-    for (let [i, c] of Object.entries(commands as Array<TelegramBot.MessageEntity>)) {
-        const command_name = tgData.message?.text?.substring(c.offset, c.offset + c.length);
-        console.log(`${colours.fg.green}Processing command = '${command_name}'${colours.reset}`);
-        const u = await User.getUserByTgUserId(tgData.message?.from?.id as number);
-        switch (command_name) {
-            case '/start': 
-                if (u){
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(u.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(u.json?.nativelanguage as string));
-                } else {
-                    const user = new User(undefined, {
-                        tguserid: tgData.message?.from?.id as number,
-                        nativelanguage: tgData.message?.from?.language_code,
-                        blocked: false,
-                        created: new Date()
-                    });
-                    await user.save();
-                    bot.sendMessage(tgData.message?.chat.id as number, tgWelcome(user.json?.nativelanguage as string, tgData.message?.from?.id as number), tg_bot_start_menu(user.json?.nativelanguage as string));
-
-                    const staff = process.env.help_support_staff?.split(',');
-                    if (staff !== undefined) {
-                        for (let istaff = 0; istaff < staff?.length; istaff++ ){
-                            const nstaff = parseInt(staff[istaff]);
-                            bot.sendMessage(nstaff, `New user id:'${tgData.message?.chat.id}' name:'${tgData.message?.from?.username}' text: '${tgData.message?.text}'`)
-                        }
-                    }
-                }
-            break;
-
-            case '/assign':
-                const sp = tgData.message?.text?.split(' ');
-                if (!sp || sp?.length != 3) {
-                    bot.sendMessage(tgData.message?.chat.id as number, `ASSIGN command format: /assign <group_name> <userid>`, {disable_notification: true});
-                } else {
-                    console.log(`User ${u?.uid} wants to assign group '${sp[1]}' to user '${sp[2]}'`);
-                    const assign_user = parseInt(sp[2])?User.getUserByTgUserId(parseInt(sp[2])):undefined;
-                    if (!assign_user) {
-                        bot.sendMessage(tgData.message?.chat.id as number, `User #${sp[2]} not found`, {disable_notification: true});
-                    } else {
-                        bot.sendMessage(parseInt(sp[2]), invitation_to_assign(u?.json?.nativelanguage as string, tgData.message?.from, sp[1]), tg_bot_accept_group(u?.json?.nativelanguage as string, sp[1], tgData.message?.from));
-                    }
-                }
-            break;
-
-            case '/help':
-                if (process.env.help_support_staff !== undefined) {
-                    bot.sendMessage(tgData.message?.chat.id as number, strSupportInvitation(u?.json?.nativelanguage as string));
-                }
-            break;
-
-            case '/set_language':
-                menuSetLanguage(bot, tgData.message?.chat.id as number, u as User);
-                break;
-
-            default: 
-                bot.sendMessage(tgData.message?.chat.id as number, `'${command_name}' is unknoun command. Check spelling`);
-                return false;
-        }
-    }
-    return true;
-}
 
 function yt_id(url: string): string|undefined {
     if (!url.match(/^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/)) return undefined;
@@ -1057,3 +925,13 @@ async function yt_video_data(yt_video_id: string) {
     }
 }
 
+function strSupportGotYourRequest (lang: string) {
+    switch(lang) {
+        case 'de': return 'Unser Supportteam hat Ihre Anfrage erhalten und wird in Kürze antworten.';
+        case 'es': return 'Nuestro equipo de soporte ha recibido su solicitud y responderá en breve.';
+        case 'ru': return 'Сотрудники поддержки получили Ваше обращение и скоро ответят';
+        case 'uk': return 'Наша служба підтримки отримала ваш запит і незабаром відповість.';
+        case 'en':
+        default: return 'Our support team has received your request and will respond shortly.';
+    }
+}
