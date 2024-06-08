@@ -527,7 +527,7 @@ async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, use
     const chat_id = tgData.message?.chat.id as number;
     console.log(`${colours.fg.blue}Telegram message processing userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${chat_id}'`);
     // is waiting data from user?
-    if (user.json?.awaitcommanddata){
+    if (user?.json?.awaitcommanddata !== undefined){
         switch(user.json?.awaitcommanddata) {
             case 'set_age':
                 const age = parseInt(tgData.message?.text as string);
@@ -536,14 +536,14 @@ async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                 } else {
                     await user.setAge(age);
                     await user.setAwaitCommandData();
-                    bot.sendMessage(tgData.message?.chat.id as number, ageSet(lang));
+                    bot.sendMessage(tgData.message?.chat.id as number, ageSet(lang), {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard, remove_keyboard: true}});
                 }
                 break;
             
             case 'set_name':
                 await user.setName(tgData.message?.text);
                 await user.setAwaitCommandData();
-                bot.sendMessage(tgData.message?.chat.id as number, ML('Your name\'s been changed', lang), tg_bot_settings_menu(lang, user));
+                bot.sendMessage(tgData.message?.chat.id as number, ML('Your name\'s been changed', lang), {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard, remove_keyboard: true}});
                 break;
             case 'share_real_location':
             case 'share_country_location':
@@ -606,7 +606,6 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
         switch (command_name) {
             case '/start': 
                 if (user){
-                    bot.sendMessage(chat_id, tgWelcome(lang, chat_id), {reply_markup: {inline_keyboard: mainKeyboard}});
                 } else {
                     const user = new User(undefined, {
                         tguserid: tgData.message?.from?.id as number,
@@ -615,8 +614,6 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                         created: new Date()
                     });
                     await user.save();
-                    bot.sendMessage(chat_id, tgWelcome(lang, tgData.message?.from?.id as number), {reply_markup: {keyboard: mainKeyboard}});
-
                     const staff = process.env.help_support_staff?.split(',');
                     if (staff !== undefined) {
                         for (let istaff = 0; istaff < staff?.length; istaff++ ){
@@ -625,9 +622,8 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                         }
                     }
                 }
-            break;
             case '/home':
-                bot.sendMessage(chat_id, tgWelcome(lang, chat_id), {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
+                bot.sendMessage(chat_id, `${ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, lang)} (${process.env.landing_url})`, {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
                 break;
             case '/assign':
                 const sp = tgData.message?.text?.split(' ');
@@ -646,7 +642,7 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
 
             case '/help':
                 if (process.env.help_support_staff !== undefined) {
-                    bot.sendMessage(chat_id as number, strSupportInvitation(user?.json?.nativelanguage as string));
+                    bot.sendMessage(chat_id as number, `${ML(`If you have problems using the bot, then simply write a message to the bot. See details here`, lang)} (${process.env.landing_url})`);
                 }
             break;
 
@@ -657,32 +653,6 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
     }
     return true;
 }
-
-const tgWelcome = (lang: string, userid: number)=>{
-    switch(lang){
-        case 'uk': return `Ласкаво просимо! Цей бот допомагає динамічно оцінити вашу психологічну стійкість. Також це дозволяє вам знайти людей зі схожим мисленням. Ми поважаємо вашу конфіденційність. Будьте впевнені, що ми видалимо всі ваші дані у будь-який час на ваш запит. Ваш ID=${userid}. Повідомте його, хто підготував для Вас контент для оцінки`;
-        case 'ru': return `Добро пожаловать! Этот бот помогает динамически оценить вашу психологическую устойчивость. Также он позволяет вам найти людей со схожим мышлением. Мы уважаем вашу конфиденциальность. Будьте уверены, что мы удалим все ваши данные в любое время по вашему запросу\nВаш ID=${userid}. Сообщите его тому, кто подготовил для Вас контент для оценки`;
-        case 'es': return `¡Bienvenido! Este bot te ayuda a evaluar dinámicamente tu resiliencia mental. También te permite encontrar personas con mentalidades similares. Respetamos tu privacidad. Tenga la seguridad de que eliminaremos todos sus datos en cualquier momento si lo solicita. Tu identificación = ${userid}. Cuéntaselo a la persona que preparó el contenido para que lo evalúes`;
-        case 'de': return `Willkommen zurück! Dieser Bot hilft Ihnen, Ihre mentale Belastbarkeit dynamisch einzuschätzen. Es ermöglicht Ihnen auch, Menschen mit ähnlichen Denkweisen zu finden. Wir respektieren deine Privatsphäre. Seien Sie versichert, dass wir alle Ihre Daten jederzeit auf Ihren Wunsch löschen werden. Ihre ID = ${userid}. Teilen Sie es der Person mit, die den Inhalt für Sie zur Bewertung vorbereitet hat`;
-        case 'en':
-        default:
-            return `Welcome! This bot helps evaluate you psychology sustainability  dynamically. Also it provides you finding people with similar mindset. We respect your privacy. Be sure that we'll delete all your data at any moment you request. Your ID is ${userid}.`;
-    }
-}
-
-const strSupportInvitation = (lang: string)=>{
-    switch(lang){
-        case 'uk': return `Якщо у вас виникають проблеми з використанням бота, просто напишіть повідомлення боту.`;
-        case 'ru': return `Если у Вас есть проблемы при использовании бота, то просто напишите сообщение в бот.`;
-        case 'es': return `Si tiene problemas para usar el bot, simplemente escriba un mensaje al bot.`;
-        case 'de': return `Solltest du Probleme bei der Nutzung des Bots haben, dann schreib einfach eine Nachricht an den Bot.`;
-        case 'en':
-        default:
-            return `If you have problems using the bot, then simply write a message to the bot.`;
-    }
-}
-
-
 function yt_id(url: string): string|undefined {
     if (!url.match(/^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/)) return undefined;
     const r = url.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/);
