@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import PlutchikError, { ErrorCode } from '../model/error';
 import colours from "../model/colours";
-import TelegramBot, { KeyboardButton } from 'node-telegram-bot-api';
+import TelegramBot, { InlineKeyboardButton} from 'node-telegram-bot-api';
 import Organization, { IOrganization, mongoOrgs } from '../model/organization';
 import Content, { ContentGroup, IContent, mongoContent } from '../model/content';
 import User, { mongoUsers } from '../model/user';
@@ -232,7 +232,7 @@ function tg_bot_set_delete_menu(lang: string):TelegramBot.SendMessageOptions {
     }
 };
 
-function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageOptions {
+function tg_bot_settings_menu(lang: string, user: User, MainKeyboardMenu: InlineKeyboardButton[][]):TelegramBot.SendMessageOptions {
     const age = user.json?.birthdate? new Date().getFullYear() - user.json?.birthdate.getFullYear():'??';
     let gender = '??';
     switch(user.json?.gender) {
@@ -247,19 +247,20 @@ function tg_bot_settings_menu(lang: string, user: User):TelegramBot.SendMessageO
     let location = '??';
     if (user.json?.location?.coords !== undefined) location = '✔️';//JSON.stringify(user.json?.location?.coords);
     if (user.json?.location?.country !== undefined) location = user.json?.location?.country;
+    const fullMenu: InlineKeyboardButton[][] = [[
+        {text: `${ML('My name', lang)}: ${user.json?.name?user.json?.name:'??'}`, callback_data: 'select_name'}
+    ],[
+        {text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string, callback_data: 'select_language'},
+        {text: `${set_age(lang)}: ${age}`, callback_data: 'set_age'}
+    ],[
+        {text: `${ML('Share my location', lang)}: ${location}`, callback_data: 'share_location'}
+    ], [
+        {text: `${set_gender(lang)}: ${gender}`, callback_data: 'select_gender'},
+        {text: deleteMyAccount(lang), callback_data: 'delete_account'}
+    ]];
+    fullMenu.push(...MainKeyboardMenu); 
     return { disable_notification: true,
-        reply_markup: {inline_keyboard:[[
-                    {text: `${ML('My name', lang)}: ${user.json?.name?user.json?.name:'??'}`, callback_data: 'select_name'}
-                ],[
-                    {text: set_language.get(lang)?set_language.get(lang) as string:set_language.get('en') as string, callback_data: 'select_language'},
-                    {text: `${set_age(lang)}: ${age}`, callback_data: 'set_age'}
-                ],[
-                    {text: `${ML('Share my location', lang)}: ${location}`, callback_data: 'share_location'}
-                ], [
-                    {text: `${set_gender(lang)}: ${gender}`, callback_data: 'select_gender'},
-                    {text: deleteMyAccount(lang), callback_data: 'delete_account'}
-                ]
-            ]}
+        reply_markup: {inline_keyboard: fullMenu}
     }
 };
 
@@ -376,7 +377,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
         const userDraft = await User.getUserByTgUserId(tgUserId);
         
         tgLanguageCode = userDraft?.json?.nativelanguage?userDraft.json?.nativelanguage:'en';
-        const MainKeyboardMenu = [[
+        const MainKeyboardMenu: InlineKeyboardButton[][] = [[
             {text: ML('Assess new content', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/assess.htm`}}, 
             {text: ML('Insights', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/insights.htm`}},
         ],[
@@ -398,7 +399,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
     }
 }
 
-async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User, ulang: string, mainKeyboard: KeyboardButton[][]): Promise<boolean> {
+async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User, ulang: string, mainKeyboard: InlineKeyboardButton[][]): Promise<boolean> {
     const callback = tgData.callback_query?.data as string;
     const chat_id = tgData.callback_query?.message?.chat.id as number;
     console.log(`Callback command '${callback}'`);
@@ -407,7 +408,7 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
     const cbcommand = callback.split(':');
     switch(cbcommand[0]) {
         case 'settings':
-            bot.sendMessage(chat_id, ML('Here\'s what we know about you so far', ulang), tg_bot_settings_menu(ulang, user));
+            bot.sendMessage(chat_id, ML('Here\'s what we know about you so far', ulang), tg_bot_settings_menu(ulang, user, mainKeyboard));
             break;
         case 'select_gender':
             bot.sendMessage(chat_id, choose_gender(user.json?.nativelanguage as string), {reply_markup: {inline_keyboard:[[
@@ -440,7 +441,7 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
                     await user.setName();
                     break;                            
             }
-            bot.sendMessage(chat_id, ML('Your name\'s been changed', ulang as string), tg_bot_settings_menu(ulang, user));
+            bot.sendMessage(chat_id, ML('Your name\'s been changed', ulang as string), tg_bot_settings_menu(ulang, user, mainKeyboard));
             break;
         case 'select_language':
             menuSetLanguage(bot, chat_id, user);
@@ -523,7 +524,7 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
     return true;
 }
 
-async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User, lang: string, mainKeyboard: KeyboardButton[][]): Promise<boolean> {
+async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User, lang: string, mainKeyboard: InlineKeyboardButton[][]): Promise<boolean> {
     const chat_id = tgData.message?.chat.id as number;
     console.log(`${colours.fg.blue}Telegram message processing userId = '${tgData.message?.from?.id}'${colours.reset}; chat_id = '${chat_id}'`);
     // is waiting data from user?
@@ -594,7 +595,7 @@ async function message_process(tgData: TelegramBot.Update, bot: TelegramBot, use
     return true;
 }
 
-async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User | undefined, lang: string, mainKeyboard: KeyboardButton[][]): Promise<boolean> {
+async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, user: User | undefined, lang: string, mainKeyboard: InlineKeyboardButton[][]): Promise<boolean> {
     // looking for bot-command from user
     const chat_id = tgData.message?.chat.id as number;
     const commands = tgData.message?.entities?.filter(v => v.type == "bot_command");
