@@ -15,4 +15,6 @@ try {
 export default function checkSettings(){
     if (process.env.mongouri === undefined) throw new PlutchikError("mongo:connect", `Environment variable 'mongouri' can't be read`);
     if (process.env.tg_bot_authtoken === undefined) throw new PlutchikError("mongo:connect", `Environment variable 'tg_bot_authtoken' can't be read`);
+    console.log(`${colours.fg.green}Settings read successfully: '${JSON.stringify(process.env, null, 2)}'${colours.reset}`)
 };
+
