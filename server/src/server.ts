@@ -39,114 +39,104 @@ async function headAnswer (c: any, req: Request, res: Response) {
 const bot = new TelegramBot(process.env.tg_bot_authtoken as string);
 const myBot = new Telegram(process.env.tg_bot_authtoken as string);
 if (process.env.tg_web_hook_server) {
-    bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`)
-        .catch(reason=>console.log(`${colours.fg.red}Setting TG webhook error '${JSON.stringify(reason)}'${colours.reset}`))
-        .then(()=>{
+    setTimeout(async ()=>{
+        let ret = false;
+        //bot info
+        try {
+            ret = await myBot.setMyName(process.env.tg_bot_name);
+            console.log(`${colours.fg.green}Setting TG setMyName successful '${JSON.stringify(ret)}'${colours.reset}`)
+        } catch(reason: any) {
+            console.log(`${colours.fg.red}Setting TG setMyName error '${JSON.stringify(reason)}'${colours.reset}`);
+        }
+
+        try {
+            ret = await bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`);
             console.log(`${colours.fg.green}TG web hook created successfully${colours.reset}`);
-            //bot info
-            myBot.setMyName(process.env.tg_bot_name)
-            .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyName error '${JSON.stringify(reason)}'${colours.reset}`))
-            .then(ret=>console.log(`${colours.fg.green}Setting TG setMyName successful '${JSON.stringify(ret)}'${colours.reset}`));
+        } catch(reason: any) {
+            console.log(`${colours.fg.red}Setting TG webhook error '${JSON.stringify(reason)}'${colours.reset}`);
+        }
+
+        //bot menu
+        try {
+            ret = await bot.setChatMenuButton({menu_button: {type: "commands"}})
+            console.log(`${colours.fg.green}TG SetChatMenuButton return '${ret}' ${colours.reset}`);
+            const langs = [undefined, "de", "fr", "es", "uk", "ru", "it"];
+            for (const [i, lang] of Object.entries(langs)) {
+                try {
+                    ret = await bot.setMyCommands([{command: "start", description: ML("Register me", lang)},
+                        {command: "home", description: ML("Main menu", lang)}, 
+                        {command: "help", description: ML("I have an issue, pls help me", lang)}], {language_code: lang});
+                    console.log(`${colours.fg.green}Setting TG setMyCommand successful for lang(${lang}) = '${JSON.stringify(ret)}'${colours.reset}`);
+                } catch(reason: any){
+                    console.log(`${colours.fg.red}Setting TG setMyCommand for lang(${lang}) error '${JSON.stringify(reason)}'${colours.reset}`)
+                }
+            }
+
+        } catch(reason: any) {
+            console.log(`${colours.fg.red}Setting TG SetChatMenuButton error '${JSON.stringify(reason)}'${colours.reset}`);
+        }
+    }, 200);
+
             
-        
-            myBot.setMyShortDescription(ML('Match mind first'))
+/*        
+            await myBot.setMyShortDescription(ML('Match mind first'))
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription for all langs error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription for all langs successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyShortDescription(ML('Match mind first', 'de'), 'de')
+            await myBot.setMyShortDescription(ML('Match mind first', 'de'), 'de')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription de error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription de successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyShortDescription(ML('Match mind first', 'fr'), 'fr')
+            await myBot.setMyShortDescription(ML('Match mind first', 'fr'), 'fr')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription fr error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription fr successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyShortDescription(ML('Match mind first', 'es'), 'es')
+            await myBot.setMyShortDescription(ML('Match mind first', 'es'), 'es')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription fr error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription fr successful '${JSON.stringify(ret)}'${colours.reset}`));
 
-            myBot.setMyShortDescription(ML('Match mind first', 'uk'), 'uk')
+            await myBot.setMyShortDescription(ML('Match mind first', 'uk'), 'uk')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription uk error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription uk successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyShortDescription(ML('Match mind first', 'ru'), 'ru')
+            await myBot.setMyShortDescription(ML('Match mind first', 'ru'), 'ru')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription ru error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription ru successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyShortDescription(ML('Match mind first', 'it'), 'it')
+            await myBot.setMyShortDescription(ML('Match mind first', 'it'), 'it')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyShortDescription it error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyShortDescription it successful '${JSON.stringify(ret)}'${colours.reset}`));
 
 
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`))
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`))
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription for all langs error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription for all langs successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'de'), 'de')
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'de'), 'de')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription de error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription de successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'fr'), 'fr')
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'fr'), 'fr')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription fr error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription fr successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'es'), 'es')
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'es'), 'es')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription fr error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription fr successful '${JSON.stringify(ret)}'${colours.reset}`));
 
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'uk'), 'uk')
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'uk'), 'uk')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription uk error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription uk successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'ru'), 'ru')
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'ru'), 'ru')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription ru error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription ru successful '${JSON.stringify(ret)}'${colours.reset}`));
         
-            myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'it'), 'it')
+            await myBot.setMyDescription(ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, 'it'), 'it')
             .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyDescription it error '${JSON.stringify(reason)}'${colours.reset}`))
             .then(ret=>console.log(`${colours.fg.green}Setting TG setMyDescription it successful '${JSON.stringify(ret)}'${colours.reset}`));
 
-            //bot menu
-            bot.setChatMenuButton({menu_button: {type: "commands"}}).then(res=>{
-                console.log(`${colours.fg.green}TG SetChatMenuButton return '${res}' ${colours.reset}`);
-                bot.setMyCommands([{command: "start", description: "Register me"},
-                    {command: "home", description: "Main menu"}, 
-                    {command: "help", description: "I have an issue, pls help me"}])
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand en successful '${JSON.stringify(ret)}'${colours.reset}`));
-                bot.setMyCommands([{command: "start", description: "Registriere mich"}, 
-                    {command: "home", description: "Hauptmenü"}, 
-                    {command: "help", description: "Ich habe ein Problem, bitte helfen Sie mir"}], {language_code:"de"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand de successful '${JSON.stringify(ret)}'${colours.reset}`));
-                bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
-                    {command: "home", description: "Главное меню"}, 
-                    {command: "help", description: "Мне нужна помощь, помогите мне, пожалуста"}], {language_code:"ru"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand ru successful '${JSON.stringify(ret)}'${colours.reset}`));
-                bot.setMyCommands([{command: "start", description: "Registrame"}, 
-                    {command: "home", description: "Menú principal"}, 
-                    {command: "help", description: "Tengo un problema por favor ayúdenme."}], {language_code:"es"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand es successful '${JSON.stringify(ret)}'${colours.reset}`));
-                bot.setMyCommands([{command: "start", description: "Inscrivez-moi"}, 
-                    {command: "home", description: "Menu principal"}, 
-                    {command: "help", description: "J'ai un problème, aidez-moi s'il vous plaît"}], {language_code:"fr"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand fr successful '${JSON.stringify(ret)}'${colours.reset}`));
-                bot.setMyCommands([{command: "start", description: "Зарегистрируйте меня"}, 
-                    {command: "home", description: "Головне меню"}, 
-                    {command: "help", description: "У мене проблема, будь ласка, допоможіть мені"}], {language_code:"uk"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand uk successful '${JSON.stringify(ret)}'${colours.reset}`));
-                bot.setMyCommands([{command: "start", description: "Registrami"}, 
-                    {command: "home", description: "Menu principale"}, 
-                    {command: "help", description: "Ho un problema, per favore aiutami"}], {language_code:"it"})
-                    .catch(reason=>console.log(`${colours.fg.red}Setting TG setMyCommand error '${JSON.stringify(reason)}'${colours.reset}`))
-                    .then(ret=>console.log(`${colours.fg.green}Setting TG setMyCommand it successful '${JSON.stringify(ret)}'${colours.reset}`));
-            })
-            .catch(reason=>console.log(`${colours.fg.red}Setting TG SetChatMenuButton error '${JSON.stringify(reason)}'${colours.reset}`));
-    });
+    });*/
 };
 
 const api = new OpenAPIBackend({ 
