@@ -214,6 +214,33 @@ const plutchik_strings = new Map([
     ,   [`uk`, `Спочатку пізнайте розум`]
     ,   [`ru`, `Сначала познайте разум`]
         ])
+    ], [`Register me`,
+    new Map([
+        [`de`, `Registriere mich`]
+    ,   [`fr`, `Inscrivez-moi`]
+    ,   [`es`, `Registrame`]
+    ,   [`uk`, `Зарегистрируйте меня`]
+    ,   [`ru`, `Зарегистрируйте меня`]
+    ,   [`it`, `Registrami`]
+        ])
+    ], [`Main menu`,
+    new Map([
+        [`de`, `Hauptmenü`]
+    ,   [`fr`, `Menu principal`]
+    ,   [`es`, `Menú principal`]
+    ,   [`uk`, `Головне меню`]
+    ,   [`ru`, `Главное меню`]
+    ,   [`it`, `Menu principale`]
+        ])
+    ], [`I have an issue, pls help me`,
+    new Map([
+        [`de`, `Ich habe ein Problem, bitte helfen Sie mir`]
+    ,   [`fr`, `J'ai un problème, aidez-moi s'il vous plaît`]
+    ,   [`es`, `Tengo un problema por favor ayúdenme.`]
+    ,   [`uk`, `У мене проблема, будь ласка, допоможіть мені`]
+    ,   [`ru`, `Мне нужна помощь, помогите мне, пожалуста`]
+    ,   [`it`, `Ho un problema, per favore aiutami`]
+        ])
     ]
 ]);
 
