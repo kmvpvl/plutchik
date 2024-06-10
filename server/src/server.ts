@@ -19,12 +19,10 @@ import addassessment from './api/addassessment';
 import getnextcontentitem from './api/getnextcontentitem';
 import { createHash, createHmac } from 'crypto';
 import colours from './model/colours';
-import Telegram from './model/telegram';
 import ML from './model/mlstring';
 
 const PORT = process.env.PORT || 8000;
 checkSettings();
-
 async function notFound(c: any, req: Request, res: Response){
     const p = path.join(__dirname, '..', 'public', req.originalUrl);
     if (fs.existsSync(p)) {
@@ -37,18 +35,19 @@ async function headAnswer (c: any, req: Request, res: Response) {
     return res.status(200).json();
 }
 const bot = new TelegramBot(process.env.tg_bot_authtoken as string);
-const myBot = new Telegram(process.env.tg_bot_authtoken as string);
+//const myBot = new Telegram(process.env.tg_bot_authtoken as string);
 if (process.env.tg_web_hook_server) {
     setTimeout(async ()=>{
         let ret = false;
         //bot info
+        /* for a while manually
         try {
-            ret = await myBot.setMyName(process.env.tg_bot_name);
+            ret = await bot.setMyName(process.env.tg_bot_name);
             console.log(`${colours.fg.green}Setting TG setMyName successful '${JSON.stringify(ret)}'${colours.reset}`)
         } catch(reason: any) {
             console.log(`${colours.fg.red}Setting TG setMyName error '${JSON.stringify(reason)}'${colours.reset}`);
         }
-
+        */
         try {
             ret = await bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`);
             console.log(`${colours.fg.green}TG web hook created successfully${colours.reset}`);
@@ -76,7 +75,6 @@ if (process.env.tg_web_hook_server) {
             console.log(`${colours.fg.red}Setting TG SetChatMenuButton error '${JSON.stringify(reason)}'${colours.reset}`);
         }
     }, 200);
-
             
 /*        
             await myBot.setMyShortDescription(ML('Match mind first'))
