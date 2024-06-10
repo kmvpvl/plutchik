@@ -1,7 +1,6 @@
 import React, { RefObject } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import Pending from "../pending/pending";
-import { UserModes } from "../user/user";
 
 interface IOrgsProps {
     serverInfo: IServerInfo,
@@ -9,7 +8,6 @@ interface IOrgsProps {
     onCreateNewOrg?: ( org: any)=>void,
     onOrganizationListLoaded?: (orgs: Array<any>)=>void,
     onOrgSelected:(orgid: string)=>void,
-    onChangeMode: (oldmode: UserModes, newmode: UserModes)=>void,
     pending?: RefObject<Pending>
 }
 
@@ -78,8 +76,6 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
                     nState.mode = e.target.value;
                     this.setState(nState);
 
-                    localStorage.setItem('mode', "psychologist:"+e.target.value as UserModes);
-                    this.props.onChangeMode("psychologist:"+old as UserModes, "psychologist:"+e.target.value as UserModes);
                 }}>
                 <input name="psymode" type="radio" value={'content'} defaultChecked={this.state.mode !== "chat"}/>content
                 <input name="psymode" type="radio" value={'chat'} defaultChecked={this.state.mode === "chat"}/>chat

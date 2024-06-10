@@ -2,14 +2,9 @@ import React, { RefObject } from 'react';
 import './App.css';
 import TGLogin, {LoginFormStates } from './components/loginForm/loginForm';
 import './model/common';
-import Organizations from './components/manageOrgs/organizations';
 import { IServerInfo, PlutchikError } from './model/common';
-import { ContentItems } from './components/content/content';
-import User, { UserModes } from './components/user/user';
-import Assess from './components/assess/assess';
-import Insights from './components/insights/insights';
 import Pending from './components/pending/pending';
-import Chat from './components/chat/chat';
+import User from './components/user/user';
 
 interface IAppState {
     logged: boolean;
@@ -17,7 +12,6 @@ interface IAppState {
     userInfo?: any;
     orgs?: any[];
     currentOrg?: string;
-    mode: UserModes;
 }
 
 export default class App extends React.Component <{}, IAppState> {
@@ -32,7 +26,6 @@ export default class App extends React.Component <{}, IAppState> {
         userInfo: {},
         currentOrg: undefined,
         orgs: [],
-        mode: 'user'
     }
     messagesRef: RefObject<Infos> = React.createRef();
     pendingRef: RefObject<Pending> = React.createRef();
@@ -41,6 +34,7 @@ export default class App extends React.Component <{}, IAppState> {
         const nState: IAppState = this.state;
         nState.logged = newState === 'logged';
         nState.serverInfo = info;
+        nState.userInfo = {};
         this.setState(nState);
     }
 
@@ -77,68 +71,15 @@ export default class App extends React.Component <{}, IAppState> {
         }
     }
 
-    onChangeMode(oldMode: UserModes, newMode: UserModes) {
-        if (this.state.mode !== newMode) {
-            const nState: IAppState = this.state;
-            nState.mode = newMode;
-            this.setState(nState);
-        }
-    }
-    onUserInsights() {
-        const nState: IAppState = this.state;
-        nState.mode = "user:insights";
-        this.setState(nState);
-    }
-    onUserAssessments() {
-        const nState: IAppState = this.state;
-        nState.mode = "user";
-        this.setState(nState);
-    }
-    renderPsyMode (): React.ReactNode {
-        const mode = this.state.mode.split(':')[1];
-
-        return (<>
-        {this.state.logged?<Organizations pending={this.pendingRef} serverInfo={this.state.serverInfo} onError={err=>this.onError(err)} onCreateNewOrg={(org)=>this.onNewOrgCreated(org)} onOrganizationListLoaded={(orgs)=>{
-            const nState: IAppState = this.state;
-            nState.orgs = orgs;
-            this.setState(nState);
-        }} onOrgSelected={orgid=>{
-            const nState: IAppState = this.state;
-            nState.currentOrg = orgid;
-            this.setState(nState);//=>this.setState(nState));
-        }} onChangeMode={(oldmode: UserModes, newmode: UserModes)=>{
-            this.onChangeMode(oldmode, newmode);
-        }}/>
-        :<span></span>}
-        {this.state.logged && this.state.currentOrg? (mode !== "chat"?<ContentItems pending={this.pendingRef} serverInfo={this.state.serverInfo} oid={this.state.currentOrg} uid={this.state.userInfo._id} onSuccess={(text: string)=>this.displayInfo(text)} onError={(err: PlutchikError)=>this.displayError(err)}/>: <Chat serverInfo={this.state.serverInfo} oid={this.state.currentOrg} onSuccess={(text: string)=>this.displayInfo(text)} onError={(err: PlutchikError)=>this.displayError(err)}/>):<span></span>}
-        </>
-        );
-    }
-    renderUserMode (): React.ReactNode {
-        const mode = this.state.mode.split(':')[1];
-        if (!this.state.logged) return <></>;
-        return (
-            <>
-            {mode === undefined?<Assess pending={this.pendingRef} serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onError={err=>{
-                this.displayError(err);
-            }} onInsights={()=>this.onUserInsights()}></Assess>
-            :
-            <Insights pending={this.pendingRef} serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onAssess={()=>this.onUserAssessments()} onError={err=>this.onError(err)}/>}
-            </>
-        );
-    }
     
     render(): React.ReactNode {
         return (
-        <>
+        <div className='app-container'>
             <TGLogin pending={this.pendingRef} onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
-            {this.state.logged?<User serverInfo={this.state.serverInfo} userInfo={this.state.userInfo} onChangeMode={(o, n)=>this.onChangeMode(o, n)}/>:<span></span>}
-            
-            {this.state.mode.split(':')[0].split(':')[0] === 'psychologist' ? this.renderPsyMode():this.renderUserMode()
-            }   
+            <User userInfo={this.state.userInfo} serverInfo={this.state.serverInfo}></User>
             <Infos ref={this.messagesRef}/>
             <Pending ref={this.pendingRef}/>
-        </>
+        </div>
         );
     }
 }

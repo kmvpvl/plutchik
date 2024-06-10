@@ -146,8 +146,11 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
     }
     render(): React.ReactNode {
         const state = this.state.state;
-        return (
-            <div className={ 'logged' === state ?'login-form logged':'login-form'}>
+        return <div className={ 'logged' === state ?'login-container logged':'login-container'}>
+            { 'logged' !== state ?
+            <span className='login-intro'>Добро пожаловать! Этот бот является частью большой системы для взаимодействия психологов, их клиентов, работодателей и их работников. Система нацелена на повышение комфортности взаимодействия и улучшения качества жизни всех участников. Бот позволит Вам вычислить Ваш эмоциональный азимут, сравнить его с другими участниками, оставаясь в безопасности. Будьте уверены, что информация о Вас будет удалена в тот момент, как Вы об этом попросите. Больше подробностей о системе прочитайте тут (https://plutchik-landing.onrender.com)</span>:<span></span>}
+
+            <div className='login-form'>
                 <span className='login-state'>
                     <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
                 </span>
@@ -164,7 +167,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                 </span>
                 {'connected' === state ? <span className='versions'>{JSON.stringify(this.serverInfo.version)}</span>:<span></span>}
             </div>
-        );
+        </div>;
     }
 }
 
