@@ -47,6 +47,7 @@
 
 .content-item-form {
     overflow: auto;
+    position: relative;
 }
 
 .content-item {
@@ -107,3 +108,23 @@ textarea {
     display: grid;
     grid-template-columns: 1fr 75px auto;
 }
+
+.content-item-changed-status {
+    position: absolute;
+    float: right;
+    font-size: small;
+    color: white;
+    right: 0;
+    top: 0em;
+    background-color: darkred;
+    border: 1px solid red;
+    border-radius: 5px;
+    padding: 2px;
+    z-index: 1000;
+}
+
+.changes-saved {
+    background-color: darkgreen;
+    border-color: green;
+}
+

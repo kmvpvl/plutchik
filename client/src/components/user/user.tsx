@@ -5,6 +5,7 @@ import './user.css'
 interface IUserProps {
     serverInfo: IServerInfo;
     userInfo: any;
+    onLogoutClick: ()=>void;
 }
 
 interface IUserState {
@@ -29,6 +30,7 @@ export default class User extends React.Component<IUserProps, IUserState> {
             <span className='user-info'>{`Hello ${userinfo.name}!`}</span>
             <span className='user-toolbar'>
                 <button>I need help</button>
+                <button onClick={()=>this.props.onLogoutClick()}>Logout</button>
             </span>
         </span>
     }

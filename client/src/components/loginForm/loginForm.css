@@ -42,6 +42,7 @@
 }
 
 .logged {
+    display: none;
     border-width: 0px;
     position: absolute;
     opacity: 0.3;
@@ -50,6 +51,7 @@
     left: auto;
     right: 0;
     bottom: 0;
+    grid-area: user-logout;
 }
 
 .versions {

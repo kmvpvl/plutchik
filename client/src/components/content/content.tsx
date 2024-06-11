@@ -18,6 +18,7 @@ export interface IContentProps {
 export interface IContentState {
     items: Array<any>;
     curItem?: any;
+    curItemStat?: any;
 }
 
 export class Content extends React.Component<IContentProps, IContentState> {
@@ -59,7 +60,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
         serverCommand('addcontent', this.props.serverInfo, JSON.stringify({
             contentinfo: item
         }), res=>{
-            if (this.props.onSuccess) this.props.onSuccess(`Success!\n${JSON.stringify(res)}`);
+            if (this.props.onSuccess) this.props.onSuccess(`Saved successfully!`);//\n${JSON.stringify(res)}`);
             this.props.pending?.current?.decUse();
             this.itemFormRef.current?.setState({item: res, isChanged: false});
             //let's update element
@@ -85,15 +86,32 @@ export class Content extends React.Component<IContentProps, IContentState> {
     onSelectItem(selectedItem: any) {
         const nState: IContentState = this.state;
         if (this.itemFormRef.current?.state.isChanged) {
-            alert('Item was changed. Save?')
+            if (window.confirm('Item was changed. Save?')) {
+                this.saveItem(this.itemFormRef.current.state.item);
+                return;
+            }
         }
         // clone for editing
         const cloneObj: any = JSON.parse(JSON.stringify(selectedItem));
         cloneObj.name = new MLString(cloneObj.name);
         cloneObj.description = new MLString(cloneObj.description);
         nState.curItem = cloneObj;
+        nState.curItemStat = undefined;
         this.setState(nState);
-        this.itemFormRef.current?.setState({item: cloneObj, isChanged: false})
+        this.itemFormRef.current?.setState({item: cloneObj, isChanged: false});
+        this.props.pending?.current?.incUse();
+        
+        serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
+            cid: selectedItem._id
+        }), (res)=>{
+            this.props.pending?.current?.decUse();
+            const nState: IContentState = this.state;
+            nState.curItemStat = res;
+            this.setState(nState);
+        }, (err: PlutchikError)=>{
+            if (this.props.onError) this.props.onError(err);
+            this.props.pending?.current?.decUse();
+        });
     }
     onRevertItem() {
         const curItem = this.state.curItem;
@@ -106,6 +124,14 @@ export class Content extends React.Component<IContentProps, IContentState> {
             this.itemFormRef.current?.setState({item: cloneObj, isChanged: false})
         }
     }
+    onBlockItem() {
+        if (this.itemFormRef.current?.state) {
+            const nState: IItemFormState = this.itemFormRef.current?.state;
+            nState.item.blocked = true;
+            nState.isChanged = true;
+            this.itemFormRef.current?.setState(nState);
+        }
+    }
 
     render(): React.ReactNode {
         const items = this.state.items;
@@ -113,13 +139,15 @@ export class Content extends React.Component<IContentProps, IContentState> {
             <span className="content-label">Content of set editing</span>
             <span className="content-toolbar">
                 <button>New item</button>
-                <button>Remove item</button>
+                <button onClick={this.onBlockItem.bind(this)}>Hide item</button>
                 <span>|</span>
                 <button onClick={this.onRevertItem.bind(this)}>Revert item</button>
                 <button onClick={this.saveItem.bind(this, this.state.curItem)}>Save item</button>
                 <span>|</span>
                 <button>Deep check set</button>
                 <button>Analyze set</button>
+                <span>|</span>
+                {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={new Map(Object.entries(this.state.curItemStat).map((v:any, i:any)=>[v[0], v[1]]))}/></span>:<></>}
             </span>
             <span className="content-area">
                 <span className="content-items">
@@ -192,10 +220,7 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
         const item = this.state.item;
         console.log(JSON.stringify(item));
         return <div className="content-item-form" key={Math.random()}>
-            <div className="content-form-tools">
-                <span>Item {this.state.isChanged?"changed":"saved"}</span>
-                <span>Count: {}</span>
-            </div>
+            <span className={`content-item-changed-status ${this.state.isChanged?'':'changes-saved'}`}>Item {this.state.isChanged?"changed":"saved"}</span>
             <div>
                 <MLStringEditor key={`mlse${item?._id}`} caption="Name" defaultValue={item.name} ref={this.nameRef} onChange={this.updateAttribute.bind(this, 'name')}/>
                 Lang <select key={`${item._id}_2`} ref={this.langRef} defaultValue={item.language} onChange={this.updateAttribute.bind(this, 'language')}>

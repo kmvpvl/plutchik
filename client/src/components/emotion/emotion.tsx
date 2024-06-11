@@ -66,6 +66,7 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
 
 interface IFlowerProps {
     vector?: Map<EmotionType, number>
+    width: string;
 }
 
 interface IFlowerState {
@@ -74,9 +75,9 @@ interface IFlowerState {
 
 export class Flower extends React.Component<IFlowerProps, IFlowerState> {
     render(): React.ReactNode {
-        const w = 75;
-        return <>
-        <svg xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width='100%' height='100%' viewBox={`-${w/2} -${w/2} ${w} ${w}`}>
+        const w = 100;
+        return <span className='flower-container'>
+        <svg xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width={this.props.width} height={this.props.width} viewBox={`-${w/2} -${w/2} ${w} ${w}`}>
             {emotions.map((v, i)=> {
                 const N = 8;
                 let R;
@@ -94,10 +95,10 @@ export class Flower extends React.Component<IFlowerProps, IFlowerState> {
                 const xc2 = Math.round(r * Math.sin(ac2));
                 const yc1 = -Math.round(r * Math.cos(ac1));
                 const yc2 = -Math.round(r * Math.cos(ac2));
-                return <path key={i} className={axis?v:'dotted'} d={`M 0,0 L ${xc1},${yc1} Q ${xv},${yv} ${xc2},${yc2} L 0,0, z`}/>
+                return <path key={i} style={{fill: axis?`var(--${v}-color)`:'transparent', stroke: 'gray'}} d={`M 0,0 L ${xc1},${yc1} Q ${xv},${yv} ${xc2},${yc2} L 0,0, z`}/>
             })}
         </svg>
-        </>;
+        </span>;
     }
 }
 
