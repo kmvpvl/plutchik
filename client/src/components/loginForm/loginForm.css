@@ -43,9 +43,13 @@
 
 .logged {
     border-width: 0px;
-    position: relative;
+    position: absolute;
     opacity: 0.3;
-    grid-area: app-toolbar;
+    margin: auto auto 0 auto;
+    top: auto;
+    left: auto;
+    right: 0;
+    bottom: 0;
 }
 
 .versions {

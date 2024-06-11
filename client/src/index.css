@@ -1,6 +1,6 @@
 :root {
-  --text-color: #dedede;
-  --background-color: #2e2e2e;
+  --text-color: #3f3f3f;
+  --background-color: #FFFFFF;
 }    
 :root {
   --joy-color:#edc500;
@@ -45,11 +45,20 @@ body {
   height: 100%;
 }
 
-input, select, textarea {
+input, button, select, textarea {
   font-family: 'UbuntuMono', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
   /*font-size: calc(10px + 2vmin);*/
   border-radius: 5px;
   color: var(--text-color);
   border: var(--text-color) 1px solid;
   background-color: var(--background-color);
+  font-size:medium;
+  margin: 1px;
+  padding: 5px;
+}
+
+button {
+  color: var(--background-color);
+  border: var(--text-color) 1px solid;
+  background-color: var(--text-color);
 }

@@ -1,10 +1,14 @@
 .user-container {
     display: grid;
     grid-area: app-user;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr auto auto;
+    grid-template-areas: "user-logo user-info user-toolbar user-logout";
+    gap: 5px;
 }
 
 .user-logo-center {
+    grid-area: user-logo;
+    padding: 5px;
 }
 .user-logo-letters-container {
     font-size: xx-large;
@@ -16,8 +20,12 @@
 }
 
 .user-info {
+    grid-area: user-info;
     overflow: hidden;
+    font-size: large;
+    margin: auto auto auto 0;
 }
 
 .user-toolbar {
+    grid-area: user-toolbar;
 }

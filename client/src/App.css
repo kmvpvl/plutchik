@@ -26,8 +26,8 @@ div.error {
 
 .app-container {
   display: grid;
-  border: 1px solid var(--trust-color);
-  padding: 1px;
+  border: 0px solid var(--trust-color);
+  padding: 2px;
   border-radius: 5px;
   min-width: 100%;
   min-height: 100%;
@@ -52,14 +52,11 @@ div.error {
 @media (orientation: portrait) {
   .app-container {
     grid-template-areas: 
-      "logo login"
-      "banner banner"
-      "HRD HRD"
-      "psychologists psychologists"
-      "everyone everyone"
-      "safety_manifest safety_manifest"
-      "q_n_a q_n_a";
-      grid-template-rows: auto auto auto auto auto auto 1fr;
+      "app-user app-toolbar"
+      "app-orgs app-toolbar"
+      "app-content app-toolbar";
+      grid-template-rows: auto auto 1fr;
+      grid-template-columns: 1fr auto;
     }
 }
 

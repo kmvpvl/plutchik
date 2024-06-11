@@ -5,6 +5,10 @@ import './model/common';
 import { IServerInfo, PlutchikError } from './model/common';
 import Pending from './components/pending/pending';
 import User from './components/user/user';
+import Organizations from './components/manageOrgs/organizations';
+import { Content } from './components/content/content';
+
+type AppMode = "content" | "users";
 
 interface IAppState {
     logged: boolean;
@@ -12,6 +16,7 @@ interface IAppState {
     userInfo?: any;
     orgs?: any[];
     currentOrg?: string;
+    mode?: AppMode;
 }
 
 export default class App extends React.Component <{}, IAppState> {
@@ -26,15 +31,22 @@ export default class App extends React.Component <{}, IAppState> {
         userInfo: {},
         currentOrg: undefined,
         orgs: [],
+        mode: localStorage.getItem("plutchik_app_mode")?localStorage.getItem("plutchik_app_mode") as AppMode:"content"
     }
     messagesRef: RefObject<Infos> = React.createRef();
     pendingRef: RefObject<Pending> = React.createRef();
+    contentRef: RefObject<Content> = React.createRef();
 
-    public onLoginStateChanged(oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo) {
+    private onLoginStateChanged(oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo) {
         const nState: IAppState = this.state;
         nState.logged = newState === 'logged';
         nState.serverInfo = info;
-        nState.userInfo = {};
+        this.setState(nState);
+    }
+
+    private onOrgSelected(orgid: string) {
+        const nState: IAppState = this.state;
+        nState.currentOrg = orgid;
         this.setState(nState);
     }
 
@@ -48,6 +60,7 @@ export default class App extends React.Component <{}, IAppState> {
     }
     onNewOrgCreated(org: any) {
     }
+
     displayInfo(text: string) {
         const s = this.messagesRef.current?.state;
         if (s) {
@@ -73,14 +86,14 @@ export default class App extends React.Component <{}, IAppState> {
 
     
     render(): React.ReactNode {
-        return (
-        <div className='app-container'>
+        return <div className='app-container'>
             <TGLogin pending={this.pendingRef} onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
-            <User userInfo={this.state.userInfo} serverInfo={this.state.serverInfo}></User>
+            {this.state.logged?<User userInfo={this.state.userInfo} serverInfo={this.state.serverInfo}></User>:<div/>}
+            {this.state.logged?<Organizations serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)}></Organizations>:<div/>}
+            {this.state.logged?this.state.mode === "users"?<div></div>:this.state.currentOrg === undefined?<div></div>:<Content ref={this.contentRef} serverInfo={this.state.serverInfo} orgid={this.state.currentOrg} userid={this.state.userInfo._id} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} pending={this.pendingRef}></Content>:<div/>}
             <Infos ref={this.messagesRef}/>
             <Pending ref={this.pendingRef}/>
-        </div>
-        );
+        </div>;
     }
 }
 

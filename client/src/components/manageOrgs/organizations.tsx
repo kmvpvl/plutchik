@@ -1,6 +1,7 @@
 import React, { RefObject } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import Pending from "../pending/pending";
+import "./organizations.css";
 
 interface IOrgsProps {
     serverInfo: IServerInfo,
@@ -20,7 +21,7 @@ interface IOrgsState {
 export default class Organizations extends React.Component<IOrgsProps, IOrgsState> {
     state = {
         orgs: [],
-        currentOrg: localStorage.getItem('currentOrg'),
+        currentOrg: localStorage.getItem('plutchik_currentOrg'),
         mode: "content"
     }
     componentDidMount(): void {
@@ -57,30 +58,35 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
     orgSelected(orgid: string) {
         const nState: IOrgsState = this.state;
         nState.currentOrg = orgid;
-        localStorage.setItem('currentOrg', orgid);
+        localStorage.setItem('plutchik_currentOrg', orgid);
         this.setState(nState);
         this.props.onOrgSelected(orgid);
     }
     
     render(): React.ReactNode {
-        return (
-            <div>{this.state.orgs.length?<><span>Organization</span> 
-                <select onChange={e=>this.orgSelected(e.currentTarget.value)} defaultValue={this.state.currentOrg?this.state.currentOrg:''} onCompositionEnd={()=>console.log('test')}>
-                    {this.state.orgs.map((v, i)=>(<option key={i} value={(v as any)._id}>{(v as any).name}</option>))}
-                </select></>:<></>}
-                <button onClick={()=>this.createNewOrganization()}>📄</button>
-                <button>🖊️</button>
-                <span onChange={(e: any)=>{
-                    const nState: IOrgsState = this.state;
-                    const old = nState.mode;
-                    nState.mode = e.target.value;
-                    this.setState(nState);
-
-                }}>
-                <input name="psymode" type="radio" value={'content'} defaultChecked={this.state.mode !== "chat"}/>content
-                <input name="psymode" type="radio" value={'chat'} defaultChecked={this.state.mode === "chat"}/>chat
-                </span>
-            </div>
-        );
+        const orgs = this.state.orgs;
+        const cur_org = this.state.currentOrg?this.state.currentOrg:undefined;
+        return <div className="orgs-container">
+            <span className="orgs-cur-org">
+                {orgs.length === 0?<span className="orgs-label">No one set you have</span>:
+                <span><span className="orgs-label">Choose a set of content </span>
+                <select onChange={e=>this.orgSelected(e.currentTarget.value)} 
+                    defaultValue={cur_org}>
+                    {orgs.map((v: any, i)=><option key={i} value={v._id}>{v.name}</option>)}
+                </select> &nbsp;</span>
+                }
+            </span>
+            <span className="orgs-toolbar">
+            {orgs.length !== 0?<><button>Edit</button>
+                <button>Rename</button>
+                <button>Manage users</button>
+                <button>Manage assistants</button>
+                <span>|</span>
+                <button>Remove set</button>
+                </>:<></>}
+                <button>Create new set</button>
+            </span>
+            <span>{/*JSON.stringify(orgs)*/}</span>
+        </div>;
     }
 }
