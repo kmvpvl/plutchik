@@ -105,10 +105,10 @@ export class Content extends React.Component<IContentProps, IContentState> {
             <span className="content-label">Content of set editing</span>
             <span className="content-toolbar">
                 <button onClick={this.onNewItem.bind(this)}>New item</button>
-{/*                 <button onClick={this.onBlockItem.bind(this)}>Hide item</button>
- */}                <span>|</span>
-{/*                 <button onClick={this.onRevertItem.bind(this)}>Revert item</button>
- */}                <button onClick={this.saveItem.bind(this)}>Save item</button>
+                {/*<button onClick={this.onBlockItem.bind(this)}>Hide item</button>*/}
+                <span>|</span>
+                {/*<button onClick={this.onRevertItem.bind(this)}>Revert item</button>*/}
+                 <button onClick={this.saveItem.bind(this)}>Save item</button>
                 <span>|</span>
                 <button>Deep check set</button>
                 <button>Analyze set</button>
@@ -119,7 +119,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
                 <span className="content-items">
                     {items.length === 0?"No items in this set. Create one":items.map((v, i)=><ContentItem key={i} item={v} onSelect={this.onSelectItem.bind(this, v)} selected={this.state.curItem?._id === v._id}/>)}
                 </span>
-                <ItemForm key={this.state.curItem?this.state.curItem._id:""} ref={this.itemFormRef} default_value={this.state.curItem} orgid={this.props.orgid}></ItemForm>
+                <ItemForm key={this.state.curItem?this.props.orgid+this.state.curItem._id:""} ref={this.itemFormRef} default_value={this.state.curItem} orgid={this.props.orgid}></ItemForm>
             </span>
         </div>
     }
@@ -149,18 +149,6 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
         };
     }
 
-/*    componentDidUpdate(prevProps: Readonly<IItemFormProps>, prevState: Readonly<IItemFormState>, snapshot?: any): void {
-        debugger
-        if (prevProps.default_value?._id === this.props.default_value?._id) return;
-        const tvalue = this.props.default_value?JSON.parse(JSON.stringify(this.props.default_value)):this.newItem();
-        tvalue.name = new MLString(tvalue.name);
-        tvalue.decription = new MLString(tvalue.description);
-        this.setState({
-            value: tvalue,
-            isChanged: false
-        });
-    }*/
-
     langRef: RefObject<HTMLSelectElement> = React.createRef();
     groupsRef: RefObject<HTMLInputElement> = React.createRef();
     nameRef: RefObject<MLStringEditor> = React.createRef();
@@ -186,7 +174,7 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
         item.organizationid = this.props.orgid;
         item.name = "";
         item.description = "";
-        item.language = "en";
+        item.language = MLString.getLang();
         item.url = "";
         item.source = "web";
         item.tags = [];
@@ -228,26 +216,26 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
             <span className={`content-item-changed-status ${this.state.isChanged?'':'changes-saved'}`}>Item {this.state.isChanged?"changed":"saved"}</span>
             <div>
                 <MLStringEditor caption="Name" defaultValue={item.name} ref={this.nameRef} onChange={this.updateAttribute.bind(this, 'name')}/>
-                Lang <select ref={this.langRef} defaultValue={item.language} onChange={this.updateAttribute.bind(this, 'language')}>
+                <MLStringEditor caption="Description" defaultValue={item.description} ref={this.descRef} onChange={this.updateAttribute.bind(this, 'description')}/>
+                Lang<select ref={this.langRef} defaultValue={item.language} onChange={this.updateAttribute.bind(this, 'language')}>
                     <option value='en'>en</option>
                     <option value='fr'>fr</option>
                     <option value='es'>es</option>
                     <option value='de'>de</option>
                     <option value='uk'>uk</option>
                     <option value='ru'>ru</option>
-                    <option value='it'>ru</option>
+                    <option value='it'>it</option>
                 </select>
 
-                Type <select ref={this.typeRef} defaultValue={item.type} onChange={this.updateAttribute.bind(this, 'type')}>
+                <span> | </span><span>Type</span><select ref={this.typeRef} defaultValue={item.type} onChange={this.updateAttribute.bind(this, 'type')}>
                     <option value='image'>image</option>
                     <option value='text'>text</option>
                 </select>
 
-                Blocked <input type="checkbox" ref={this.blockedRef} defaultChecked={item.blocked} onChange={this.updateAttribute.bind(this, 'blocked')}/>
+                <span> | </span><input type="checkbox" ref={this.blockedRef} defaultChecked={item.blocked} onChange={this.updateAttribute.bind(this, 'blocked')}/><span>Blocked</span>
 
-                Groups <input ref={this.groupsRef} defaultValue={item.groups?.map((v: any)=>v.name).join(';')} onChange={this.updateAttribute.bind(this, 'groups')}/>
+                <span> | </span><span>Groups<input ref={this.groupsRef} defaultValue={item.groups?.map((v: any)=>v.name).join(';')} onChange={this.updateAttribute.bind(this, 'groups')}/></span>
             </div>
-            <MLStringEditor caption="Description" defaultValue={item.description} ref={this.descRef} onChange={this.updateAttribute.bind(this, 'description')}/>
             <div className="">
                 Url <textarea ref={this.urlRef} defaultValue={item.url} onChange={this.updateAttribute.bind(this, 'url')}/></div>
                     

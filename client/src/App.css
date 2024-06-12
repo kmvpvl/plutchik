@@ -26,6 +26,7 @@ div.error {
 
 .app-container {
   display: grid;
+  gap: 1em;
   border: 0px solid var(--trust-color);
   padding: 2px;
   border-radius: 5px;
@@ -60,3 +61,9 @@ div.error {
     }
 }
 
+button.selected {
+  font-weight: bolder;
+}
+button.selected::before {
+  content: "> ";
+}

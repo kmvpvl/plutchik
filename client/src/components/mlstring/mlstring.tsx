@@ -35,7 +35,7 @@ export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStr
                 this.state.value.values.set('', '');
                 if (this.props.onChange) this.props.onChange(this.value);
                 this.setState(this.state);
-            }}>[+]</button><input placeholder="Type in default language" onChange={(e)=>{
+            }}>+</button><input placeholder="Type in default language" onChange={(e)=>{
                 const d: IMLString = this.value.toJSON();
                 d.default = e.currentTarget.value;
                 if (this.props.onChange) this.props.onChange(new MLString(d));
@@ -52,7 +52,7 @@ export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStr
                     this.state.value.values.delete(l);
                     if (this.props.onChange) this.props.onChange(this.value);
                     this.setState(this.state);
-                }}>X</button></span>
+                }}>-</button></span>
                 <input placeholder='Type language' onChange={(e)=>{
                     const oldv = this.state.value.values.get(l);
                     this.state.value.values.delete(l);
