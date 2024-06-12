@@ -50,7 +50,7 @@
     position: relative;
 }
 
-.content-item {
+.content-item-container {
     border-width: 1px;
     padding: 5px;
     margin: 5px;
@@ -66,7 +66,8 @@
     font-size: 120%;
 }
 .selected {
-    font-weight: bold;
+    color: var(--background-color);
+    background-color: var(--text-color);
 }
 
 .content-item-desc {
@@ -126,5 +127,9 @@ textarea {
 .changes-saved {
     background-color: darkgreen;
     border-color: green;
+}
+
+.content-item-time-label {
+    font-size: xx-small;
 }
 

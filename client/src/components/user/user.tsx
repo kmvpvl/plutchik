@@ -18,7 +18,7 @@ export default class User extends React.Component<IUserProps, IUserState> {
     }
     render(): React.ReactNode {
         const userinfo = this.props.userInfo;
-        const age = Math.round((new Date().getTime() - new Date(userinfo.birthdate).getTime())/1000/60/60/24/365.25);
+        //const age = Math.round((new Date().getTime() - new Date(userinfo.birthdate).getTime())/1000/60/60/24/365.25);
         return <span className='user-container'>
             <span className="user-logo-center">
                 <span className="user-logo-letters-container">

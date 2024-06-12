@@ -118,6 +118,9 @@ export default class Organization extends MongoProto <IOrganization>{
                 localField: "_id",
                 foreignField: "items",
                 as: "groups"
+            }},
+            {'$sort': {
+                changed: -1
             }}
         ]);
         return ci;
