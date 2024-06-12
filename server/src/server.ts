@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import User from './model/user';
 import userinfo, {getinsights, getmatchlist, informuserbytg, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
-import {createorganization, getusersassessedorganizationcontent} from './api/organization';
+import {createorganization, getusersassessedorganizationcontent, renameorganization} from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
 import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
@@ -145,6 +145,7 @@ api.register({
     version: version,
     tggetsessiontoken: async (c, req, res, user) => tggetsessiontoken(c, req, res, user),
     createorganization: async (c, req, res, user) => createorganization(c, req, res, user),
+    renameorganization: async (c, req, res, user) => renameorganization(c, req, res, user),
     tgcreateauthcode: async (c, req, res, user) => tgcreateauthcode(c, req, res, user, bot),
     userinfo: async (c, req, res, user) => userinfo(c, req, res, user),
     orgsattachedtouser: async (c, req, res, user) => ogranizationAttachedToUser(c, req, res, user),

@@ -77,6 +77,12 @@ export default class Organization extends MongoProto <IOrganization>{
         throw new PlutchikError("organization:wrongtguserid", `organizationid='${this.uid}'; uid='${uid}'`)
     }
 
+    public async rename(newName: string) {
+      await this.checkData();
+      if (this.data) this.data.name = newName;
+      await this.save();
+  }
+
     public async getFirstLettersOfContentItems(): Promise<Array<string>> {
         await this.checkData();
         const letters = await mongoContent.aggregate([

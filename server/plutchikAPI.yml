@@ -239,6 +239,23 @@ paths:
       responses:
         '200':
           description: OK
+  /renameorganization:
+    post:
+      description: Rename organization (for administrators of org only)
+      operationId: renameorganization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oid:
+                  type: string
+                newname:
+                  type: string
+      responses:
+        '200':
+          description: OK
   /tggetsessiontoken:
     get:
       description: Returns session token by authorization

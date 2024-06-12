@@ -43,3 +43,18 @@ export async function getusersassessedorganizationcontent(c: any, req: Request, 
         return res.status(400).json(e.message);
     }
 }
+
+export async function renameorganization(c: any, req: Request, res: Response, user: User) {
+    const newname = req.body.newname;
+    const oid = new Types.ObjectId(req.body.oid);
+    console.log(`${colours.fg.green}API: renameorganization function${colours.reset}\n ${colours.fg.blue}Parameters: newname = '${newname}'${colours.reset}; oid = '${oid}'`);
+    try {
+        const org = new Organization(oid);
+        await org.load();
+        if (!await org.checkRoles(user, "administrator")) return res.status(403).json({err: 403, desc: `Role administrator requires`});;
+        await org.rename(newname);
+        return res.status(200).json(org.json);
+    } catch (e: any) {
+        return res.status(400).json(e.message);
+    }
+}

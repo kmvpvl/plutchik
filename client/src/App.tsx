@@ -90,7 +90,7 @@ export default class App extends React.Component <{}, IAppState> {
         return <div className='app-container'>
             <TGLogin ref={this.loginRef} pending={this.pendingRef} onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
             {this.state.logged?<User userInfo={this.state.userInfo} serverInfo={this.state.serverInfo} onLogoutClick={()=>this.loginRef.current?.logout()}></User>:<div/>}
-            {this.state.logged?<Organizations serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)}></Organizations>:<div/>}
+            {this.state.logged?<Organizations onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)}></Organizations>:<div/>}
             {this.state.logged?this.state.mode === "users"?<div></div>:this.state.currentOrg === undefined?<div></div>:<Content ref={this.contentRef} serverInfo={this.state.serverInfo} orgid={this.state.currentOrg} userid={this.state.userInfo._id} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} pending={this.pendingRef}></Content>:<div/>}
             <Infos ref={this.messagesRef}/>
             <Pending ref={this.pendingRef}/>
