@@ -7,6 +7,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
 import MongoProto from "./mongoproto";
 import { mongoAssessments } from "./assessment";
+import Telegram from "./telegram";
 
 export const DEFAULT_SESSION_DURATION = 10080;
 
@@ -17,6 +18,23 @@ export interface IParticipant {
     expired?: Date;
     roles: Array<RoleType>;
 }
+export interface IInvitationToAssess {
+    _id: Types.ObjectId;
+    whom_tguserid: TelegramBot.ChatId;
+    from_tguserid: TelegramBot.ChatId;
+    messageToUser: TelegramBot.Message;
+    closed: boolean;
+    closedDate?: Date;
+}
+
+export interface IResponseToInvitation {
+    _id: Types.ObjectId;
+    response_to: Types.ObjectId;
+    acceptordecline: boolean;
+    user_reply: TelegramBot.Update;
+    created: Date;
+}
+
 export interface ISessionToken {
     _id: Types.ObjectId;
     useridref: Types.ObjectId;
@@ -28,6 +46,8 @@ export interface IOrganization {
     name: MLString;
     participants: Array<IParticipant>;
     emails: Array<string>;
+    invitations?: Array<IInvitationToAssess>;
+    responses_to_invitations?: Array<IResponseToInvitation>;
     created: Date;
     changed?: Date;
 }
@@ -41,6 +61,8 @@ export const OrganizationSchema = new Schema({
     name: String,
     participants: [],
     emails: [],
+    invitations: {type: Array, require: false},
+    responses_to_invitations: {type: Array, require: false},
     created: Date,
     changed: Date,
     history: Array<any>,
@@ -54,6 +76,8 @@ export default class Organization extends MongoProto <IOrganization>{
     }
 
     public async addParticipant(uid: Types.ObjectId, roles: Array<RoleType>) {
+        //!!! check for supervisor. Nobody can set supervisor to anybody
+        roles = roles.filter(v=>v !== 'supervisor');
         await this.checkData();
         const p: IParticipant =  {
             uid: uid,
@@ -66,7 +90,7 @@ export default class Organization extends MongoProto <IOrganization>{
 
     public async removeParticipant(uid: Types.ObjectId) {
         await this.checkData();
-        if (this.data) this.data.participants = this.data?.participants.filter((v)=>uid.equals(v.uid));
+        if (this.data) this.data.participants = this.data?.participants.filter((v)=>!uid.equals(v.uid));
         await this.save();
     }
 
@@ -77,11 +101,32 @@ export default class Organization extends MongoProto <IOrganization>{
         throw new PlutchikError("organization:wrongtguserid", `organizationid='${this.uid}'; uid='${uid}'`)
     }
 
+    public async logInvitation(i: IInvitationToAssess) {
+        await this.checkData();
+        if (this.data && this.data?.invitations === undefined) this.data.invitations = new Array();
+        this.data?.invitations?.push(i);
+        await this.save();
+    }
+    public async logResponseToInvitation(i: IResponseToInvitation) {
+        await this.checkData();
+        if (this.data && this.data?.responses_to_invitations === undefined) this.data.responses_to_invitations = new Array();
+        this.data?.responses_to_invitations?.push(i);
+        await this.save();
+    }
     public async rename(newName: string) {
       await this.checkData();
       if (this.data) this.data.name = newName;
       await this.save();
-  }
+    }
+
+    public async closeInvitation(inv_id: Types.ObjectId) {
+        await this.checkData();
+        if (this.data) this.data.invitations?.forEach(v=>{if (v._id === inv_id) {
+            v.closed = true;
+            v.closedDate = new Date();
+        }});
+        await this.save();
+    }
 
     public async getFirstLettersOfContentItems(): Promise<Array<string>> {
         await this.checkData();
@@ -189,6 +234,15 @@ export default class Organization extends MongoProto <IOrganization>{
           }
         ]);
         return users;
-  } 
+    } 
 
+    static async getOrganizationByInvitationId(inv_id: Types.ObjectId): Promise<Organization> {
+        const orgs = await mongoOrgs.aggregate([
+            {'$match': {'invitations._id': inv_id}}
+        ]);
+        if (orgs.length === 0) throw new PlutchikError("organization:notfound", `by invitation id = ${inv_id}`);
+        const ret = new Organization(undefined, orgs[0]);
+        await ret.load();
+        return ret
+    }
 }

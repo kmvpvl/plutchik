@@ -1,4 +1,5 @@
 import { Schema } from "mongoose";
+import colours from "./colours";
 export type MLString = string | {
     default: string;
     values?: Map<string, string>
@@ -241,10 +242,43 @@ const plutchik_strings = new Map([
     ,   [`ru`, `Мне нужна помощь, помогите мне, пожалуста`]
     ,   [`it`, `Ho un problema, per favore aiutami`]
         ])
+    ], [`I Accept`,
+    new Map([
+        [`de`, `Weiblich`]
+    ,   [`fr`, `Femelle`]
+    ,   [`es`, `Femenina`]
+    ,   [`uk`, `Жінка`]
+    ,   [`ru`, `Я принимаю`]
+        ])
+    ], [`Click the "I Accept" button to express your informed consent that the author of the request will be able to familiarize yourself with your emotional assessments of the proposed content`,
+    new Map([
+        [`de`, `Weiblich`]
+    ,   [`fr`, `Femelle`]
+    ,   [`es`, `Femenina`]
+    ,   [`uk`, `Жінка`]
+    ,   [`ru`, `Нажмите кнопку "Я принимаю", чтобы выразить Ваше информированное согласие, что автор запроса сможет ознакомиться с Вашими эмоциональными оценками предложенного контента `]
+        ])
+    ], [`Click the "I Decline" button to reject and cancel the request. The requester will be informed that their request has been rejected`,
+    new Map([
+        [`de`, `Weiblich`]
+    ,   [`fr`, `Femelle`]
+    ,   [`es`, `Femenina`]
+    ,   [`uk`, `Жінка`]
+    ,   [`ru`, `Нажмите кнопку "Я отклоняю", чтобы отклонить и аннулировать запрос. Автор запроса будет проинформирован, что его запрос отклонен `]
+        ])
+    ], [`I Decline`,
+    new Map([
+        [`de`, `Weiblich`]
+    ,   [`fr`, `Femelle`]
+    ,   [`es`, `Femenina`]
+    ,   [`uk`, `Жінка`]
+    ,   [`ru`, `Я отклоняю`]
+        ])
     ]
 ]);
 
 export default function ML(str?: string, lang?: string): string {
+    if (lang === undefined) console.log(`${colours.fg.yellow}ML without lang ${str?.substring(0, 7)}... ${colours.reset}`);
     if (str === undefined) return `Unknown string`;
     if (lang === undefined) return str;
     if (!plutchik_strings.has(str)) return str;

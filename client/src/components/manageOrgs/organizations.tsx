@@ -122,7 +122,7 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
                 <span><span className="orgs-label">Choose a set of content </span>
                 {this.state.mode !== "edit set name"?<select ref={this.orgsSelectorRef} onChange={e=>this.orgSelected(e.currentTarget.value)} 
                     defaultValue={cur_org}>
-                    {orgs.map((v: any, i)=><option key={i} selected={cur_org === v._id} value={v._id}>{v.name}</option>)}
+                    {orgs.map((v: any, i)=><option key={i} value={v._id}>{v.name}</option>)}
                 </select>:<input autoFocus ref={this.newOrgNameRef} defaultValue={cur_org_name} onKeyDown={event=>{
                     switch (event.key){
                         case "Escape": this.cancelRenameOrg(); break;

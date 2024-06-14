@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import User from './model/user';
 import userinfo, {getinsights, getmatchlist, informuserbytg, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
-import {createorganization, getusersassessedorganizationcontent, renameorganization} from './api/organization';
+import {createorganization, getusersassessedorganizationcontent, renameorganization, requesttoassignorgtouser} from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
 import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
@@ -152,13 +152,14 @@ api.register({
     getorgcontent: async (c, req, res, user) => getorgcontent(c, req, res, user),
     addcontent: async (c, req, res, user) => addcontent(c, req, res, user),
     addassessment: async (c, req, res, user) => addassessment(c, req, res, user),
-    getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user),
+    getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user, bot),
     getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
     getinsights: async (c, req, res, user) => getinsights(c, req, res, user),
     reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
     getmatchlist: async (c, req, res, user) => getmatchlist(c, req, res, user),
     getusersassessedorganizationcontent: async (c, req, res, user) => getusersassessedorganizationcontent(c, req, res, user),
     informuserbytg: async (c, req, res, user) => informuserbytg(c, req, res, user, bot),
+    requesttoassignorgtouser: async (c, req, res, user) => requesttoassignorgtouser(c, req, res, user, bot),
 
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
 

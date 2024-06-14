@@ -1,5 +1,5 @@
 import React, { RefObject } from "react";
-import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
+import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from "../../model/common";
 import './content.css';
 import { Flower } from "../emotion/emotion";
 import Pending from "../pending/pending";
@@ -260,23 +260,7 @@ interface IContentItemState {
 
 export class ContentItem extends React.Component<IContentItemProps, IContentItemState> {
     render(): React.ReactNode {
-        const today = new Date().getTime();
-        const changed = new Date(this.props.item.changed).getTime();
-        let delta = (today - changed)/1000;
-        let deltastr = "just now";
-        if (delta > 60) {
-            delta = delta / 60;
-            if (delta < 60) deltastr = `${Math.round(delta)} mins ago`
-            else {
-                delta = delta / 60;
-                if (delta < 24) deltastr = `${Math.round(delta)} hours ago`
-                else {
-                    delta = delta / 24;
-                    if (delta < 365) deltastr = `${Math.round(delta)} days ago`
-                    else deltastr = `More year ago`
-                }
-            }
-        } 
+        const deltastr = relativeDateString(new Date(this.props.item.changed));
         return (
         <span className={`content-item-container ${this.props.selected?'selected':''}`} onClick={()=>this.props.onSelect(this.props.item)}>
             <div className="content-item-type">{this.props.item.type}</div>

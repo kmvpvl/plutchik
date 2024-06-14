@@ -248,6 +248,8 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - oid
               properties:
                 oid:
                   type: string
@@ -425,6 +427,27 @@ paths:
                 message:
                   type: string
                 organizationid:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /requesttoassignorgtouser:
+    post:
+      operationId: requesttoassignorgtouser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oid
+                - tguserid
+              properties:
+                oid:
+                  description: Organization id which assigned to user
+                  type: string
+                uid:
+                  description: User who assigned assessing content of organization
                   type: string
       responses:
         '200':

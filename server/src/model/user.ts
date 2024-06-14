@@ -2,7 +2,7 @@ import { PipelineStage, Schema, Types, model } from "mongoose";
 import colours from "./colours";
 import { ContentGroup, IContent, mongoContent, mongoContentGroup, SourceType } from "./content";
 import PlutchikError from "./error";
-import {MLStringSchema} from "./mlstring";
+import ML, {MLStringSchema} from "./mlstring";
 import Organization, { DEFAULT_SESSION_DURATION, IOrganization, ISessionToken, mongoOrgs, mongoSessionTokens } from "./organization";
 import Assessment, { IVector, mongoAssessments } from "./assessment";
 import TelegramBot from "node-telegram-bot-api";
@@ -10,9 +10,9 @@ import MongoProto from "./mongoproto";
 import { randomInt } from "crypto";
 import { Md5 } from "ts-md5";
 
-export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"getting_match"|"offer_group";
+export type RoleType = "supervisor"|"administrator"|"manage_users"|"manage_content"|"getting_match"|"assessment_request";
 
-export interface IAssign {
+export interface IAssignGroup {
     _id: Types.ObjectId;
     userid: Types.ObjectId;
     tguserid?: number;
@@ -20,6 +20,16 @@ export interface IAssign {
     assigndate: Date;
     acceptdecline?: boolean;
     closed: boolean;
+}
+
+export interface IAssignOrg {
+  _id: Types.ObjectId;
+  response_to_invitation: Types.ObjectId,
+  tguserid: TelegramBot.ChatId;
+  oid: Types.ObjectId;
+  assigndate: Date;
+  acceptdecline?: boolean;
+  closed: boolean;
 }
 
 export interface IUser {
@@ -34,7 +44,8 @@ export interface IUser {
     gender?: string;
     maritalstatus?: string;
     features?: string;
-    assignedgroups?: Array<IAssign>;
+    assignedgroups?: Array<IAssignGroup>;
+    assignedorgs?: Array<IAssignOrg>;
     studygroup?: string;
     blocked: boolean;
     auth_code_hash?: string;
@@ -61,6 +72,7 @@ export const UserSchema = new Schema({
     maritalstatus: {type: String, require: false},
     features: {type: String, require: false},
     assignedgroups: {type: Array, require: false},
+    assignedorgs: {type: Array, require: false},
     awaitcommanddata: {type: String, require: false},
     auth_code_hash: {type: String, require: false},
     studygroup: {type: String, require: false},
@@ -183,63 +195,62 @@ export default class User extends MongoProto<IUser> {
         await this.save();
     }
 
-    public async nextContentItemByAssign (groupid: Types.ObjectId, assignid: Types.ObjectId, bot?: TelegramBot): Promise<IContent> {
+    public async nextContentItemByAssignOrg (oid: Types.ObjectId, assignid: Types.ObjectId, bot: TelegramBot): Promise<IContent> {
+        MongoProto.connectMongo();
+        const v = await mongoContent.aggregate([
+            {'$match': {'organizationid': oid}
+            }, {'$lookup': {
+              'from': 'assessments', 
+              'foreignField': 'cid', 
+              'localField': '_id', 
+              'pipeline': [{'$match': {'$expr': {'$eq': ['$assignid', assignid]}}}], 
+              'as': 'result'}
+            }, {'$match': {'result': []}
+            }, {'$addFields': {'rand': {'$rand': {}}}
+            }, {'$sort': {'rand': 1}
+            }, {'$limit': 1 
+            }, {'$project': {'result':0, 'rand': 0}
+            }]);
+        if (v.length === 0) {
+            //let's close assignment of content grooup
+            this.data?.assignedorgs?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true});
+            await this.save();
+            //let's notify all about finish of the assessment
+            const c = this.data?.assignedorgs?.filter(el=>el._id.equals(assignid));
+            const org = new Organization(oid);
+            await org.load();
+            if (c) bot.sendMessage(c[0].tguserid as number, `${ML("User")} ${this.json?.name?this.json?.name:""}(${this.json?.tguserid}) has done assessment of set '${org.json?.name}'`);
+            await org.closeInvitation(assignid);
+            throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';assignid='${assignid}';oid='${oid}'`);
+        }
+        //let's mark content item as asessed by assignment froup
+        v[0].assignid = assignid;
+        return v[0];
+    }
+
+    public async nextContentItemByAssignGroup (groupid: Types.ObjectId, assignid: Types.ObjectId, bot?: TelegramBot): Promise<IContent> {
         MongoProto.connectMongo();
         const v = await mongoContentGroup.aggregate([
-            {
-                '$match': {
-                    '_id': groupid
-                }
-            }, {
-                '$lookup': {
-                    'from': 'contents', 
-                    'localField': 'items', 
-                    'foreignField': '_id', 
-                    'as': 'result'
-                }
-            }, {
-                '$unwind': '$result'
-            }, {
-                '$replaceRoot': {
-                    'newRoot': '$result'
-                  }
-            }, {
-                '$lookup': {
-                    'from': 'assessments', 
-                    'foreignField': 'cid', 
-                    'localField': '_id', 
-                    'pipeline': [{
-                        '$match': {
-                            '$expr': {'$eq': [
-                                '$assignid', assignid
-                            ]}
-                        }
-                    }], 
-                    'as': 'result'
-                  }
-            }, {
-                  '$match': {
-                    'result': []
-                  }
-            }, {
-                  '$addFields': {
-                    'rand': {
-                      '$rand': {}
-                    }
-                  }
-            }, {
-                '$sort': {
-                    'rand': 1
-                }
-            },{
-                '$limit': 1
-            }, {
-                '$project': {
-                    'result':0,
-                    'rand': 0
-                }
-            }
-        ]);
+            {'$match': {'_id': groupid}
+            }, {'$lookup': {
+              'from': 'contents', 
+              'localField': 'items', 
+              'foreignField': '_id', 
+              'as': 'result'}
+            }, {'$unwind': '$result'
+            }, {'$replaceRoot': {'newRoot': '$result'}
+            }, {'$lookup': {
+              'from': 'assessments', 
+              'foreignField': 'cid', 
+              'localField': '_id', 
+              'pipeline': [{'$match': {'$expr': {'$eq': ['$assignid', assignid]}}}], 
+              'as': 'result'}
+            }, {'$match': {'result': []}
+            }, {'$addFields': {'rand': {'$rand': {}}}
+            }, {'$sort': {'rand': 1}
+            }, {'$limit': 1 
+            }, {'$project': {'result':0, 'rand': 0}
+            }]);
         if (!v.length) {
             //let's close assignment of content grooup
             this.data?.assignedgroups?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true});
@@ -247,18 +258,21 @@ export default class User extends MongoProto<IUser> {
             //let's notify all about finish of the assessment
             const c = this.data?.assignedgroups?.filter(el=>el._id.equals(assignid));
 
-            if (c) bot?.sendMessage(c[0].tguserid as number, `User ${this.uid} finished ${c[0]._id} assignment`);
+            if (c) bot?.sendMessage(c[0].tguserid as number, `${ML("User")} (${this.uid}) finished ${c[0]._id} assignment`);
             throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';assignid='${assignid}';groupid='${groupid}'`);
         }
         //let's mark content item as asessed by assignment froup
         v[0].assignid = assignid;
         return v[0];
     }
-    public async nextContentItem(bot?: TelegramBot, language?: string, source_type?: SourceType): Promise <IContent>{
+    public async nextContentItem(bot: TelegramBot, language?: string, source_type?: SourceType): Promise <IContent>{
         this.checkData();
-        const assigns = this.data?.assignedgroups?.filter((val)=>!val.closed);
-        if (assigns?.length) {
-            return this.nextContentItemByAssign(assigns[0].groupid, assigns[0]._id, bot);
+        const assigns_o = this.data?.assignedorgs?.filter((val)=>!val.closed);
+        const assigns_g = this.data?.assignedgroups?.filter((val)=>!val.closed);
+        if (assigns_o?.length) {
+          return this.nextContentItemByAssignOrg(assigns_o[0].oid, assigns_o[0]._id, bot);
+        } else if (assigns_g?.length) {
+            return this.nextContentItemByAssignGroup(assigns_g[0].groupid, assigns_g[0]._id, bot);
         } else {
             return this.nextContentItemAll(language, source_type);
         }
@@ -268,85 +282,22 @@ export default class User extends MongoProto<IUser> {
         //this.checkData();
         MongoProto.connectMongo();
         const v = await mongoContent.aggregate([
-            {
-                $match: {
-                    'blocked': false
-                }
-            },{
-                $addFields: {'newName': '$name'}
-            },
-            {
-                $unwind: '$newName.values'
-            }, 
-            {
-                $addFields: {
-                    'otherLang': {
-                        '$first': '$newName.values'
-                    }
-                }
-            }, {
-                $match: {
-                    'otherLang': {                                
-                        $regex: language?language:this.json?.nativelanguage, 
-                        $options: 'i'
-                    }
-                }
-            },
-            {
-                $project: {
-                        "newName":0,
-                        "otherLang":0
-                }
-            },
-            {
-                $unionWith: {
-                    'coll': 'contents', 
-                    'pipeline': [
-                      {
-                        $match: {
-                            'language': {
-                                '$regex': language?language:this.json?.nativelanguage, 
-                                '$options': 'i'
-                            },
-                            'blocked': false
-                        }
-                    }
-                    ]
-                  }
-            },
-        {$lookup: {
-            from: "assessments",
-            let: {
-              contentid: "$_id",
-            },
-            pipeline: [{
-              $match: {
-                $expr: {
-                  $and: [
-                    {$eq: [this.id, "$uid",]},
-                    {$eq: ["$cid", "$$contentid"]},
-                  ],
-                },
-              },
-            }],
-            as: "result",
-          },
-        }, {
-          $match: {
-            result: [],
-          },
-        }, {
-            $addFields: {
-                'rand': {
-                    $rand: {}
-                }
-            }
-        }, {
-            $sort: {
-                'rand': 1
-            }
-        },{
-          $limit: 1,
+            {$match: {'blocked': false}
+            }, {$addFields: {'newName': '$name'}
+            }, {$unwind: '$newName.values'
+            }, {$addFields: {'otherLang': {'$first': '$newName.values'}}
+            }, {$match: {'otherLang': {$regex: language?language:this.json?.nativelanguage, $options: 'i'}}
+            }, {$project: {"newName":0, "otherLang":0}
+            }, {$unionWith: {'coll': 'contents', 'pipeline': [
+                {$match: {'language': {'$regex': language?language:this.json?.nativelanguage, '$options': 'i'}, 'blocked': false}}
+                ]}
+            }, {$lookup: {from: "assessments", let: {contentid: "$_id",}, pipeline: [{
+                $match: {$expr: {$and: [{$eq: [this.id, "$uid",]}, {$eq: ["$cid", "$$contentid"]}]}},
+                }], as: "result"},
+            }, {$match: {result: []},
+            }, {$addFields: {'rand': {$rand: {}}}
+            }, {$sort: {'rand': 1}
+            }, {$limit: 1,
         }]);
         if (!v.length) throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';`)
         return v[0];
@@ -618,9 +569,27 @@ export default class User extends MongoProto<IUser> {
         return ret;
     }
 
-    public async assignContentGroup(from: User, group: ContentGroup) {
+    public async assignContentOrg(response_to_invitation: Types.ObjectId, from_tguserid: TelegramBot.ChatId, org: Organization) {
+      this.checkData();
+      const a: IAssignOrg = {
+          _id: new Types.ObjectId(),
+          response_to_invitation: response_to_invitation,
+          tguserid: from_tguserid,
+          oid: org.uid as Types.ObjectId,
+          assigndate: new Date(),
+          closed: false
+      }
+      if (this.data && !this.data?.assignedorgs)this.data.assignedorgs = [];
+      // let's check the same not closed group exists
+      //??? 
+      const exists = this.data?.assignedorgs?.filter((val: IAssignOrg)=>val.oid.equals(org.uid as Types.ObjectId));
+      if (!exists?.length) this.data?.assignedorgs?.push(a);
+      await this.save();
+  }
+
+  public async assignContentGroup(from: User, group: ContentGroup) {
         this.checkData();
-        const a: IAssign = {
+        const a: IAssignGroup = {
             _id: new Types.ObjectId(),
             userid: from.uid as Types.ObjectId,
             tguserid: from.json?.tguserid,

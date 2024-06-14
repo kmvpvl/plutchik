@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import colours from '../model/colours';
 import PlutchikError, { ErrorCode } from '../model/error';
-import Organization, { IOrganization } from '../model/organization';
+import Organization, { IInvitationToAssess, IOrganization } from '../model/organization';
 import User from '../model/user';
+import TelegramBot from 'node-telegram-bot-api';
+import ML from '../model/mlstring';
 
 export async function createorganization(c: any, req: Request, res: Response, user: User) {
     const name = req.body.name;
@@ -53,6 +55,38 @@ export async function renameorganization(c: any, req: Request, res: Response, us
         await org.load();
         if (!await org.checkRoles(user, "administrator")) return res.status(403).json({err: 403, desc: `Role administrator requires`});;
         await org.rename(newname);
+        return res.status(200).json(org.json);
+    } catch (e: any) {
+        return res.status(400).json(e.message);
+    }
+}
+
+export async function requesttoassignorgtouser(c: any, req: Request, res: Response, user: User, bot: TelegramBot) {
+    const oid = new Types.ObjectId(req.body.oid);
+    const tguserid: TelegramBot.ChatId = req.body.tguserid;
+    console.log(`${colours.fg.green}API: requesttoassignorgtouser function${colours.reset}\n ${colours.fg.blue}Parameters: oid = '${oid}'; tguserid = '${tguserid}'${colours.reset}`);
+    try {
+        const org = new Organization(oid);
+        await org.load();
+        if (!await org.checkRoles(user, "assessment_request")) return res.status(403).json({err: 403, desc: `Role assessment_request requires`});
+
+        const invitation_id = new Types.ObjectId();
+        const message = await bot.sendMessage(tguserid, `${ML(`User`)} ${user.json?.name} invites your assessing set '${org.json?.name}'.\n${ML('Click the "I Accept" button to express your informed consent that the author of the request will be able to familiarize yourself with your emotional assessments of the proposed content')}\n${ML(`Click the "I Decline" button to reject and cancel the request. The requester will be informed that their request has been rejected`)}`, {reply_markup:{inline_keyboard:[
+            [{text: ML(`I accept`), callback_data: `accept_org:${invitation_id}`}],
+            [{text: ML(`I decline`), callback_data: `decline_org:${invitation_id}`}]
+/* fixed main menu issue and those buttons are redundant            [{text: ML(`I accept`), callback_data: `accept_assignment_org:${org.uid}:${user.uid}`}],
+            [{text: ML(`I decline`), callback_data: `decline_assignment_org:${org.uid}:${user.uid}`}]
+ */        ]}});
+        const invitation: IInvitationToAssess = {
+            _id: invitation_id,
+            messageToUser: message,
+            from_tguserid: user.json?.tguserid as number,
+            whom_tguserid: tguserid,
+            closed: false
+        }
+
+        await org.logInvitation(invitation);
+
         return res.status(200).json(org.json);
     } catch (e: any) {
         return res.status(400).json(e.message);

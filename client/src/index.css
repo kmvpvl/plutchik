@@ -61,4 +61,5 @@ button {
   color: var(--background-color);
   border: var(--text-color) 1px solid;
   background-color: var(--text-color);
+  cursor: pointer;
 }

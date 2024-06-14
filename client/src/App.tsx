@@ -15,7 +15,6 @@ interface IAppState {
     logged: boolean;
     serverInfo: IServerInfo;
     userInfo?: any;
-    orgs?: any[];
     currentOrg?: string;
     mode?: string;
 }
@@ -31,9 +30,9 @@ export default class App extends React.Component <{}, IAppState> {
         },
         userInfo: {},
         currentOrg: undefined,
-        orgs: [],
         mode: localStorage.getItem("plutchik_app_mode")?localStorage.getItem("plutchik_app_mode") as AppMode:"content"
     }
+    private orgs: Array<any> = [];
     messagesRef: RefObject<Infos> = React.createRef();
     pendingRef: RefObject<Pending> = React.createRef();
     contentRef: RefObject<Content> = React.createRef();
@@ -92,17 +91,22 @@ export default class App extends React.Component <{}, IAppState> {
         }
     }
 
+    onOrgsListUpdated(orgs: any[]) {
+        this.orgs = orgs;
+    }
+
     
     render(): React.ReactNode {
+        const current_org = this.orgs.filter(v=>v._id === this.state.currentOrg)[0];
         return <div className='app-container'>
             <TGLogin ref={this.loginRef} pending={this.pendingRef} onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
             
             {this.state.logged?<User userInfo={this.state.userInfo} serverInfo={this.state.serverInfo} onLogoutClick={()=>this.loginRef.current?.logout()}></User>:<div/>}
             
-            {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)}></Organizations>:<div/>}
+            {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)} onOrganizationListLoaded={this.onOrgsListUpdated.bind(this)}></Organizations>:<div/>}
             
-            {this.state.logged?this.state.mode === "users"?
-            <UserMng serverInfo={this.state.serverInfo}/>
+            {this.state.logged?this.state.mode === "users"?this.state.currentOrg === undefined?<div></div>:
+            <UserMng serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id}/>
             
             :this.state.currentOrg === undefined?<div></div>:
             
