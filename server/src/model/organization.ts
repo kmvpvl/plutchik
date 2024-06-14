@@ -1,7 +1,7 @@
 import { Schema, Types, model } from "mongoose";
 import PlutchikError from "./error";
 import {MLString, MLStringSchema} from "./mlstring";
-import User, { RoleType } from "./user";
+import User, { IAssignOrg, RoleType } from "./user";
 import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
@@ -176,6 +176,18 @@ export default class Organization extends MongoProto <IOrganization>{
         ]);
         return ci;
     }
+
+    public async getContentItemsCount(): Promise<Array<IContent>> {
+        await this.checkData();
+        const ci = await mongoContent.aggregate([
+            {'$match': {
+                'organizationid': this.id
+            }},
+            {'$count': "count"}
+        ]);
+        return ci[0].count;
+    }
+
     async checkRoles(user: User, role_to_find: RoleType): Promise<boolean> {
         await this.checkData();
         const user_roles = this.data?.participants.filter(v=>user.uid.equals(v.uid));
@@ -244,5 +256,32 @@ export default class Organization extends MongoProto <IOrganization>{
         const ret = new Organization(undefined, orgs[0]);
         await ret.load();
         return ret
+    }
+    //** Calc assign which referenced in assessment when user is assessing content of organization by invitation */
+    //** @return IAssignOrg or undefined, may be throwed if ogranization object was broken */
+    public async getAssignByInvitationId(inv_id: Types.ObjectId): Promise<IAssignOrg | undefined> {
+        const found_inv = this.json?.invitations?.filter(v=>inv_id.equals(v._id));
+        if (found_inv !== undefined && found_inv.length === 1) {
+            // getting user who was invited
+            const user = await User.getUserByTgUserId(parseInt(found_inv[0].whom_tguserid.toString()));
+            // finding responses to invitation with accepting
+            const answers = this.json?.responses_to_invitations?.filter(v=>inv_id.equals(v.response_to) && v.acceptordecline);
+            if (answers === undefined || answers.length === 0) {
+                // user hasn't replied to invitation or declined
+                return undefined
+            } else {
+                //finding last acceptance
+                const last_answer = answers.reduce((p, cur)=>p.created.getTime()>cur.created.getTime()?p:cur);
+                //getting from user assign object
+                const assigns = user?.json?.assignedorgs?.filter(v=>v.response_to_invitation.equals(last_answer._id));
+                if (assigns === undefined || assigns.length === 0) {
+                    throw new PlutchikError("user:broken", `Expected assign to org with response_to_invitation = '${last_answer._id}'`)
+                } else {
+                    return assigns[0];
+                }
+            }
+        } else {
+            throw new PlutchikError("organization:broken", `Invitation id = '${inv_id}' not found or not the only one`);
+        }
     }
 }

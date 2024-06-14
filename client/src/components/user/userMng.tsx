@@ -14,6 +14,7 @@ export interface IUserMngState {
     mode: string;
     selectedInvitation?: any;
     answersOnSelectedInvitation?: any;
+    stats?: any;
 }
 
 export default class UserMng extends React.Component<IUserMngProps, IUserMngState> {
@@ -48,8 +49,21 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             if (this.props.onError) this.props.onError(err);
         })
     }
+    loadInvitationStats(invitation_id: any) {
+        serverCommand("getinvitationstats", this.props.serverInfo, JSON.stringify({
+            oid: this.props.org._id,
+            invitation_id: invitation_id
+        }), res=>{
+            const nState: IUserMngState = this.state;
+            nState.stats = res;
+            this.setState(nState);
+        }, err=>{
+            if (this.props.onError) this.props.onError(err);
+        })
+    }
 
     onInvitationSelect(invitation: any, answers: any[]){
+        this.loadInvitationStats(invitation._id);
         const nState: IUserMngState = this.state;
         if (nState.selectedInvitation !== invitation) 
         nState.selectedInvitation = invitation;
@@ -63,7 +77,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             const answers = this.state.answersOnSelectedInvitation;
             const inv_date = new Date(inv.messageToUser.date * 1000);
             return <>
-                <div>Invitation was sent: {inv_date.toLocaleString()}<button>Retry</button><button>Clear</button></div>
+                <div>Invitation was sent: {inv_date.toLocaleString()}{/*<button>Retry</button><button>Clear</button>*/}</div>
                 {answers.length === 0?<div>No answers</div>:
                 <div className='user-mng-user-info-table'>
                     <span className='user-mng-user-info-table-header'>Answer date</span>
@@ -72,6 +86,8 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                         <span className='user-mng-user-info-table-cell'>{new Date(v.created).toLocaleString()}</span>
                         <span className='user-mng-user-info-table-cell'>{v.acceptordecline?"accepted":"declined"}</span></React.Fragment>)}
                 </div>}
+                <div>Stats: {this.state.stats?<>{this.state.stats.assigned?`Assigned ${new Date(this.state.stats.assigndate).toLocaleString()}, Progress: ${this.state.stats.contentassessed} of ${this.state.stats.contentcount}, ${this.state.stats.closed?`Closed ${new Date(this.state.stats.closedate).toLocaleString()}`:"Not closed"}`:"Not assigned"}</>:
+                <></>}</div>
             </>;
         } else return <></>;
     }

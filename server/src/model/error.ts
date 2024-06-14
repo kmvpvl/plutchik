@@ -14,6 +14,7 @@ export type ErrorCode =
     | "user:hasnoactivesession" /* User has no active session*/
     | "user:multiplesession" /* User has session not only once*/
     | "user:nonextcontent" /* User has done all assessments*/
+    | "user:broken" /* User object is not consistencyful*/
     | "content:notfound" /* Content id not found*/
     | "content:notloaded" /* Content id not loaded*/
     | "group:notfound" /* Content group id not found*/
@@ -38,6 +39,7 @@ export default class PlutchikError extends Error {
             ["user:hasnoactivesession", "User has no active session"],
             ["user:multiplesession", "User has more that one active session"],
             ["user:nonextcontent", "User has done all assessments"],
+            ["user:broken",  "User object is not consistencyful"],
             ["content:notfound", "Content id not found"],
             ["content:notloaded", "Content id not loaded"],
             ["group:notfound", "Content group id not found"],

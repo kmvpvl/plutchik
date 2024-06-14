@@ -278,7 +278,7 @@ const plutchik_strings = new Map([
 ]);
 
 export default function ML(str?: string, lang?: string): string {
-    if (lang === undefined) console.log(`${colours.fg.yellow}ML without lang ${str?.substring(0, 7)}... ${colours.reset}`);
+    if (lang === undefined) console.log(`${colours.fg.yellow}ML without lang '${str?.substring(0, 15)}'... ${colours.reset}`);
     if (str === undefined) return `Unknown string`;
     if (lang === undefined) return str;
     if (!plutchik_strings.has(str)) return str;

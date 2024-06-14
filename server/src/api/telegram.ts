@@ -490,12 +490,20 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
                     created: new Date()
                 }
                 org.logResponseToInvitation(answer);
+                await org.save();
 
                 // add org to user tasks to do
                 if (acceptordecline)
                     await user.assignContentOrg(answer._id, invitation[0].from_tguserid, org);
+                else {
+                    ; // !!! here we must check either we create assign before? If yep, need to delete one
+                    const all_responses_to_invitation = org.json?.responses_to_invitations?.filter(v=>inv_id.equals(v.response_to) && v.acceptordecline);
+                    if (all_responses_to_invitation !== undefined && all_responses_to_invitation.length > 0) {
+                        const last_response_to_invitation = all_responses_to_invitation.pop();
+                        await user.deleteAssignContentOrg(new Types.ObjectId(last_response_to_invitation?._id))
+                    }
+                }
 
-                await org.save();
         } catch (e: any) {
                 console.log(`${colours.fg.red}${e.message}${colours.reset}`);
                 // send message to user about error

@@ -432,6 +432,7 @@ paths:
         '200':
           description: OK
   /requesttoassignorgtouser:
+    description: Sends invitation to user assessing content of ogrganization. Role assessment_request required. Returned organization json
     post:
       operationId: requesttoassignorgtouser
       requestBody:
@@ -448,6 +449,28 @@ paths:
                   type: string
                 uid:
                   description: User who assigned assessing content of organization
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /getinvitationstats:
+    description: Reveals stats of invitation implementing. Role assessment_request required
+    post:
+      operationId: getinvitationstats
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oid
+                - invitation_id
+              properties:
+                oid:
+                  description: Organization id which assigned to user
+                  type: string
+                invitation_id:
+                  description: Invitation ID which sent to user ealier
                   type: string
       responses:
         '200':

@@ -6,6 +6,7 @@ import Organization, { IInvitationToAssess, IOrganization } from '../model/organ
 import User from '../model/user';
 import TelegramBot from 'node-telegram-bot-api';
 import ML from '../model/mlstring';
+import { mongoAssessments } from '../model/assessment';
 
 export async function createorganization(c: any, req: Request, res: Response, user: User) {
     const name = req.body.name;
@@ -60,7 +61,35 @@ export async function renameorganization(c: any, req: Request, res: Response, us
         return res.status(400).json(e.message);
     }
 }
-
+export async function getinvitationstats(c: any, req: Request, res: Response, user: User, bot: TelegramBot) {
+    const inv_id = new Types.ObjectId(req.body.invitation_id);
+    const oid = new Types.ObjectId(req.body.oid);
+    console.log(`${colours.fg.green}API: getinvitationstats function${colours.reset}\n ${colours.fg.blue}Parameters: inv_id = '${inv_id}'${colours.reset}; oid = '${oid}'`);
+    const ret: any = {};
+    try {
+        const org = new Organization(oid);
+        await org.load();
+        if (!await org.checkRoles(user, "assessment_request")) return res.status(403).json({err: 403, desc: `Role assessment_request requires`});
+        ret.contentcount = await org.getContentItemsCount();
+        const assign = await org.getAssignByInvitationId(inv_id);
+        if (assign !== undefined) {
+            ret.assigned = true;
+            ret.assigndate = assign.assigndate;
+            ret.closed = assign.closed;
+            ret.closedate = assign.closedate;
+            const acount = await mongoAssessments.aggregate([
+                {"$match": {"assignid": assign._id}
+                }, {"$count": "count"}
+            ]);
+            ret.contentassessed = acount === undefined || acount.length === 0?0:acount[0].count;
+        } else {
+            ret.assigned = false;
+        }
+        return res.status(200).json(ret);
+    } catch (e: any) {
+        return res.status(400).json(e.message);
+    }
+}
 export async function requesttoassignorgtouser(c: any, req: Request, res: Response, user: User, bot: TelegramBot) {
     const oid = new Types.ObjectId(req.body.oid);
     const tguserid: TelegramBot.ChatId = req.body.tguserid;

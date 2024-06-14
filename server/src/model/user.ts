@@ -20,6 +20,7 @@ export interface IAssignGroup {
     assigndate: Date;
     acceptdecline?: boolean;
     closed: boolean;
+    closedate?: Date;
 }
 
 export interface IAssignOrg {
@@ -30,6 +31,7 @@ export interface IAssignOrg {
   assigndate: Date;
   acceptdecline?: boolean;
   closed: boolean;
+  closedate?: Date;
 }
 
 export interface IUser {
@@ -213,7 +215,7 @@ export default class User extends MongoProto<IUser> {
             }]);
         if (v.length === 0) {
             //let's close assignment of content grooup
-            this.data?.assignedorgs?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true});
+            this.data?.assignedorgs?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true; el.closedate = new Date()});
             await this.save();
             //let's notify all about finish of the assessment
             const c = this.data?.assignedorgs?.filter(el=>el._id.equals(assignid));
@@ -253,7 +255,7 @@ export default class User extends MongoProto<IUser> {
             }]);
         if (!v.length) {
             //let's close assignment of content grooup
-            this.data?.assignedgroups?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true});
+            this.data?.assignedgroups?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true; el.closedate = new Date()});
             await this.save();
             //let's notify all about finish of the assessment
             const c = this.data?.assignedgroups?.filter(el=>el._id.equals(assignid));
@@ -570,22 +572,29 @@ export default class User extends MongoProto<IUser> {
     }
 
     public async assignContentOrg(response_to_invitation: Types.ObjectId, from_tguserid: TelegramBot.ChatId, org: Organization) {
-      this.checkData();
-      const a: IAssignOrg = {
-          _id: new Types.ObjectId(),
-          response_to_invitation: response_to_invitation,
-          tguserid: from_tguserid,
-          oid: org.uid as Types.ObjectId,
-          assigndate: new Date(),
-          closed: false
-      }
-      if (this.data && !this.data?.assignedorgs)this.data.assignedorgs = [];
-      // let's check the same not closed group exists
-      //??? 
-      const exists = this.data?.assignedorgs?.filter((val: IAssignOrg)=>val.oid.equals(org.uid as Types.ObjectId));
-      if (!exists?.length) this.data?.assignedorgs?.push(a);
-      await this.save();
-  }
+        this.checkData();
+        const a: IAssignOrg = {
+            _id: new Types.ObjectId(),
+            response_to_invitation: response_to_invitation,
+            tguserid: from_tguserid,
+            oid: org.uid as Types.ObjectId,
+            assigndate: new Date(),
+            closed: false
+        }
+        if (this.data && !this.data?.assignedorgs)this.data.assignedorgs = [];
+        const exists = this.data?.assignedorgs?.filter((val: IAssignOrg)=>val.response_to_invitation.equals(response_to_invitation));
+        if (exists?.length === 0) this.data?.assignedorgs?.push(a);
+        await this.save();
+    }
+
+    public async deleteAssignContentOrg(response_to_invitation: Types.ObjectId) {
+        this.checkData();
+        if (this.data) { 
+            if (this.data?.assignedorgs === undefined) this.data.assignedorgs = [];
+            this.data.assignedorgs = this.data?.assignedorgs?.filter((val: IAssignOrg)=>!val.response_to_invitation.equals(response_to_invitation));
+        }
+        await this.save();
+    }
 
   public async assignContentGroup(from: User, group: ContentGroup) {
         this.checkData();

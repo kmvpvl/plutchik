@@ -44,6 +44,7 @@
     padding-right: 5px;
     border-right: 1px solid var(--text-color);
     height: 100%;
+    gap:5px;
 }
 
 .user-mng-user-info {
