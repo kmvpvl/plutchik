@@ -14,6 +14,6 @@ export default async function getnextcontentitem(c: any, req: Request, res: Resp
             user: user.json
         });
     } catch (err: any) {
-        return res.status(404).json({result: 'FAIL', description: 'Could not get next content item'});
+        return res.status(404).json({result: 'FAIL', description: 'Could not get next content item', user: user.json});
     }
 }

@@ -93,10 +93,15 @@ control-panel-vector {
 .nocontent {
     text-align: center;
     font-size: x-large;
-    margin-top: 50%;
+    --margin-top: 50%;
     display: flex;
     justify-content: center;
     flex-direction: column;
+}
+.nocontent > button {
+    font-size: large;
+    border: 1px solid var(--tg-theme-text-color);
+    border-radius: 5px;
 }
 #media-name {
     margin: auto;

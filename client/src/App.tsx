@@ -93,8 +93,14 @@ export default class App extends React.Component <{}, IAppState> {
 
     onOrgsListUpdated(orgs: any[]) {
         this.orgs = orgs;
+        this.setState(this.state);
     }
 
+    onUserMngOrgUpdated(org: any) {
+        const foundEl = this.orgs.findIndex(v=>v._id === org._id);
+        this.orgs[foundEl] = org;
+
+    }
     
     render(): React.ReactNode {
         const current_org = this.orgs.filter(v=>v._id === this.state.currentOrg)[0];
@@ -106,7 +112,7 @@ export default class App extends React.Component <{}, IAppState> {
             {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)} onOrganizationListLoaded={this.onOrgsListUpdated.bind(this)}></Organizations>:<div/>}
             
             {this.state.logged?this.state.mode === "users"?this.state.currentOrg === undefined?<div></div>:
-            <UserMng serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id}/>
+            <UserMng onOrgUpated={this.onUserMngOrgUpdated.bind(this)} serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id}/>
             
             :this.state.currentOrg === undefined?<div></div>:
             

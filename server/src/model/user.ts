@@ -213,20 +213,21 @@ export default class User extends MongoProto<IUser> {
             }, {'$limit': 1 
             }, {'$project': {'result':0, 'rand': 0}
             }]);
+        const org = new Organization(oid);
+        await org.load();
         if (v.length === 0) {
             //let's close assignment of content grooup
             this.data?.assignedorgs?.forEach(el=>{if (el._id.equals(assignid)) el.closed = true; el.closedate = new Date()});
             await this.save();
             //let's notify all about finish of the assessment
             const c = this.data?.assignedorgs?.filter(el=>el._id.equals(assignid));
-            const org = new Organization(oid);
-            await org.load();
             if (c) bot.sendMessage(c[0].tguserid as number, `${ML("User")} ${this.json?.name?this.json?.name:""}(${this.json?.tguserid}) has done assessment of set '${org.json?.name}'`);
             await org.closeInvitation(assignid);
             throw new PlutchikError("user:nonextcontent", `userid = '${this.id}';assignid='${assignid}';oid='${oid}'`);
         }
         //let's mark content item as asessed by assignment froup
         v[0].assignid = assignid;
+        v[0].assignname = org.json?.name;
         return v[0];
     }
 
@@ -272,7 +273,7 @@ export default class User extends MongoProto<IUser> {
         const assigns_o = this.data?.assignedorgs?.filter((val)=>!val.closed);
         const assigns_g = this.data?.assignedgroups?.filter((val)=>!val.closed);
         if (assigns_o?.length) {
-          return this.nextContentItemByAssignOrg(assigns_o[0].oid, assigns_o[0]._id, bot);
+            return this.nextContentItemByAssignOrg(assigns_o[0].oid, assigns_o[0]._id, bot);
         } else if (assigns_g?.length) {
             return this.nextContentItemByAssignGroup(assigns_g[0].groupid, assigns_g[0]._id, bot);
         } else {

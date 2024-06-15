@@ -8,6 +8,7 @@ export interface  IUserMngProps {
     userid: string;
     onSuccess?: (text: string)=>void;
     onError?: (err: PlutchikError)=>void;
+    onOrgUpated: (org: any)=>void;
 }
 
 export interface IUserMngState {
@@ -43,7 +44,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             oid: this.props.org._id,
             tguserid: this.newUserRef.current?.value
         }), res=>{
-            if (this.props.onSuccess) this.props.onSuccess(JSON.stringify(res));
+            if (this.props.onSuccess) this.props.onSuccess("Invitation sent successfully");
             this.setState((prev, props)=>{})
         }, err=>{
             if (this.props.onError) this.props.onError(err);
@@ -113,7 +114,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             <span className="user-mng-area">
                 <span className='user-mng-users'>
                 {this.props.org.invitations === undefined?<span>No one invitation</span>
-                :this.props.org.invitations.map((v: any, i: any)=>{
+                :this.props.org.invitations.sort((a: any, b: any)=>b.messageToUser.date - a.messageToUser.date).map((v: any, i: any)=>{
                     const responses:[] =this.props.org.responses_to_invitations?this.props.org.responses_to_invitations.filter((f: any)=>v._id === f.response_to):[];
                     responses.sort((a: any, b: any)=>new Date(b.created).getTime() - new Date(a.created).getTime());
                     return <InvitedUser key={i} invitation={v} responses={responses} onClick={this.onInvitationSelect.bind(this, v, responses)} selected={this.state.selectedInvitation?._id === v._id}></InvitedUser>

@@ -72,7 +72,7 @@
 
 .content-item-desc {
     font-size: small;
-    overflow: scroll;
+    --overflow: scroll;
 }
 
 .content-item-type {
