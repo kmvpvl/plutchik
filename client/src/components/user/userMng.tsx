@@ -28,7 +28,18 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
     }
 
     componentDidUpdate(): void {
-        if (this.props.org?._id !== this.state.setStats?.orgid) this.loadSetStats();
+        if (this.props.org?._id !== this.state.setStats?.orgid) {
+            this.loadSetStats();
+        }
+        if (this.state.selectedInvitation !== undefined) {
+            const selectedInv = this.props.org.invitations?.filter((v: any)=>v._id === this.state.selectedInvitation?._id);
+            if (selectedInv === undefined || selectedInv.length === 0) {
+                const nState: IUserMngState = this.state;
+                nState.selectedInvitation = undefined;
+                this.setState(nState);
+            }
+        }
+
     }
     
     inviteUser () {

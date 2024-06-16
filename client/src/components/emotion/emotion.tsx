@@ -46,10 +46,10 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
         }
         return <>
         <svg ref={this.svgRef} xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width='100%' height='100%' className='emotion-slider'>
-            {this.props.viewmode === "chart"?<rect className="dotted" x="0.5em" y="0" width="0.5em" height="100%"/>:<></>}
-            <rect style={{fill: `var(--${this.props.emotion}-color)`}} x="0.5em" y={y} width="0.5em" height={h}/>
+            {this.props.viewmode === "chart"?<rect className="dotted" x="0em" y="0" width="1em" height="100%"/>:<></>}
+            <rect style={{fill: `var(--${this.props.emotion}-color)`}} x="0em" y={y} width="1em" height={h}/>
             {this.props.viewmode === 'slider'?<rect className={this.props.emotion} x="-0" y={`calc(${(1 - this.state.value) * 100}% - ${1 - this.state.value}em)`} width="1.5em" height="1em" rx="0.5em"/>:<></>}
-            <g className='assess-emotion-text' ><text style={{color: `var(--${this.props.emotion}-color)`}} x="0" y="100%">{this.props.emotion}</text></g>
+            <g className='assess-emotion-text' ><text style={{fill: `var(--${this.props.emotion}-color)`}} x="0" y="100%">{this.props.emotion}</text></g>
         </svg>
         </>;
     }
