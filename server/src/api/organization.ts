@@ -71,7 +71,8 @@ export async function getinvitationstats(c: any, req: Request, res: Response, us
         await org.load();
         if (!await org.checkRoles(user, "assessment_request")) return res.status(403).json({err: 403, desc: `Role assessment_request requires`});
         ret.contentcount = await org.getContentItemsCount();
-        const assign = await org.getAssignByInvitationId(inv_id);
+        const user_n_assign = await org.getUserAndAssignByInvitationId(inv_id);
+        const assign = user_n_assign.assign;
         if (assign !== undefined) {
             ret.assigned = true;
             ret.assigndate = assign.assigndate;
@@ -82,6 +83,11 @@ export async function getinvitationstats(c: any, req: Request, res: Response, us
                 }, {"$count": "count"}
             ]);
             ret.contentassessed = acount === undefined || acount.length === 0?0:acount[0].count;
+            // if user has role to manage users only. Have to return assessments compare
+            if (await org.checkRoles(user, "manage_users") && user_n_assign.assign !== undefined) {
+                const observe = await user_n_assign.user.observeAssessments(assign._id);
+                ret.observe = observe;
+            }
         } else {
             ret.assigned = false;
         }

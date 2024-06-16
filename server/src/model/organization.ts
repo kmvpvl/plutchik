@@ -259,16 +259,19 @@ export default class Organization extends MongoProto <IOrganization>{
     }
     //** Calc assign which referenced in assessment when user is assessing content of organization by invitation */
     //** @return IAssignOrg or undefined, may be throwed if ogranization object was broken */
-    public async getAssignByInvitationId(inv_id: Types.ObjectId): Promise<IAssignOrg | undefined> {
+    public async getUserAndAssignByInvitationId(inv_id: Types.ObjectId): Promise<{user: User; assign?: IAssignOrg}> {
         const found_inv = this.json?.invitations?.filter(v=>inv_id.equals(v._id));
         if (found_inv !== undefined && found_inv.length === 1) {
             // getting user who was invited
             const user = await User.getUserByTgUserId(parseInt(found_inv[0].whom_tguserid.toString()));
+            if (user === undefined) {
+                throw new PlutchikError("user:notfound", `Ivited user with TG ID = '${found_inv[0].whom_tguserid}' left`);
+            }
             // finding responses to invitation with accepting
             const answers = this.json?.responses_to_invitations?.filter(v=>inv_id.equals(v.response_to) && v.acceptordecline);
             if (answers === undefined || answers.length === 0) {
                 // user hasn't replied to invitation or declined
-                return undefined
+                return {user: user}
             } else {
                 //finding last acceptance
                 const last_answer = answers.reduce((p, cur)=>p.created.getTime()>cur.created.getTime()?p:cur);
@@ -277,7 +280,7 @@ export default class Organization extends MongoProto <IOrganization>{
                 if (assigns === undefined || assigns.length === 0) {
                     throw new PlutchikError("user:broken", `Expected assign to org with response_to_invitation = '${last_answer._id}'`)
                 } else {
-                    return assigns[0];
+                    return {user: user, assign: assigns[0]};
                 }
             }
         } else {

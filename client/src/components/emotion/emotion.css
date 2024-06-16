@@ -23,3 +23,11 @@
     bottom: 0;
     margin: auto;
 }
+
+.dotted {
+    fill:transparent;
+    opacity: 0.5;
+    stroke: var(--text-color);
+    stroke-dasharray: 1 1;
+  }
+  

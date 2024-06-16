@@ -306,21 +306,22 @@ export default class User extends MongoProto<IUser> {
         return v[0];
     }
 
-    public async observeAssessments():Promise<IObserveAssessments> {
+    public async observeAssessments(assign_id?: Types.ObjectId):Promise<IObserveAssessments> {
         const ret: IObserveAssessments = {
             ownVector: {},
             othersVector:{}
         };
+        
+        const matchObject: any = {'uid': this.id};
+        if (assign_id !== undefined) matchObject.assignid = assign_id; 
         await this.checkData();
         if (this.id) {
             const own = await mongoAssessments.aggregate([
-                {'$match': {'uid': this.id}
+                {'$match': matchObject
                 }, {'$lookup': {
                         'from': 'assessments', 
                         'let': {'cid': '$cid', 'uid': '$uid'}, 
-                        'pipeline': [
-                            {'$match': {'$expr': {'$and': [{'$eq': ['$cid', '$$cid']}, {'$ne': ['$uid', '$$uid']}]}}}
-                        ], 
+                        'pipeline': [{'$match': {'$expr': {'$and': [{'$eq': ['$cid', '$$cid']}, {'$ne': ['$uid', '$$uid']}]}}}], 
                         'as': 'result'}
                 }, {'$project': {'_id': 1, 'vector': 1, 'result_size': {'$size': '$result'}}
                 }, {'$match': {'result_size': {'$gt': 0}}

@@ -2,6 +2,7 @@ import { ReactNode, RefObject } from 'react';
 import './userMng.css';
 import React from 'react';
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from '../../model/common';
+import Insights from '../insights/insights';
 export interface  IUserMngProps {
     serverInfo: IServerInfo;
     org: any;
@@ -77,6 +78,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             const inv = this.state.selectedInvitation;
             const answers = this.state.answersOnSelectedInvitation;
             const inv_date = new Date(inv.messageToUser.date * 1000);
+            const observe = this.state.stats?.observe;
             return <>
                 <div>Invitation was sent: {inv_date.toLocaleString()}{/*<button>Retry</button><button>Clear</button>*/}</div>
                 {answers.length === 0?<div>No answers</div>:
@@ -89,6 +91,9 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 </div>}
                 <div>Stats: {this.state.stats?<>{this.state.stats.assigned?`Assigned ${new Date(this.state.stats.assigndate).toLocaleString()}, Progress: ${this.state.stats.contentassessed} of ${this.state.stats.contentcount}, ${this.state.stats.closed?`Closed ${new Date(this.state.stats.closedate).toLocaleString()}`:"Not closed"}`:"Not assigned"}</>:
                 <></>}</div>
+                {observe !== undefined?
+                <div><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector}></Insights></div>
+                :<></>}
             </>;
         } else return <></>;
     }
