@@ -106,9 +106,9 @@ export async function requesttoassignorgtouser(c: any, req: Request, res: Respon
         if (!await org.checkRoles(user, "assessment_request")) return res.status(403).json({err: 403, desc: `Role assessment_request requires`});
 
         const invitation_id = new Types.ObjectId();
-        const message = await bot.sendMessage(tguserid, `${ML(`User`)} ${user.json?.name} invites your assessing set '${org.json?.name}'.\n${ML('Click the "I Accept" button to express your informed consent that the author of the request will be able to familiarize yourself with your emotional assessments of the proposed content')}\n${ML(`Click the "I Decline" button to reject and cancel the request. The requester will be informed that their request has been rejected`)}`, {reply_markup:{inline_keyboard:[
-            [{text: ML(`I accept`), callback_data: `accept_org:${invitation_id}`}],
-            [{text: ML(`I decline`), callback_data: `decline_org:${invitation_id}`}]
+        const message = await bot.sendMessage(tguserid, `${user.json?.name} ${ML(`invites your assessing set`, user.json?.nativelanguage)} '${org.json?.name}'.\n${ML('Click the "I Accept" button to express your informed consent that the author of the request will be able to familiarize yourself with your emotional assessments of the proposed content', user.json?.nativelanguage)}\n${ML(`Click the "I Decline" button to reject and cancel the request. The requester will be informed that their request has been rejected`, user.json?.nativelanguage)}`, {reply_markup:{inline_keyboard:[
+            [{text: ML(`I accept`, user.json?.nativelanguage), callback_data: `accept_org:${invitation_id}`}],
+            [{text: ML(`I decline`, user.json?.nativelanguage), callback_data: `decline_org:${invitation_id}`}]
 /* fixed main menu issue and those buttons are redundant            [{text: ML(`I accept`), callback_data: `accept_assignment_org:${org.uid}:${user.uid}`}],
             [{text: ML(`I decline`), callback_data: `decline_assignment_org:${org.uid}:${user.uid}`}]
  */        ]}});

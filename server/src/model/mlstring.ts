@@ -244,37 +244,93 @@ const plutchik_strings = new Map([
         ])
     ], [`I Accept`,
     new Map([
-        [`de`, `Weiblich`]
-    ,   [`fr`, `Femelle`]
-    ,   [`es`, `Femenina`]
-    ,   [`uk`, `Жінка`]
+        [`de`, `Ich akzeptiere`]
+    ,   [`fr`, `J'accepte`]
+    ,   [`es`, `Acepto`]
+    ,   [`uk`, `Я приймаю`]
     ,   [`ru`, `Я принимаю`]
         ])
     ], [`Click the "I Accept" button to express your informed consent that the author of the request will be able to familiarize yourself with your emotional assessments of the proposed content`,
     new Map([
-        [`de`, `Weiblich`]
-    ,   [`fr`, `Femelle`]
-    ,   [`es`, `Femenina`]
-    ,   [`uk`, `Жінка`]
+        [`de`, `Klicken Sie auf die Schaltfläche "Ich akzeptiere", um Ihre informierte Zustimmung auszudrücken, dass der Autor der Anfrage Ihre emotionalen Einschätzungen des vorgeschlagenen Inhalts kennenlernen kann`]
+    ,   [`fr`, `Cliquez sur le bouton "J'accepte" pour exprimer votre consentement éclairé afin que l'auteur de la demande puisse prendre connaissance de vos appréciations émotionnelles sur le contenu proposé.`]
+    ,   [`es`, `Haga clic en el botón "Acepto" para expresar su consentimiento informado de que el autor de la solicitud podrá familiarizarse con sus valoraciones emocionales del contenido propuesto.`]
+    ,   [`uk`, `Натисніть кнопку «Приймаю», щоб висловити інформовану згоду на те, що автор запиту зможе ознайомитися з вашими емоційними оцінками запропонованого контенту.`]
     ,   [`ru`, `Нажмите кнопку "Я принимаю", чтобы выразить Ваше информированное согласие, что автор запроса сможет ознакомиться с Вашими эмоциональными оценками предложенного контента `]
         ])
     ], [`Click the "I Decline" button to reject and cancel the request. The requester will be informed that their request has been rejected`,
     new Map([
-        [`de`, `Weiblich`]
-    ,   [`fr`, `Femelle`]
-    ,   [`es`, `Femenina`]
-    ,   [`uk`, `Жінка`]
+        [`de`, `Klicken Sie auf die Schaltfläche „Ich lehne ab“, um die Anfrage abzulehnen und abzubrechen. Der Antragsteller wird darüber informiert, dass seine Anfrage abgelehnt wurde.`]
+    ,   [`fr`, `Cliquez sur le bouton « Je refuse » pour rejeter et annuler la demande. Le demandeur sera informé que sa demande a été rejetée`]
+    ,   [`es`, `Haga clic en el botón "Rechazo" para rechazar y cancelar la solicitud. Se informará al solicitante que su solicitud ha sido rechazada.`]
+    ,   [`uk`, `Натисніть кнопку «Я відхиляю», щоб відхилити та скасувати запит. Заявник буде проінформований про те, що його запит відхилено`]
     ,   [`ru`, `Нажмите кнопку "Я отклоняю", чтобы отклонить и аннулировать запрос. Автор запроса будет проинформирован, что его запрос отклонен `]
         ])
     ], [`I Decline`,
     new Map([
-        [`de`, `Weiblich`]
-    ,   [`fr`, `Femelle`]
-    ,   [`es`, `Femenina`]
-    ,   [`uk`, `Жінка`]
+        [`de`, `Ich lehne ab`]
+    ,   [`fr`, `Je refuse`]
+    ,   [`es`, `Rechazo`]
+    ,   [`uk`, `Я відхиляю`]
     ,   [`ru`, `Я отклоняю`]
         ])
-    ]
+    ], [`Your Telegram ID is `,
+    new Map([
+        [`de`, `Ihre Telegram-ID ist `]
+    ,   [`fr`, `Votre identifiant Telegram est `]
+    ,   [`es`, `Tu ID de Telegram es `]
+    ,   [`uk`, `Ваш ідентифі катор Telegram `]
+    ,   [`ru`, `Ваш Telegram ID `]
+        ])
+    ], [`Use your Telegram ID to create own content sets or to be invited assessing other sets`,
+    new Map([
+        [`de`, `Verwende deine Telegram-ID, um eigene Inhaltssets zu erstellen oder um zur Bewertung anderer Sets eingeladen zu werden`]
+    ,   [`fr`, `Utilisez votre identifiant Telegram pour créer vos propres ensembles de contenu ou pour être invité à évaluer d'autres ensembles`]
+    ,   [`es`, `Utilice su ID de Telegram para crear conjuntos de contenido propios o para ser invitado a evaluar otros conjuntos`]
+    ,   [`uk`, `Використовуйте свій ідентифікатор Telegram, щоб створювати власні набори вмісту або отримувати запрошення оцінювати інші набори`]
+    ,   [`ru`, `Используйте свой идентификатор Telegram, чтобы создавать собственные наборы контента или получать приглашения для оценки других наборов.`]
+        ])
+    ], [`invites you to assess the set`,
+    new Map([
+        [`de`, `lädt Ihr Bewertungsset ein`]
+    ,   [`fr`, `invite votre ensemble d'évaluation`]
+    ,   [`es`, `invita a su grupo de evaluación`]
+    ,   [`uk`, `пропонує вам оцінити набір`]
+    ,   [`ru`, `предлагает вам оценить набор`]
+        ])
+    ], [`Now you can assess new content. The assigned sets have priority and be proposed first. When you assess all assigned item we'll text to author of set`,
+    new Map([
+        [`de`, `Jetzt können Sie neue Inhalte bewerten. Die zugewiesenen Sets haben Priorität und werden zuerst vorgeschlagen. Wenn Sie alle zugewiesenen Elemente bewertet haben, senden wir eine SMS an den Autor des Sets.`]
+    ,   [`fr`, `Vous pouvez désormais évaluer le nouveau contenu. Les ensembles attribués sont prioritaires et seront proposés en premier. Lorsque vous aurez évalué tous les éléments attribués, nous enverrons un SMS à l'auteur de l'ensemble.`]
+    ,   [`es`, `Ahora puedes valorar nuevos contenidos. Los conjuntos asignados tienen prioridad y serán propuestos en primer lugar. Cuando evalúes todos los elementos asignados, enviaremos un mensaje de texto al autor del conjunto.`]
+    ,   [`uk`, `Тепер ви можете оцінити новий вміст. Призначені набори мають пріоритет і пропонуються першими. Коли ви оціните всі призначені елементи, ми надішлемо текстове повідомлення автору набору`]
+    ,   [`ru`, `Теперь вы можете оценить новый контент. Назначенные наборы имеют приоритет и предлагаются в первую очередь. Когда вы оцените все назначенные предметы, мы отправим сообщение автору набора.`]
+        ])
+    ], [`You declined the invitation`,
+    new Map([
+        [`de`, `Sie haben die Einladung abgelehnt`]
+    ,   [`fr`, `Vous avez décliné l'invitation`]
+    ,   [`es`, `Rechazaste la invitación.`]
+    ,   [`uk`, `Ви відхилили запрошення`]
+    ,   [`ru`, `Вы отклонили приглашение`]
+        ])
+    ], [`has accepted your invitation to set`,
+        new Map([
+            [`de`, `hat Ihre Einladung zum Festlegen angenommen`]
+        ,   [`fr`, `a accepté votre invitation à définir`]
+        ,   [`es`, `ha aceptado su invitación a establecer`]
+        ,   [`uk`, `прийняв ваше запрошення до набору`]
+        ,   [`ru`, `принял ваше приглашение установить`]
+            ])
+    ], [`has declined your invitation to set`,
+        new Map([
+            [`de`, `hat Ihre Einladung zum Festlegen abgelehnt`]
+        ,   [`fr`, `a décliné votre invitation à définir`]
+        ,   [`es`, `ha rechazado su invitación a establecer`]
+        ,   [`uk`, `відхилив ваше запрошення до набору`]
+        ,   [`ru`, `отклонил ваше приглашение установить`]
+            ])
+        ]
 ]);
 
 export default function ML(str?: string, lang?: string): string {

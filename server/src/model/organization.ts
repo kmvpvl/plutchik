@@ -131,29 +131,10 @@ export default class Organization extends MongoProto <IOrganization>{
     public async getFirstLettersOfContentItems(): Promise<Array<string>> {
         await this.checkData();
         const letters = await mongoContent.aggregate([
-            {
-              '$match': {
-                'organizationid': this.id
-              }
-            }, {
-              '$project': {
-                'l': {
-                  '$substrCP': [
-                    '$name', 0, 1
-                  ]
-                }
-              }
-            }, {
-              '$group': {
-                '_id': '$l', 
-                'count': {
-                  '$sum': 1
-                }
-              }
-            }, {
-              '$sort': {
-                '_id': 1
-              }
+            {'$match': {'organizationid': this.id, 'blocked': false}
+            }, {'$project': {'l': {'$substrCP': ['$name', 0, 1]}}
+            }, {'$group': {'_id': '$l', 'count': {'$sum': 1}}
+            }, {'$sort': {'_id': 1}
             }
           ]);
         return letters;
@@ -161,18 +142,15 @@ export default class Organization extends MongoProto <IOrganization>{
     public async getContentItems(): Promise<Array<IContent>> {
         await this.checkData();
         const ci = await mongoContent.aggregate([
-            {'$match': {
-                'organizationid': this.id
-            }},
-            {'$lookup': {
+            {'$match': {'organizationid': this.id}
+            }, {'$lookup': {
                 from: "groups",
                 localField: "_id",
                 foreignField: "items",
-                as: "groups"
-            }},
-            {'$sort': {
-                changed: -1
-            }}
+                as: "groups"}
+            }, {'$sort': {
+                changed: -1}
+            }
         ]);
         return ci;
     }
@@ -180,10 +158,8 @@ export default class Organization extends MongoProto <IOrganization>{
     public async getContentItemsCount(): Promise<Array<IContent>> {
         await this.checkData();
         const ci = await mongoContent.aggregate([
-            {'$match': {
-                'organizationid': this.id
-            }},
-            {'$count': "count"}
+            {'$match': {'organizationid': this.id, 'blocked': false}
+            }, {'$count': "count"}
         ]);
         return ci[0].count;
     }

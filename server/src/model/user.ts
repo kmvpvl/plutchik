@@ -200,7 +200,7 @@ export default class User extends MongoProto<IUser> {
     public async nextContentItemByAssignOrg (oid: Types.ObjectId, assignid: Types.ObjectId, bot: TelegramBot): Promise<IContent> {
         MongoProto.connectMongo();
         const v = await mongoContent.aggregate([
-            {'$match': {'organizationid': oid}
+            {'$match': {'organizationid': oid, 'blocked': false}
             }, {'$lookup': {
               'from': 'assessments', 
               'foreignField': 'cid', 

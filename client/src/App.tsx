@@ -64,6 +64,7 @@ export default class App extends React.Component <{}, IAppState> {
 
     onModeChanged(newMode: string) {
         const nState: IAppState = this.state;
+        localStorage.setItem("plutchik_app_mode", newMode);
         nState.mode = newMode;
         this.setState(nState);
     }

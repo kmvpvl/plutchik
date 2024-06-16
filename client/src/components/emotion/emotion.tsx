@@ -72,7 +72,8 @@ export class Flower extends React.Component<IFlowerProps, IFlowerState> {
             {emotions.map((v, i)=> {
                 const N = 8;
                 let R;
-                const vi = this.props.vector?.get(emotions[i]);
+                let vi = this.props.vector?.get(emotions[i]);
+                vi = Math.sqrt(Math.sqrt(vi === undefined?0:vi));
                 const axis = vi;
                 if (!axis) R = w/2;
                 else R = axis * w/2;
@@ -105,7 +106,8 @@ export interface EmotionVector {
 }
 
 interface IChartsProps {
-    vector: EmotionVector
+    vector: EmotionVector;
+    label: string;
 }
 interface IChartsState {
 
@@ -115,6 +117,7 @@ export class Charts extends React.Component<IChartsProps, IChartsState> {
     render(): React.ReactNode {
         return <>
         <div className='charts-emotions'>
+            <div className="charts-label">{this.props.label}</div>
             {emotions.map((v, i)=>{
                 let val: number | undefined = this.props.vector[emotions[i]];
                 val = val?val:0;

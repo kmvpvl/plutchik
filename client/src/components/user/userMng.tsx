@@ -91,7 +91,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 </div>}
                 <div>Stats: {this.state.stats?<>{this.state.stats.assigned?`Assigned ${new Date(this.state.stats.assigndate).toLocaleString()}, Progress: ${this.state.stats.contentassessed} of ${this.state.stats.contentcount}, ${this.state.stats.closed?`Closed ${new Date(this.state.stats.closedate).toLocaleString()}`:"Not closed"}`:"Not assigned"}</>:
                 <></>}</div>
-                {observe !== undefined?
+                {observe !== undefined && observe.ownVector !== undefined?
                 <div><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector}></Insights></div>
                 :<></>}
             </>;

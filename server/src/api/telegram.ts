@@ -472,15 +472,21 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
                 if (invitation === undefined || invitation.length ===0 || invitation.length > 1) throw new PlutchikError("organization:broken", `Could not find invitation  id = '${inv_id}' in org id = '${org.uid}'`)
                 // send message to user
                 if (acceptordecline){
-                    bot.sendMessage(chat_id, ML("Now you can assess new content. The assigned sets have priority and be proposed first. When you assess all assigned item we'll text to author of set"), {reply_markup: {inline_keyboard: mainKeyboard}})
+                    bot.sendMessage(chat_id, ML("Now you can assess new content. The assigned sets have priority and be proposed first. When you assess all assigned item we'll text to author of set", ulang), {reply_markup: {inline_keyboard: mainKeyboard}})
                 } else { 
-                    bot.sendMessage(chat_id, ML("You declined the invitation"), {reply_markup: {inline_keyboard: mainKeyboard}})
+                    bot.sendMessage(chat_id, ML("You declined the invitation", ulang), {reply_markup: {inline_keyboard: mainKeyboard}})
                 }
                 // send message to orgs author
-                if (acceptordecline)
-                    bot.sendMessage(invitation[0].from_tguserid, `${ML("User")} ${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has accepted your invitation to set ")} ${org.json?.name}`);
-                else
-                    bot.sendMessage(invitation[0].from_tguserid, `${ML("User")} ${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has declined your invitation to set ")} ${org.json?.name}`);
+                ///!!!  solve task with type of userId
+                try {
+                    const author = await User.getUserByTgUserId(parseInt(invitation[0].from_tguserid.toString()));
+                    if (acceptordecline)
+                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has accepted your invitation to set", author?.json?.nativelanguage)} ${org.json?.name}`);
+                    else
+                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has declined your invitation to set", author?.json?.nativelanguage)} ${org.json?.name}`);
+                } catch(e: any) {
+
+                }
                 // save Update to org answers as evidence
                 const answer: IResponseToInvitation = {
                     _id: new Types.ObjectId(),
@@ -679,7 +685,7 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                     }
                 }
             case '/home':
-                bot.sendMessage(chat_id, `${ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, lang)} (${process.env.landing_url})\n${ML("Your Telegram ID is ")}${chat_id}\n${ML("Use your Telegram ID to create own content sets or to be invited assessing other sets")}`, {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
+                bot.sendMessage(chat_id, `${ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, lang)} (${process.env.landing_url})\n${ML("Your Telegram ID is ", lang)}${chat_id}\n${ML("Use your Telegram ID to create own content sets or to be invited assessing other sets", lang)}`, {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
                 break;
             case '/assign':
                 const sp = tgData.message?.text?.split(' ');

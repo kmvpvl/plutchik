@@ -17,10 +17,8 @@ export default class Insights extends React.Component<IInsightsProps, IInsightsS
         return <div className='insights-container'>
         {this.props.mycount > 0?<>
             <div>User's and others' emptional vectors on set</div>
-            <Charts key={'my'} vector={this.props.myvector}/>
-            <div>User emotions count:{this.props.mycount}</div>
-            <Charts key={'others'} vector={this.props.othersvector}/>
-            <div>Others emotions count:{this.props.otherscount}</div>
+            <Charts key={'my'} vector={this.props.myvector} label={`User emotions count: ${this.props.mycount}`}/>
+            <Charts key={'others'} vector={this.props.othersvector} label={`Others emotions count: ${this.props.mycount}`}/>
         </>:<div></div>}
         </div>
     }
