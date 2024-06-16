@@ -453,6 +453,22 @@ paths:
       responses:
         '200':
           description: OK
+  /getorganizationstats:
+    description: Reveal stats of assesments of organization's content
+    post:
+      operationId: getorganizationstats
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oid:
+                  description: Organization id
+                  type: string
+      responses:
+        '200': 
+          description: OK
   /getinvitationstats:
     description: Reveals stats of invitation implementing. Role assessment_request required
     post:

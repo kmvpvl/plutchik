@@ -3,6 +3,7 @@ import './userMng.css';
 import React from 'react';
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from '../../model/common';
 import Insights from '../insights/insights';
+import Chart from 'react-google-charts';
 export interface  IUserMngProps {
     serverInfo: IServerInfo;
     org: any;
@@ -16,13 +17,18 @@ export interface IUserMngState {
     mode: string;
     selectedInvitation?: any;
     answersOnSelectedInvitation?: any;
-    stats?: any;
+    invitationStats?: any;
+    setStats?: any;
 }
 
 export default class UserMng extends React.Component<IUserMngProps, IUserMngState> {
     newUserRef: RefObject<HTMLInputElement> = React.createRef();
     state: IUserMngState = {
         mode: "content"
+    }
+
+    componentDidUpdate(): void {
+        if (this.props.org?._id !== this.state.setStats?.orgid) this.loadSetStats();
     }
     
     inviteUser () {
@@ -57,11 +63,26 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             invitation_id: invitation_id
         }), res=>{
             const nState: IUserMngState = this.state;
-            nState.stats = res;
+            nState.invitationStats = res;
             this.setState(nState);
         }, err=>{
             if (this.props.onError) this.props.onError(err);
         })
+    }
+
+    loadSetStats() {
+        serverCommand("getorganizationstats", this.props.serverInfo, JSON.stringify({
+            oid: this.props.org._id}), res=>{
+                for (let i = 0; i < res.countByDate.length; i ++) {
+                    res.countByDate[i].day = new Date(res.countByDate[i].day);
+                }
+                const nState: IUserMngState = this.state;
+                res.orgid = this.props.org._id;
+                nState.setStats = res;
+                this.setState(nState);
+            }, err=>{
+                if (this.props.onError) this.props.onError(err);
+            })
     }
 
     onInvitationSelect(invitation: any, answers: any[]){
@@ -73,12 +94,20 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         this.setState(nState);
     }
 
+    onSetStatsButtonClick() {
+        const nState: IUserMngState = this.state;
+        nState.selectedInvitation = undefined;
+        nState.answersOnSelectedInvitation = undefined;
+        this.setState(nState);
+        this.loadSetStats();
+    }
+
     renderSelectedInvitation(): ReactNode {
         if (this.state.selectedInvitation !== undefined) {
             const inv = this.state.selectedInvitation;
             const answers = this.state.answersOnSelectedInvitation;
             const inv_date = new Date(inv.messageToUser.date * 1000);
-            const observe = this.state.stats?.observe;
+            const observe = this.state.invitationStats?.observe;
             return <>
                 <div>Invitation was sent: {inv_date.toLocaleString()}{/*<button>Retry</button><button>Clear</button>*/}</div>
                 {answers.length === 0?<div>No answers</div>:
@@ -89,13 +118,36 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                         <span className='user-mng-user-info-table-cell'>{new Date(v.created).toLocaleString()}</span>
                         <span className='user-mng-user-info-table-cell'>{v.acceptordecline?"accepted":"declined"}</span></React.Fragment>)}
                 </div>}
-                <div>Stats: {this.state.stats?<>{this.state.stats.assigned?`Assigned ${new Date(this.state.stats.assigndate).toLocaleString()}, Progress: ${this.state.stats.contentassessed} of ${this.state.stats.contentcount}, ${this.state.stats.closed?`Closed ${new Date(this.state.stats.closedate).toLocaleString()}`:"Not closed"}`:"Not assigned"}</>:
+                <div>Stats: {this.state.invitationStats?<>{this.state.invitationStats.assigned?`Assigned ${new Date(this.state.invitationStats.assigndate).toLocaleString()}, Progress: ${this.state.invitationStats.contentassessed} of ${this.state.invitationStats.contentcount}, ${this.state.invitationStats.closed?`Closed ${new Date(this.state.invitationStats.closedate).toLocaleString()}`:"Not closed"}`:"Not assigned"}</>:
                 <></>}</div>
                 {observe !== undefined && observe.ownVector !== undefined?
                 <div><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector}></Insights></div>
                 :<></>}
             </>;
         } else return <></>;
+    }
+
+    renderSetStats(): ReactNode {
+        if (this.state.setStats?.countByDate === undefined) return <></>;
+        const data = [
+            [
+              {
+                type: "date",
+                id: "day",
+              },
+              {
+                type: "number",
+                id: "Count",
+              },
+            ],
+          ];
+        for (let i = 0; i < this.state.setStats?.countByDate.length; i++) {
+            data.push([this.state.setStats?.countByDate[i].day, this.state.setStats?.countByDate[i].count]);
+        }
+
+        return <div className='user-mng-set-stats-container'>
+            <Chart key={this.props.org._id} chartType="Calendar" width="100%" height="400px" data={data} options={{title: "Stats: assessments count by date"}}/>
+        </div>
     }
 
     render(): ReactNode {
@@ -106,7 +158,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 /** INVITING mode */<>
                 <button onClick={this.inviteUser.bind(this)}>Invite user</button>
                 <span>|</span>
-                <button>Invitation stats</button></>:
+                <button onClick={this.onSetStatsButtonClick.bind(this)}>Invitation stats</button></>:
                 this.state.mode === "inviting"?
                 /** INVITING mode */<>
                 <input ref={this.newUserRef} placeholder='Type Telegram username or user id'></input>
@@ -126,7 +178,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 })}
                 </span>
                 <span className='user-mng-user-info'>
-                    {this.renderSelectedInvitation()}
+                    {this.state.selectedInvitation !== undefined?this.renderSelectedInvitation(): this.renderSetStats()}
                 </span>
             </span>
         </div>

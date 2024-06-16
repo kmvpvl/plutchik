@@ -61,6 +61,20 @@ export async function renameorganization(c: any, req: Request, res: Response, us
         return res.status(400).json(e.message);
     }
 }
+
+export async function getorganizationstats(c: any, req: Request, res: Response, user: User) {
+    const oid = new Types.ObjectId(req.body.oid);
+    console.log(`${colours.fg.green}API: getorganizationstats function${colours.reset}\n ${colours.fg.blue}Parameters: ; oid = '${oid}'${colours.reset}`);
+    try {
+        const org = new Organization(oid);
+        await org.load();
+        if (!await org.checkRoles(user, "manage_content")) return res.status(403).json({err: 403, desc: `Role manage_content requires`});
+        return res.status(200).json(await org.stats());
+    } catch (e: any) {
+        return res.status(400).json(e.message);
+    }
+}
+
 export async function getinvitationstats(c: any, req: Request, res: Response, user: User, bot: TelegramBot) {
     const inv_id = new Types.ObjectId(req.body.invitation_id);
     const oid = new Types.ObjectId(req.body.oid);

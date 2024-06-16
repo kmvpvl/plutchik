@@ -70,6 +70,10 @@ export const OrganizationSchema = new Schema({
 export const mongoOrgs = model<IOrganization>('organizations', OrganizationSchema);
 export const mongoSessionTokens = model<ISessionToken>('sessiontokens', SessionTokenSchema);
 
+export interface IOrganizationStats {
+    countByDate: Array<{day: Date; count: number}>
+}
+
 export default class Organization extends MongoProto <IOrganization>{
     constructor(id?: Types.ObjectId, data?: IOrganization){
         super(mongoOrgs, id, data);
@@ -261,6 +265,25 @@ export default class Organization extends MongoProto <IOrganization>{
             }
         } else {
             throw new PlutchikError("organization:broken", `Invitation id = '${inv_id}' not found or not the only one`);
+        }
+    }
+    public async stats(): Promise<IOrganizationStats> {
+        await this.checkData();
+        const s = await mongoAssessments.aggregate ([
+            {'$lookup': {
+                from: "contents",
+                localField: "cid",
+                foreignField: "_id",
+                pipeline: [{"$match": {"organizationid": this.uid}}],
+                as: "result"}
+            }, {'$match': {"result": {"$ne": []}}
+            }, {'$addFields': {'daydate': {'$dateTrunc': {'date': '$created', 'unit': 'day'}}}
+            }, {'$group': {'_id': '$daydate', 'count': {'$sum': 1}}
+            }, {'$project': {"day": "$_id","count": "$count"}
+            }
+        ]);
+        return {
+            countByDate: s
         }
     }
 }

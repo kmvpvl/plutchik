@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import User from './model/user';
 import userinfo, {getinsights, getmatchlist, informuserbytg, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
-import {createorganization, getinvitationstats, getusersassessedorganizationcontent, renameorganization, requesttoassignorgtouser} from './api/organization';
+import {createorganization, getinvitationstats, getorganizationstats, getusersassessedorganizationcontent, renameorganization, requesttoassignorgtouser} from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
 import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
@@ -161,6 +161,7 @@ api.register({
     informuserbytg: async (c, req, res, user) => informuserbytg(c, req, res, user, bot),
     requesttoassignorgtouser: async (c, req, res, user) => requesttoassignorgtouser(c, req, res, user, bot),
     getinvitationstats: async (c, req, res, user) => getinvitationstats(c, req, res, user, bot),
+    getorganizationstats: async (c, req, res, user) => getorganizationstats(c, req, res, user),
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
 
     headAnswer: async (c, req, res) => headAnswer(c, req, res),
