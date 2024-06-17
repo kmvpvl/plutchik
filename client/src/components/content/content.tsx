@@ -32,6 +32,8 @@ export interface IContentState {
 
 export class Content extends React.Component<IContentProps, IContentState> {
     itemFormRef: RefObject<ItemForm> = React.createRef();
+    imgCheckerRef: RefObject<HTMLImageElement> = React.createRef();
+    queueCheck: any[] = [];
     state: IContentState = {
         items: [],
         checkResults: []
@@ -112,35 +114,52 @@ export class Content extends React.Component<IContentProps, IContentState> {
         this.onSelectItem(undefined);
     }
 
-    private checkImageCB(item: any) {
-        alert(1)
-
-    }
-
-    private checkImage(item: any) {
+    private checkImageErrorCB() {
+        const item = this.queueCheck[0];
         this.state.checkResults.push({
             _id: item._id,
-            result: item.url === ""?"FAIL":"GOOD",
+            result: "FAIL",
             checked: true
         });
-        const img: ReactNode = <img src={item.url} onLoad={this.checkImageCB.bind(this, item)}/>;
         this.setState(this.state);
+        this.queueCheck.splice(0, 1);
+        setTimeout(this.deepCheck.bind(this), 200);
+    }
+
+    private checkImageSuccessCB() {
+        const item = this.queueCheck[0];
+        this.state.checkResults.push({
+            _id: item._id,
+            result: "GOOD",
+            checked: true
+        });
+        this.setState(this.state);
+        this.queueCheck.splice(0, 1);
+        setTimeout(this.deepCheck.bind(this), 200);
+    }
+
+    private checkImage() {
+
+        if (this.imgCheckerRef.current) this.imgCheckerRef.current.src = this.queueCheck[0].url;
     }
 
     deepCheck(){
-        const items = this.state.items;
-        for (let i = 0; i < items.length; i++){
-            const item = items[i];
-            if (item.type === "image") {
-                setTimeout(this.checkImage.bind(this, item), 200);
-            } else {
-
-            }
+        if (this.queueCheck.length === 0) {
+            if (this.props.onSuccess) this.props.onSuccess("All content items have checked. Consider the items with red label. Block item or change URL for image")
+            return;
         }
-
+        if (this.queueCheck[0].type === "image") {
+            setTimeout(this.checkImage.bind(this), 200);
+        } else {
+            this.queueCheck.splice(0, 1);
+            setTimeout(this.deepCheck.bind(this), 200);
+        }
     }
 
     onDeepCheckButtonClick() {
+        for (let i = 0; i < this.state.items.length; i ++) {
+            this.queueCheck.push(this.state.items[i]);
+        }
         const nState: IContentState = this.state;
         nState.checkResults = [];
         this.setState(nState);
@@ -150,6 +169,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
     render(): React.ReactNode {
         const items = this.state.items;
         return <div className="content-container">
+            <img className="content-check-img" alt={"checker"} ref={this.imgCheckerRef} onError={this.checkImageErrorCB.bind(this)} onLoad={this.checkImageSuccessCB.bind(this)}/>
             <span className="content-label">Content of set editing</span>
             <span className="content-toolbar">
                 <button onClick={this.onNewItem.bind(this)}>New item</button>
@@ -158,8 +178,8 @@ export class Content extends React.Component<IContentProps, IContentState> {
                 {/*<button onClick={this.onRevertItem.bind(this)}>Revert item</button>*/}
                  <button onClick={this.saveItem.bind(this)}>Save item</button>
                 <span>|</span>
-                <button onClick={this.onDeepCheckButtonClick.bind(this)}>Deep check set</button>
-                <button>Analyze set</button>
+                <button className={this.queueCheck.length===0?"":"checking"} onClick={this.onDeepCheckButtonClick.bind(this)}>{this.queueCheck.length===0?"Deep check set":"Deep checking..."}</button>
+                {/*<button>Analyze set</button>*/}
                 <span>|</span>
                 {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={new Map(Object.entries(this.state.curItemStat).map((v:any, i:any)=>[v[0], v[1]]))}/></span>:<></>}
             </span>

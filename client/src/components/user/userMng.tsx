@@ -4,10 +4,12 @@ import React from 'react';
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from '../../model/common';
 import Insights from '../insights/insights';
 import Chart from 'react-google-charts';
+import Pending from '../pending/pending';
 export interface  IUserMngProps {
     serverInfo: IServerInfo;
     org: any;
     userid: string;
+    pending?: RefObject<Pending>;
     onSuccess?: (text: string)=>void;
     onError?: (err: PlutchikError)=>void;
     onOrgUpated: (org: any)=>void;
@@ -58,33 +60,41 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         const nState: IUserMngState = this.state;
         nState.mode = "content";
         this.setState(nState);
+        this.props.pending?.current?.incUse();
         serverCommand('requesttoassignorgtouser', this.props.serverInfo, JSON.stringify({
             oid: this.props.org._id,
             tguserid: this.newUserRef.current?.value
         }), res=>{
+            this.props.pending?.current?.decUse();
             if (this.props.onSuccess) this.props.onSuccess("Invitation sent successfully");
             this.setState((prev, props)=>{})
         }, err=>{
+            this.props.pending?.current?.decUse();
             if (this.props.onError) this.props.onError(err);
         })
     }
     loadInvitationStats(invitation_id: any) {
+        this.props.pending?.current?.incUse();
         serverCommand("getinvitationstats", this.props.serverInfo, JSON.stringify({
             oid: this.props.org._id,
             invitation_id: invitation_id
         }), res=>{
+            this.props.pending?.current?.decUse();
             const nState: IUserMngState = this.state;
             nState.invitationStats = res;
             this.setState(nState);
         }, err=>{
+            this.props.pending?.current?.decUse();
             if (this.props.onError) this.props.onError(err);
         })
     }
 
     loadSetStats() {
         if (this.props.org === undefined) return;
+        this.props.pending?.current?.incUse();
         serverCommand("getorganizationstats", this.props.serverInfo, JSON.stringify({
             oid: this.props.org._id}), res=>{
+                this.props.pending?.current?.decUse();
                 for (let i = 0; i < res.countByDate.length; i ++) {
                     res.countByDate[i].day = new Date(res.countByDate[i].day);
                 }
@@ -93,6 +103,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 nState.setStats = res;
                 this.setState(nState);
             }, err=>{
+                this.props.pending?.current?.decUse();
                 if (this.props.onError) this.props.onError(err);
             })
     }

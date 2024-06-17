@@ -102,7 +102,7 @@ export default class App extends React.Component <{}, IAppState> {
                     s.infos.splice(n-1, 1);
                     this.messagesRef.current?.setState(s);
                 }
-            }, 1500);
+            }, 5000);
         }
     }
 
@@ -145,7 +145,7 @@ export default class App extends React.Component <{}, IAppState> {
             {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)} currentOrg={this.state.currentOrg} onCreateNewOrg={this.onNewOrgCreated.bind(this)} orgs={this.state.orgs}></Organizations>:<div/>}
             
             {this.state.logged?this.state.mode === "users"?this.state.currentOrg === undefined?<div></div>:
-            <UserMng onOrgUpated={this.onUserMngOrgUpdated.bind(this)} serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id}/>
+            <UserMng onOrgUpated={this.onUserMngOrgUpdated.bind(this)} serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id} pending={this.pendingRef}/>
             
             :this.state.currentOrg === undefined?<div></div>:
             

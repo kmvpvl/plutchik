@@ -62,59 +62,18 @@ export async function getcontentstatistics(c: any, req: Request, res: Response, 
     console.log(`${colours.fg.green}API: getcontentstatistics function${colours.reset}\n ${colours.fg.blue}Parameters: cid = '${cid}'${colours.reset}`);
     try {
         MongoProto.connectMongo();
-        const stat = await mongoAssessments.aggregate(
-        [
-            {
-            '$match': {
-                'cid': new Types.ObjectId(cid)
-            }
-            }, {
-            '$group': {
-                '_id': '$cid', 
-                'joy': {
-                '$avg': {
-                    '$toDouble': '$vector.joy'
-                }
-                }, 
-                'trust': {
-                '$avg': {
-                    '$toDouble': '$vector.trust'
-                }
-                }, 
-                'fear': {
-                '$avg': {
-                    '$toDouble': '$vector.fear'
-                }
-                }, 
-                'surprise': {
-                '$avg': {
-                    '$toDouble': '$vector.surprise'
-                }
-                }, 
-                'sadness': {
-                '$avg': {
-                    '$toDouble': '$vector.sadness'
-                }
-                }, 
-                'disgust': {
-                '$avg': {
-                    '$toDouble': '$vector.disgust'
-                }
-                }, 
-                'anger': {
-                '$avg': {
-                    '$toDouble': '$vector.anger'
-                }
-                }, 
-                'anticipation': {
-                '$avg': {
-                    '$toDouble': '$vector.anticipation'
-                }
-                }, 
-                'count': {
-                '$sum': 1
-                }
-            }
+        const stat = await mongoAssessments.aggregate([
+            {'$match': {'cid': new Types.ObjectId(cid)}
+            }, {'$group': {'_id': '$cid', 
+                'joy': {'$avg': {'$toDouble': '$vector.joy'}}, 
+                'trust': {'$avg': {'$toDouble': '$vector.trust'}}, 
+                'fear': {'$avg': {'$toDouble': '$vector.fear'}}, 
+                'surprise': {'$avg': {'$toDouble': '$vector.surprise'}}, 
+                'sadness': {'$avg': {'$toDouble': '$vector.sadness'}}, 
+                'disgust': {'$avg': {'$toDouble': '$vector.disgust'}}, 
+                'anger': {'$avg': {'$toDouble': '$vector.anger'}}, 
+                'anticipation': {'$avg': {'$toDouble': '$vector.anticipation'}}, 
+                'count': {'$sum': 1}}
             }
         ]);
         if (stat.length === 1) return res.status(200).json(stat[0]);
