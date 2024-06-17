@@ -14,6 +14,7 @@ export interface IMLString {
     }
     public toString(lang?: string): string {
       if (!lang) lang = MLString.getLang();
+      if (!this.values.has(lang)) lang = lang.split('-')[0];
       return (lang ? (this.values.has(lang) ? this.values.get(lang) : super.toString()) : super.toString()) as string;
     }
     public toJSON() {
