@@ -11,11 +11,15 @@ import { mongoAssessments } from '../model/assessment';
 export default async function getorgcontent(c: any, req: Request, res: Response, user: User) {
     const oid = req.body['oid'];
     console.log(`${colours.fg.green}API: getorgcontent function${colours.reset}\n ${colours.fg.blue}Parameters: organizationid = '${oid}'${colours.reset}`);
-    const org = new Organization(new Types.ObjectId(oid));
-    await org.load();
-    if (!await org.checkRoles(user, "manage_content")) return res.status(403).json({err: 403, desc: `Role manage_content requires`});
-    const ci = await org.getContentItems();
-    return res.status(200).json(ci);
+    try {
+        const org = new Organization(new Types.ObjectId(oid));
+        await org.load();
+        if (!await org.checkRoles(user, "manage_content")) return res.status(403).json({err: 403, desc: `Role manage_content requires`});
+        const ci = await org.getContentItems();
+        return res.status(200).json(ci);
+    } catch (e: any) {
+        return res.status(404).json({ok: "FAIL", descriprion: `org_id=${oid}`});
+    }
 }
 
 export async function addcontent(c: any, req: Request, res: Response, user: User) {

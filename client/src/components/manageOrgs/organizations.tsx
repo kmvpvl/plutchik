@@ -10,17 +10,16 @@ interface IOrgsProps {
     onError?: (err: PlutchikError)=>void,
     onSuccess?: (text: string)=>void,
     onCreateNewOrg?: ( org: any)=>void,
-    onOrganizationListLoaded?: (orgs: Array<any>)=>void,
     onOrgSelected:(orgid: string)=>void,
     onModeChanged: (newmode: string)=>void,
+    orgs: any[];
+    currentOrg?: string;
     mode: string;
     pending?: RefObject<Pending>
 }
 
 interface IOrgsState {
     mode: string;
-    orgs:any[]
-    currentOrg?: string | null;
 }
 
 export default class Organizations extends React.Component<IOrgsProps, IOrgsState> {
@@ -28,13 +27,8 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
     orgsSelectorRef: RefObject<HTMLSelectElement> = createRef();
     state = {
         orgs: [],
-        currentOrg: localStorage.getItem('plutchik_currentOrg'),
         mode: "content"
     }
-    componentDidMount(): void {
-        this.loadOrganizations();
-    }
-    
     createNewOrganization(){
         this.props.pending?.current?.incUse();
         serverCommand('createorganization', this.props.serverInfo, JSON.stringify({
@@ -43,36 +37,13 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
         }), (res)=>{
             this.props.pending?.current?.decUse();
             if (this.props.onCreateNewOrg) this.props.onCreateNewOrg(res);
-            this.loadOrganizations(res._id);
         }, (err)=>{
             this.props.pending?.current?.decUse();
             if (this.props.onError) this.props.onError(err);
         });
     }
-    loadOrganizations(cur_oid?: string) {
-        this.props.pending?.current?.incUse();
-        serverCommand('orgsattachedtouser', this.props.serverInfo, undefined, res=>{
-            this.props.pending?.current?.decUse();
-            if(this.props.onOrganizationListLoaded) this.props.onOrganizationListLoaded(res);
-            const nState: IOrgsState = this.state;
-            nState.orgs = res;
-            if (cur_oid !== undefined) {
-                nState.currentOrg = cur_oid;
-                localStorage.setItem('plutchik_currentOrg', cur_oid);
-                //if (this.orgsSelectorRef.current) this.orgsSelectorRef.current.value = cur_oid;
-            }
-            this.setState(nState);
-            if (this.props.onOrgSelected) this.props.onOrgSelected(cur_oid?cur_oid:this.state.currentOrg?this.state.currentOrg:(this.state.orgs[0] as any)._id);
-        }, err=>{
-            this.props.pending?.current?.decUse();
-            if (this.props.onError) this.props.onError(err);
-        })
-    }
     orgSelected(orgid: string) {
-        const nState: IOrgsState = this.state;
-        nState.currentOrg = orgid;
         localStorage.setItem('plutchik_currentOrg', orgid);
-        this.setState(nState);
         this.props.onOrgSelected(orgid);
     }
 
@@ -86,12 +57,12 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
         if (newName === undefined) newName = this.newOrgNameRef.current?.value;
         this.props.pending?.current?.incUse();
         serverCommand('renameorganization', this.props.serverInfo, JSON.stringify({
-            oid: this.state.currentOrg,
+            oid: this.props.currentOrg,
             newname: newName
         }), res=>{
             this.props.pending?.current?.decUse();
+            if (this.props.onCreateNewOrg) this.props.onCreateNewOrg(res);
             if (this.props.onSuccess) this.props.onSuccess(`Set re-named successfully, new name '${newName}'`);
-            this.loadOrganizations();
         }, err=>{
             this.props.pending?.current?.decUse();
             if (this.props.onError) this.props.onError(err);
@@ -107,10 +78,17 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
         this.setState(nState);
     }
 
+    componentDidUpdate(prevProps: Readonly<IOrgsProps>, prevState: Readonly<IOrgsState>, snapshot?: any): void {
+        const orgs = this.props.orgs;
+        const cur_org = this.props.currentOrg;
+        if (orgs !== undefined && orgs.length > 1 && cur_org === undefined) {
+            this.orgSelected(orgs[0]._id);
+        }
+    }
     
     render(): React.ReactNode {
-        const orgs = this.state.orgs;
-        const cur_org = this.state.currentOrg?this.state.currentOrg:undefined;
+        const orgs = this.props.orgs;
+        const cur_org = this.props.currentOrg;
         let cur_org_name = "";
         if (cur_org !== undefined) {
             const f = orgs.filter((v: any)=>v._id === cur_org);
@@ -120,9 +98,8 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
             <span className="orgs-cur-org">
                 {orgs.length === 0?<span className="orgs-label">No one set you have</span>:
                 <span><span className="orgs-label">Choose a set of content </span>
-                {this.state.mode !== "edit set name"?<select ref={this.orgsSelectorRef} onChange={e=>this.orgSelected(e.currentTarget.value)} 
-                    defaultValue={cur_org}>
-                    {orgs.map((v: any, i)=><option key={i} value={v._id}>{v.name}</option>)}
+                {this.state.mode !== "edit set name"?<select ref={this.orgsSelectorRef} onChange={e=>this.orgSelected(e.currentTarget.value)} /*defaultValue={cur_org}*/ value={cur_org}>
+                    {orgs.map((v: any, i)=><option key={i} value={v._id} /*selected={cur_org === v._id}*/>{v.name}</option>)}
                 </select>:<input autoFocus ref={this.newOrgNameRef} defaultValue={cur_org_name} onKeyDown={event=>{
                     switch (event.key){
                         case "Escape": this.cancelRenameOrg(); break;

@@ -82,6 +82,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
     }
 
     loadSetStats() {
+        if (this.props.org === undefined) return;
         serverCommand("getorganizationstats", this.props.serverInfo, JSON.stringify({
             oid: this.props.org._id}), res=>{
                 for (let i = 0; i < res.countByDate.length; i ++) {
@@ -157,7 +158,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         }
 
         return <div className='user-mng-set-stats-container'>
-            <Chart key={this.props.org._id} chartType="Calendar" width="100%" height="400px" data={data} options={{title: "Stats: assessments count by date"}}/>
+            <Chart key={this.props.org?._id} chartType="Calendar" width="100%" height="400px" data={data} options={{title: "Stats: assessments count by date"}}/>
         </div>
     }
 
@@ -181,7 +182,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             </span>
             <span className="user-mng-area">
                 <span className='user-mng-users'>
-                {this.props.org.invitations === undefined?<span>No one invitation</span>
+                {this.props.org?.invitations === undefined?<span>No one invitation</span>
                 :this.props.org.invitations.sort((a: any, b: any)=>b.messageToUser.date - a.messageToUser.date).map((v: any, i: any)=>{
                     const responses:[] =this.props.org.responses_to_invitations?this.props.org.responses_to_invitations.filter((f: any)=>v._id === f.response_to):[];
                     responses.sort((a: any, b: any)=>new Date(b.created).getTime() - new Date(a.created).getTime());

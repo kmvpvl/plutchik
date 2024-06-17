@@ -47,6 +47,9 @@ export class Content extends React.Component<IContentProps, IContentState> {
         }, err=>{
             this.props.pending?.current?.decUse();
             if (this.props.onError) this.props.onError(err);
+            if (err.code === "notfound") {
+                
+            }
         })
     }
     saveItem() {

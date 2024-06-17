@@ -2,7 +2,7 @@ import React, { RefObject } from 'react';
 import './App.css';
 import TGLogin, {LoginFormStates } from './components/loginForm/loginForm';
 import './model/common';
-import { IServerInfo, PlutchikError } from './model/common';
+import { IServerInfo, PlutchikError, serverCommand } from './model/common';
 import Pending from './components/pending/pending';
 import User from './components/user/user';
 import Organizations from './components/manageOrgs/organizations';
@@ -17,6 +17,7 @@ interface IAppState {
     userInfo?: any;
     currentOrg?: string;
     mode?: string;
+    orgs: any[];
 }
 
 export default class App extends React.Component <{}, IAppState> {
@@ -30,9 +31,9 @@ export default class App extends React.Component <{}, IAppState> {
         },
         userInfo: {},
         currentOrg: undefined,
+        orgs: [],
         mode: localStorage.getItem("plutchik_app_mode")?localStorage.getItem("plutchik_app_mode") as AppMode:"content"
     }
-    private orgs: Array<any> = [];
     messagesRef: RefObject<Infos> = React.createRef();
     pendingRef: RefObject<Pending> = React.createRef();
     contentRef: RefObject<Content> = React.createRef();
@@ -55,11 +56,32 @@ export default class App extends React.Component <{}, IAppState> {
         const nState: IAppState = this.state;
         nState.userInfo = ui;
         this.setState(nState);
+        this.loadOrganizations();
     }
+    loadOrganizations() {
+        this.pendingRef?.current?.incUse();
+        serverCommand('orgsattachedtouser', this.state.serverInfo, undefined, res=>{
+            this.pendingRef.current?.decUse();
+            this.state.orgs = res;
+            this.onOrgsListUpdated();
+        }, err=>{
+            this.pendingRef.current?.decUse();
+            this.displayError(err);
+        })
+    }
+
     onError(error: PlutchikError) {
         this.displayError(error);
     }
     onNewOrgCreated(org: any) {
+        localStorage.setItem('plutchik_currentOrg', org._id);
+        const foundOrg = this.state.orgs.findIndex((v: any) =>v._id === org._id);
+        if (foundOrg > -1) {
+            this.state.orgs[foundOrg] = org;
+        } else {
+            this.state.orgs.push(org);
+        }
+        this.onOrgsListUpdated();
     }
 
     onModeChanged(newMode: string) {
@@ -92,32 +114,42 @@ export default class App extends React.Component <{}, IAppState> {
         }
     }
 
-    onOrgsListUpdated(orgs: any[]) {
-        this.orgs = orgs;
+    onOrgsListUpdated() {
+        const nState: IAppState = this.state;
+        nState.currentOrg = localStorage.getItem('plutchik_currentOrg') === null?undefined:localStorage.getItem('plutchik_currentOrg') as string;
         this.setState(this.state);
     }
 
     onUserMngOrgUpdated(org: any) {
-        const foundEl = this.orgs.findIndex(v=>v._id === org._id);
-        this.orgs[foundEl] = org;
+        const foundEl = this.state.orgs.findIndex(v=>v._id === org._id);
+        this.state.orgs[foundEl] = org;
 
+    }
+
+    onContentError(err: PlutchikError) {
+        if (err.code === "notfound") {
+            localStorage.removeItem('plutchik_currentOrg');
+            this.loadOrganizations();
+        } else {
+            this.displayError(err)
+        }
     }
     
     render(): React.ReactNode {
-        const current_org = this.orgs.filter(v=>v._id === this.state.currentOrg)[0];
+        const current_org = this.state.orgs.filter(v=>v._id === this.state.currentOrg)[0];
         return <div className='app-container'>
             <TGLogin ref={this.loginRef} pending={this.pendingRef} onStateChanged={(oldState: LoginFormStates, newState: LoginFormStates, info:IServerInfo)=>this.onLoginStateChanged(oldState, newState, info)} onUserInfoLoaded={ui=>this.onUILoaded(ui)} onError={(err)=>this.displayError(err)}/>
             
             {this.state.logged?<User userInfo={this.state.userInfo} serverInfo={this.state.serverInfo} onLogoutClick={()=>this.loginRef.current?.logout()}></User>:<div/>}
             
-            {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)} onOrganizationListLoaded={this.onOrgsListUpdated.bind(this)}></Organizations>:<div/>}
+            {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)} currentOrg={this.state.currentOrg} onCreateNewOrg={this.onNewOrgCreated.bind(this)} orgs={this.state.orgs}></Organizations>:<div/>}
             
             {this.state.logged?this.state.mode === "users"?this.state.currentOrg === undefined?<div></div>:
             <UserMng onOrgUpated={this.onUserMngOrgUpdated.bind(this)} serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id}/>
             
             :this.state.currentOrg === undefined?<div></div>:
             
-            <Content key={this.state.currentOrg} ref={this.contentRef} serverInfo={this.state.serverInfo} orgid={this.state.currentOrg} userid={this.state.userInfo._id} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} pending={this.pendingRef}></Content>:<div/>}
+            <Content key={this.state.currentOrg} ref={this.contentRef} serverInfo={this.state.serverInfo} orgid={this.state.currentOrg} userid={this.state.userInfo._id} onSuccess={res=>this.displayInfo(res)} onError={this.onContentError.bind(this)} pending={this.pendingRef}></Content>:<div/>}
             
             <Infos ref={this.messagesRef}/>
             <Pending ref={this.pendingRef}/>
