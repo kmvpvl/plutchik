@@ -246,7 +246,7 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
         item.organizationid = this.props.orgid;
         item.name = "";
         item.description = "";
-        item.language = MLString.getLang();
+        item.language = MLString.getLang().split('-')[0];;
         item.url = "";
         item.source = "web";
         item.tags = [];
