@@ -243,6 +243,7 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
 
     newItem (): any {
         const item: any = {};
+        item.blocked = false;
         item.organizationid = this.props.orgid;
         item.name = "";
         item.description = "";
