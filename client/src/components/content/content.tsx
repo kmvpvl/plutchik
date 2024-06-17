@@ -1,4 +1,4 @@
-import React, { RefObject } from "react";
+import React, { ReactNode, RefObject } from "react";
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from "../../model/common";
 import './content.css';
 import { Flower } from "../emotion/emotion";
@@ -15,16 +15,26 @@ export interface IContentProps {
     onError?: (err: PlutchikError)=>void;
 }
 
+type CheckResultType = "GOOD" | "WARNING" | "FAIL";
+
+interface ICheckResult {
+    _id: string;
+    checked: boolean;
+    result: CheckResultType;
+}
+
 export interface IContentState {
     items: Array<any>;
     curItem?: any;
     curItemStat?: any;
+    checkResults: ICheckResult[];
 }
 
 export class Content extends React.Component<IContentProps, IContentState> {
     itemFormRef: RefObject<ItemForm> = React.createRef();
     state: IContentState = {
-        items: []
+        items: [],
+        checkResults: []
     }
     componentDidMount(): void {
         this.loadContentItems();
@@ -48,7 +58,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
             this.props.pending?.current?.decUse();
             if (this.props.onError) this.props.onError(err);
             if (err.code === "notfound") {
-                
+
             }
         })
     }
@@ -102,6 +112,41 @@ export class Content extends React.Component<IContentProps, IContentState> {
         this.onSelectItem(undefined);
     }
 
+    private checkImageCB(item: any) {
+        alert(1)
+
+    }
+
+    private checkImage(item: any) {
+        this.state.checkResults.push({
+            _id: item._id,
+            result: item.url === ""?"FAIL":"GOOD",
+            checked: true
+        });
+        const img: ReactNode = <img src={item.url} onLoad={this.checkImageCB.bind(this, item)}/>;
+        this.setState(this.state);
+    }
+
+    deepCheck(){
+        const items = this.state.items;
+        for (let i = 0; i < items.length; i++){
+            const item = items[i];
+            if (item.type === "image") {
+                setTimeout(this.checkImage.bind(this, item), 200);
+            } else {
+
+            }
+        }
+
+    }
+
+    onDeepCheckButtonClick() {
+        const nState: IContentState = this.state;
+        nState.checkResults = [];
+        this.setState(nState);
+        setTimeout(this.deepCheck.bind(this), 200);
+    }
+
     render(): React.ReactNode {
         const items = this.state.items;
         return <div className="content-container">
@@ -113,14 +158,18 @@ export class Content extends React.Component<IContentProps, IContentState> {
                 {/*<button onClick={this.onRevertItem.bind(this)}>Revert item</button>*/}
                  <button onClick={this.saveItem.bind(this)}>Save item</button>
                 <span>|</span>
-                <button>Deep check set</button>
+                <button onClick={this.onDeepCheckButtonClick.bind(this)}>Deep check set</button>
                 <button>Analyze set</button>
                 <span>|</span>
                 {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={new Map(Object.entries(this.state.curItemStat).map((v:any, i:any)=>[v[0], v[1]]))}/></span>:<></>}
             </span>
             <span className="content-area">
                 <span className="content-items">
-                    {items.length === 0?"No items in this set. Create one":items.map((v, i)=><ContentItem key={i} item={v} onSelect={this.onSelectItem.bind(this, v)} selected={this.state.curItem?._id === v._id}/>)}
+                    {items.length === 0?"No items in this set. Create one":items.map((v, i)=>{
+                        const checkFound = this.state.checkResults.filter(cr=>v._id === cr._id);
+                        const checkRes = checkFound.length === 1? checkFound[0].result:undefined; 
+                        return <ContentItem checkResult={checkRes} key={i} item={v} onSelect={this.onSelectItem.bind(this, v)} selected={this.state.curItem?._id === v._id}/>
+                        })}
                 </span>
                 <ItemForm key={this.state.curItem?this.props.orgid+this.state.curItem._id:""} ref={this.itemFormRef} default_value={this.state.curItem} orgid={this.props.orgid}></ItemForm>
             </span>
@@ -255,6 +304,7 @@ interface IContentItemProps {
     item: any;
     onSelect: (v: any)=>void;
     selected: boolean;
+    checkResult?: CheckResultType;
 }
 
 interface IContentItemState {
@@ -265,7 +315,7 @@ export class ContentItem extends React.Component<IContentItemProps, IContentItem
     render(): React.ReactNode {
         const deltastr = relativeDateString(new Date(this.props.item.changed));
         return (
-        <span className={`content-item-container ${this.props.selected?'selected':''}`} onClick={()=>this.props.onSelect(this.props.item)}>
+        <span className={`content-item-container ${this.props.selected?'selected':''} ${this.props.checkResult?this.props.checkResult:""}`} onClick={()=>this.props.onSelect(this.props.item)}>
             <div className="content-item-type">{this.props.item.type}</div>
             <div className={`content-item-header`}>{this.props.item.name}</div>
             <div className="content-item-desc">{this.props.item.description}</div>

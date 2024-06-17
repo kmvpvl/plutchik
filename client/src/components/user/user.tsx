@@ -29,7 +29,7 @@ export default class User extends React.Component<IUserProps, IUserState> {
             </span>
             <span className='user-info'>{`Hello ${userinfo.name}!`}</span>
             <span className='user-toolbar'>
-                <button>I need help</button>
+                <a href={process.env.REACT_APP_LANDING_PAGE} target='blank'>I need help</a>&nbsp;
                 <button onClick={()=>this.props.onLogoutClick()}>Logout</button>
             </span>
         </span>

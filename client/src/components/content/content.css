@@ -62,6 +62,30 @@
     max-width: 15em;
 }
 
+.GOOD::before {
+    content: "good";
+    background-color: green;
+    padding: 2px;
+    color: white;
+    font-size: small;
+}
+
+.FAIL::before {
+    content: "fail";
+    background-color: red;
+    padding: 2px;
+    color: white;
+    font-size: small;
+}
+
+.WARNING::before {
+    content: "warning";
+    background-color: gold;
+    padding: 2px;
+    color: white;
+    font-size: small;
+}
+
 .content-item-header {
     font-size: 120%;
 }
