@@ -11,11 +11,15 @@ import { mongoAssessments } from '../model/assessment';
 export default async function getorgcontent(c: any, req: Request, res: Response, user: User) {
     const oid = req.body['oid'];
     console.log(`${colours.fg.green}API: getorgcontent function${colours.reset}\n ${colours.fg.blue}Parameters: organizationid = '${oid}'${colours.reset}`);
-    const org = new Organization(new Types.ObjectId(oid));
-    await org.load();
-    if (!await org.checkRoles(user, "manage_content")) return res.status(403).json({err: 403, desc: `Role manage_content requires`});
-    const ci = await org.getContentItems();
-    return res.status(200).json(ci);
+    try {
+        const org = new Organization(new Types.ObjectId(oid));
+        await org.load();
+        if (!await org.checkRoles(user, "manage_content")) return res.status(403).json({err: 403, desc: `Role manage_content requires`});
+        const ci = await org.getContentItems();
+        return res.status(200).json(ci);
+    } catch (e: any) {
+        return res.status(404).json({ok: "FAIL", descriprion: `org_id=${oid}`});
+    }
 }
 
 export async function addcontent(c: any, req: Request, res: Response, user: User) {
@@ -58,59 +62,18 @@ export async function getcontentstatistics(c: any, req: Request, res: Response, 
     console.log(`${colours.fg.green}API: getcontentstatistics function${colours.reset}\n ${colours.fg.blue}Parameters: cid = '${cid}'${colours.reset}`);
     try {
         MongoProto.connectMongo();
-        const stat = await mongoAssessments.aggregate(
-        [
-            {
-            '$match': {
-                'cid': new Types.ObjectId(cid)
-            }
-            }, {
-            '$group': {
-                '_id': '$cid', 
-                'joy': {
-                '$avg': {
-                    '$toDouble': '$vector.joy'
-                }
-                }, 
-                'trust': {
-                '$avg': {
-                    '$toDouble': '$vector.trust'
-                }
-                }, 
-                'fear': {
-                '$avg': {
-                    '$toDouble': '$vector.fear'
-                }
-                }, 
-                'surprise': {
-                '$avg': {
-                    '$toDouble': '$vector.surprise'
-                }
-                }, 
-                'sadness': {
-                '$avg': {
-                    '$toDouble': '$vector.sadness'
-                }
-                }, 
-                'disgust': {
-                '$avg': {
-                    '$toDouble': '$vector.disgust'
-                }
-                }, 
-                'anger': {
-                '$avg': {
-                    '$toDouble': '$vector.anger'
-                }
-                }, 
-                'anticipation': {
-                '$avg': {
-                    '$toDouble': '$vector.anticipation'
-                }
-                }, 
-                'count': {
-                '$sum': 1
-                }
-            }
+        const stat = await mongoAssessments.aggregate([
+            {'$match': {'cid': new Types.ObjectId(cid)}
+            }, {'$group': {'_id': '$cid', 
+                'joy': {'$avg': {'$toDouble': '$vector.joy'}}, 
+                'trust': {'$avg': {'$toDouble': '$vector.trust'}}, 
+                'fear': {'$avg': {'$toDouble': '$vector.fear'}}, 
+                'surprise': {'$avg': {'$toDouble': '$vector.surprise'}}, 
+                'sadness': {'$avg': {'$toDouble': '$vector.sadness'}}, 
+                'disgust': {'$avg': {'$toDouble': '$vector.disgust'}}, 
+                'anger': {'$avg': {'$toDouble': '$vector.anger'}}, 
+                'anticipation': {'$avg': {'$toDouble': '$vector.anticipation'}}, 
+                'count': {'$sum': 1}}
             }
         ]);
         if (stat.length === 1) return res.status(200).json(stat[0]);

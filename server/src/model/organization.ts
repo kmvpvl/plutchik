@@ -1,12 +1,13 @@
 import { Schema, Types, model } from "mongoose";
 import PlutchikError from "./error";
 import {MLString, MLStringSchema} from "./mlstring";
-import User, { RoleType } from "./user";
+import User, { IAssignOrg, RoleType } from "./user";
 import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
 import MongoProto from "./mongoproto";
 import { mongoAssessments } from "./assessment";
+import Telegram from "./telegram";
 
 export const DEFAULT_SESSION_DURATION = 10080;
 
@@ -17,6 +18,23 @@ export interface IParticipant {
     expired?: Date;
     roles: Array<RoleType>;
 }
+export interface IInvitationToAssess {
+    _id: Types.ObjectId;
+    whom_tguserid: TelegramBot.ChatId;
+    from_tguserid: TelegramBot.ChatId;
+    messageToUser: TelegramBot.Message;
+    closed: boolean;
+    closedDate?: Date;
+}
+
+export interface IResponseToInvitation {
+    _id: Types.ObjectId;
+    response_to: Types.ObjectId;
+    acceptordecline: boolean;
+    user_reply: TelegramBot.Update;
+    created: Date;
+}
+
 export interface ISessionToken {
     _id: Types.ObjectId;
     useridref: Types.ObjectId;
@@ -28,6 +46,8 @@ export interface IOrganization {
     name: MLString;
     participants: Array<IParticipant>;
     emails: Array<string>;
+    invitations?: Array<IInvitationToAssess>;
+    responses_to_invitations?: Array<IResponseToInvitation>;
     created: Date;
     changed?: Date;
 }
@@ -41,6 +61,8 @@ export const OrganizationSchema = new Schema({
     name: String,
     participants: [],
     emails: [],
+    invitations: {type: Array, require: false},
+    responses_to_invitations: {type: Array, require: false},
     created: Date,
     changed: Date,
     history: Array<any>,
@@ -48,12 +70,18 @@ export const OrganizationSchema = new Schema({
 export const mongoOrgs = model<IOrganization>('organizations', OrganizationSchema);
 export const mongoSessionTokens = model<ISessionToken>('sessiontokens', SessionTokenSchema);
 
+export interface IOrganizationStats {
+    countByDate: Array<{day: Date; count: number}>
+}
+
 export default class Organization extends MongoProto <IOrganization>{
     constructor(id?: Types.ObjectId, data?: IOrganization){
         super(mongoOrgs, id, data);
     }
 
     public async addParticipant(uid: Types.ObjectId, roles: Array<RoleType>) {
+        //!!! check for supervisor. Nobody can set supervisor to anybody
+        roles = roles.filter(v=>v !== 'supervisor');
         await this.checkData();
         const p: IParticipant =  {
             uid: uid,
@@ -66,7 +94,7 @@ export default class Organization extends MongoProto <IOrganization>{
 
     public async removeParticipant(uid: Types.ObjectId) {
         await this.checkData();
-        if (this.data) this.data.participants = this.data?.participants.filter((v)=>uid.equals(v.uid));
+        if (this.data) this.data.participants = this.data?.participants.filter((v)=>!uid.equals(v.uid));
         await this.save();
     }
 
@@ -77,32 +105,40 @@ export default class Organization extends MongoProto <IOrganization>{
         throw new PlutchikError("organization:wrongtguserid", `organizationid='${this.uid}'; uid='${uid}'`)
     }
 
+    public async logInvitation(i: IInvitationToAssess) {
+        await this.checkData();
+        if (this.data && this.data?.invitations === undefined) this.data.invitations = new Array();
+        this.data?.invitations?.push(i);
+        await this.save();
+    }
+    public async logResponseToInvitation(i: IResponseToInvitation) {
+        await this.checkData();
+        if (this.data && this.data?.responses_to_invitations === undefined) this.data.responses_to_invitations = new Array();
+        this.data?.responses_to_invitations?.push(i);
+        await this.save();
+    }
+    public async rename(newName: string) {
+      await this.checkData();
+      if (this.data) this.data.name = newName;
+      await this.save();
+    }
+
+    public async closeInvitation(inv_id: Types.ObjectId) {
+        await this.checkData();
+        if (this.data) this.data.invitations?.forEach(v=>{if (v._id === inv_id) {
+            v.closed = true;
+            v.closedDate = new Date();
+        }});
+        await this.save();
+    }
+
     public async getFirstLettersOfContentItems(): Promise<Array<string>> {
         await this.checkData();
         const letters = await mongoContent.aggregate([
-            {
-              '$match': {
-                'organizationid': this.id
-              }
-            }, {
-              '$project': {
-                'l': {
-                  '$substrCP': [
-                    '$name', 0, 1
-                  ]
-                }
-              }
-            }, {
-              '$group': {
-                '_id': '$l', 
-                'count': {
-                  '$sum': 1
-                }
-              }
-            }, {
-              '$sort': {
-                '_id': 1
-              }
+            {'$match': {'organizationid': this.id, 'blocked': false}
+            }, {'$project': {'l': {'$substrCP': ['$name', 0, 1]}}
+            }, {'$group': {'_id': '$l', 'count': {'$sum': 1}}
+            }, {'$sort': {'_id': 1}
             }
           ]);
         return letters;
@@ -110,18 +146,28 @@ export default class Organization extends MongoProto <IOrganization>{
     public async getContentItems(): Promise<Array<IContent>> {
         await this.checkData();
         const ci = await mongoContent.aggregate([
-            {'$match': {
-                'organizationid': this.id
-            }},
-            {'$lookup': {
+            {'$match': {'organizationid': this.id}
+            }, {'$lookup': {
                 from: "groups",
                 localField: "_id",
                 foreignField: "items",
-                as: "groups"
-            }}
+                as: "groups"}
+            }, {'$sort': {
+                changed: -1}
+            }
         ]);
         return ci;
     }
+
+    public async getContentItemsCount(): Promise<Array<IContent>> {
+        await this.checkData();
+        const ci = await mongoContent.aggregate([
+            {'$match': {'organizationid': this.id, 'blocked': false}
+            }, {'$count': "count"}
+        ]);
+        return ci[0].count;
+    }
+
     async checkRoles(user: User, role_to_find: RoleType): Promise<boolean> {
         await this.checkData();
         const user_roles = this.data?.participants.filter(v=>user.uid.equals(v.uid));
@@ -180,6 +226,64 @@ export default class Organization extends MongoProto <IOrganization>{
           }
         ]);
         return users;
-  } 
+    } 
 
+    static async getOrganizationByInvitationId(inv_id: Types.ObjectId): Promise<Organization> {
+        const orgs = await mongoOrgs.aggregate([
+            {'$match': {'invitations._id': inv_id}}
+        ]);
+        if (orgs.length === 0) throw new PlutchikError("organization:notfound", `by invitation id = ${inv_id}`);
+        const ret = new Organization(undefined, orgs[0]);
+        await ret.load();
+        return ret
+    }
+    //** Calc assign which referenced in assessment when user is assessing content of organization by invitation */
+    //** @return IAssignOrg or undefined, may be throwed if ogranization object was broken */
+    public async getUserAndAssignByInvitationId(inv_id: Types.ObjectId): Promise<{user: User; assign?: IAssignOrg}> {
+        const found_inv = this.json?.invitations?.filter(v=>inv_id.equals(v._id));
+        if (found_inv !== undefined && found_inv.length === 1) {
+            // getting user who was invited
+            const user = await User.getUserByTgUserId(parseInt(found_inv[0].whom_tguserid.toString()));
+            if (user === undefined) {
+                throw new PlutchikError("user:notfound", `Ivited user with TG ID = '${found_inv[0].whom_tguserid}' left`);
+            }
+            // finding responses to invitation with accepting
+            const answers = this.json?.responses_to_invitations?.filter(v=>inv_id.equals(v.response_to) && v.acceptordecline);
+            if (answers === undefined || answers.length === 0) {
+                // user hasn't replied to invitation or declined
+                return {user: user}
+            } else {
+                //finding last acceptance
+                const last_answer = answers.reduce((p, cur)=>p.created.getTime()>cur.created.getTime()?p:cur);
+                //getting from user assign object
+                const assigns = user?.json?.assignedorgs?.filter(v=>v.response_to_invitation.equals(last_answer._id));
+                if (assigns === undefined || assigns.length === 0) {
+                    throw new PlutchikError("user:broken", `Expected assign to org with response_to_invitation = '${last_answer._id}'`)
+                } else {
+                    return {user: user, assign: assigns[0]};
+                }
+            }
+        } else {
+            throw new PlutchikError("organization:broken", `Invitation id = '${inv_id}' not found or not the only one`);
+        }
+    }
+    public async stats(): Promise<IOrganizationStats> {
+        await this.checkData();
+        const s = await mongoAssessments.aggregate ([
+            {'$lookup': {
+                from: "contents",
+                localField: "cid",
+                foreignField: "_id",
+                pipeline: [{"$match": {"organizationid": this.uid}}],
+                as: "result"}
+            }, {'$match': {"result": {"$ne": []}}
+            }, {'$addFields': {'daydate': {'$dateTrunc': {'date': '$created', 'unit': 'day'}}}
+            }, {'$group': {'_id': '$daydate', 'count': {'$sum': 1}}
+            }, {'$project': {"day": "$_id","count": "$count"}
+            }
+        ]);
+        return {
+            countByDate: s
+        }
+    }
 }

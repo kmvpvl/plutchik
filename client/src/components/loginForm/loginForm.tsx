@@ -47,8 +47,8 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         super(props);
         this.tgUserIdRef = React.createRef();
         this.tgAuthCode = React.createRef();
-        const tgUI = localStorage.getItem('tgUserId');
-        const st = localStorage.getItem('sessiontoken');
+        const tgUI = localStorage.getItem('plutchik_tgUserId');
+        const st = localStorage.getItem('plutchik_sessiontoken');
         this.serverInfo = {};
         this.serverInfo.tguserid = tgUI?parseInt(tgUI):undefined;
         this.serverInfo.sessiontoken = st?st:undefined;
@@ -85,7 +85,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
     getAuthCode() {
         const tgUI = this.tgUserIdRef.current?.value;
         if (tgUI) {
-            localStorage.setItem('tgUserId', tgUI);
+            localStorage.setItem('plutchik_tgUserId', tgUI);
             this.props.pending?.current?.incUse();
             serverFetch(`tgcreateauthcode`,'POST', [
                 ['plutchik_tguid', tgUI]
@@ -107,7 +107,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         //debugger;
         const tgUI = this.tgUserIdRef.current.value;
         const tgAC = this.tgAuthCode.current.value;
-        localStorage.setItem('tgUserId', tgUI);
+        localStorage.setItem('plutchik_tgUserId', tgUI);
         this.props.pending?.current?.incUse();
         serverFetch(`tggetsessiontoken`, 'GET', { 
             plutchik_tguid: tgUI,
@@ -116,7 +116,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
             res=>{
                 this.serverInfo.tguserid = parseInt(tgUI);
                 this.serverInfo.sessiontoken = res;
-                localStorage.setItem('sessiontoken', res);
+                localStorage.setItem('plutchik_sessiontoken', res);
                 this.changeState('logged');
                 this.getuserinfo();
                 this.props.pending?.current?.decUse();
@@ -128,7 +128,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         );
     }
     logout() {
-        localStorage.removeItem('sessiontoken');
+        localStorage.removeItem('plutchik_sessiontoken');
         delete this.serverInfo.sessiontoken;
         this.changeState('connecting');
         this.getServerVersion();
@@ -146,8 +146,11 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
     }
     render(): React.ReactNode {
         const state = this.state.state;
-        return (
-            <div className={ 'logged' === state ?'login-form logged':'login-form'}>
+        return <div className={ 'logged' === state ?'login-container logged':'login-container'}>
+            { 'logged' !== state ?
+            <span className='login-intro'>Добро пожаловать! Этот бот является частью большой системы для взаимодействия психологов, их клиентов, работодателей и их работников. Система нацелена на повышение комфортности взаимодействия и улучшения качества жизни всех участников. Бот позволит Вам вычислить Ваш эмоциональный азимут, сравнить его с другими участниками, оставаясь в безопасности. Будьте уверены, что информация о Вас будет удалена в тот момент, как Вы об этом попросите. Больше подробностей о системе прочитайте тут (https://plutchik-landing.onrender.com)</span>:<span></span>}
+
+            <div className='login-form'>
                 <span className='login-state'>
                     <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
                 </span>
@@ -164,7 +167,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                 </span>
                 {'connected' === state ? <span className='versions'>{JSON.stringify(this.serverInfo.version)}</span>:<span></span>}
             </div>
-        );
+        </div>;
     }
 }
 

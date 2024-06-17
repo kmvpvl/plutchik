@@ -1,10 +1,31 @@
-.login-form {
+.login-container {
+    display: grid;
+    grid-template-rows: auto auto;
     position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--background-color);
+}
+.login-intro {
+    position: relative;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: justify;
+    padding: 10px;
+}
+.login-form {
+    position: relative;
     width: fit-content;
     height: auto;
     min-height: fit-content;
     max-height: fit-content;
-    margin: auto;
+    margin: 0 auto auto auto;
     left: 0;
     right: 0;
     top: 0;
@@ -21,11 +42,16 @@
 }
 
 .logged {
+    display: none;
     border-width: 0px;
-    float: right;
-    left: auto;
-    bottom: auto;
+    position: absolute;
     opacity: 0.3;
+    margin: auto auto 0 auto;
+    top: auto;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    grid-area: user-logout;
 }
 
 .versions {
