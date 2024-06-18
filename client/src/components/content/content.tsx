@@ -89,18 +89,15 @@ export class Content extends React.Component<IContentProps, IContentState> {
         nState.curItemStat = undefined;
         this.setState(nState);
         if (selectedItem === undefined) return;
-        this.props.pending?.current?.incUse();
         serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
             cid: selectedItem._id
         }), (res)=>{
-            this.props.pending?.current?.decUse();
             const nState: IContentState = this.state;
             nState.curItemStat = res;
             this.setState(nState);
         }, (err: PlutchikError)=>{
             // for new items server returns http 404 error
             //if (this.props.onError) this.props.onError(err);
-            this.props.pending?.current?.decUse();
         });
     }
     onRevertItem() {
