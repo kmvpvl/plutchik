@@ -5,6 +5,7 @@ import { Flower } from "../emotion/emotion";
 import Pending from "../pending/pending";
 import MLString from "../../model/mlstring";
 import { MLStringEditor } from "../mlstring/mlstring";
+import Chart from "react-google-charts";
 
 export interface IContentProps {
     serverInfo: IServerInfo;
@@ -24,6 +25,7 @@ interface ICheckResult {
 }
 
 export interface IContentState {
+    mode: string;
     items: Array<any>;
     curItem?: any;
     curItemStat?: any;
@@ -36,7 +38,8 @@ export class Content extends React.Component<IContentProps, IContentState> {
     queueCheck: any[] = [];
     state: IContentState = {
         items: [],
-        checkResults: []
+        checkResults: [],
+        mode: "content"
     }
     componentDidMount(): void {
         this.loadContentItems();
@@ -55,6 +58,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
             const nState: IContentState = this.state;
             nState.items = res;
             nState.curItem = selectItem;
+            nState.mode = "content";
             this.setState(nState);
         }, err=>{
             this.props.pending?.current?.decUse();
@@ -87,6 +91,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
         const nState: IContentState = this.state;
         nState.curItem = selectedItem;
         nState.curItemStat = undefined;
+        nState.mode = "content";
         this.setState(nState);
         if (selectedItem === undefined) return;
         serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
@@ -165,18 +170,40 @@ export class Content extends React.Component<IContentProps, IContentState> {
 
     render(): React.ReactNode {
         const items = this.state.items;
+        const statsData: any[] = [[
+            {type: "date",
+                id: "day",
+            }, {type: "number",
+                id: "Count",
+            },],]
+        if (this.state.mode === "stats") {
+            for (let i = 0; i < this.state.items.length; i++){
+                const datewotimecreated = new Date(new Date(this.state.items[i].created).toDateString());
+                const datewotimechanged = new Date(new Date(this.state.items[i].changed).toDateString());
+                let foundDate = statsData.slice(1).findIndex((elem: any)=>datewotimecreated.getDate() === elem[0].getDate());
+                if (foundDate === -1) statsData.push([datewotimecreated, 1]);
+                else statsData[foundDate+1][1] += 1;
+                foundDate = statsData.slice(1).findIndex((elem: any)=>datewotimechanged.getDate() === elem[0].getDate());
+                if (foundDate === -1) statsData.push([datewotimechanged, 1]);
+                else statsData[foundDate+1][1] += 1;
+            }
+        }
         return <div className="content-container">
             <img className="content-check-img" alt={"checker"} ref={this.imgCheckerRef} onError={this.checkImageErrorCB.bind(this)} onLoad={this.checkImageSuccessCB.bind(this)}/>
             <span className="content-label">Content of set editing</span>
             <span className="content-toolbar">
                 <button onClick={this.onNewItem.bind(this)}>New item</button>
                 {/*<button onClick={this.onBlockItem.bind(this)}>Hide item</button>*/}
-                <span>|</span>
                 {/*<button onClick={this.onRevertItem.bind(this)}>Revert item</button>*/}
                  <button onClick={this.saveItem.bind(this)}>Save item</button>
                 <span>|</span>
                 <button className={this.queueCheck.length===0?"":"checking"} onClick={this.onDeepCheckButtonClick.bind(this)}>{this.queueCheck.length===0?"Deep check set":"Deep checking..."}</button>
-                {/*<button>Analyze set</button>*/}
+                <span>|</span>
+                {<button onClick={e=>{
+                    const nState: IContentState = this.state;
+                    nState.mode = "stats";
+                    this.setState(nState);
+                }}>Content stats</button>}
                 <span>|</span>
                 {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={new Map(Object.entries(this.state.curItemStat).map((v:any, i:any)=>[v[0], v[1]]))}/></span>:<></>}
             </span>
@@ -188,7 +215,8 @@ export class Content extends React.Component<IContentProps, IContentState> {
                         return <ContentItem checkResult={checkRes} key={i} item={v} onSelect={this.onSelectItem.bind(this, v)} selected={this.state.curItem?._id === v._id}/>
                         })}
                 </span>
-                <ItemForm key={this.state.curItem?this.props.orgid+this.state.curItem._id:""} ref={this.itemFormRef} default_value={this.state.curItem} orgid={this.props.orgid}></ItemForm>
+                {this.state.mode === "content"?<ItemForm key={this.state.curItem?this.props.orgid+this.state.curItem._id:""} ref={this.itemFormRef} default_value={this.state.curItem} orgid={this.props.orgid}/>:
+                <Chart chartType="Calendar" width="100%" height="400px" data={statsData} options={{title: "Stats: content created and changed by date"}}/>}
             </span>
         </div>
     }
@@ -306,14 +334,12 @@ export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
 
                 <span> | </span><span>Groups<input ref={this.groupsRef} defaultValue={item.groups?.map((v: any)=>v.name).join(';')} onChange={this.updateAttribute.bind(this, 'groups')}/></span>
             </div>
-            <div className="">
-                Url <textarea ref={this.urlRef} defaultValue={item.url} onChange={this.updateAttribute.bind(this, 'url')}/></div>
-                    
-            {item.type==='image'?
-            <div className="img-to-center">
-                <img key={`img_${Math.random()}`} className="content-fit-to" src={item.url} alt={item.description}/>
-            </div>
-            :<></>}
+
+            <div>Url</div>
+            <textarea ref={this.urlRef} defaultValue={item.url} onChange={this.updateAttribute.bind(this, 'url')}/>
+            {item.type ==='image'?<div className="img-to-center">
+                    <img key={`img_${Math.random()}`} className="content-fit-to" src={item.url} alt={item.description}/>
+            </div>:<></>}
         </div>;
     }
 }

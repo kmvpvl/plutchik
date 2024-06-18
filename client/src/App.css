@@ -17,6 +17,7 @@ div.info {
   border: darkgreen 1px solid;
   background-color:lightgreen;
   color: darkgreen;
+  top: unset;
 }
 div.error {
   border: darkred 1px solid;
