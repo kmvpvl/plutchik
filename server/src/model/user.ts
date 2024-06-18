@@ -270,8 +270,8 @@ export default class User extends MongoProto<IUser> {
     }
     public async nextContentItem(bot: TelegramBot, language?: string, source_type?: SourceType): Promise <IContent>{
         this.checkData();
-        const assigns_o = this.data?.assignedorgs?.filter((val)=>!val.closed);
-        const assigns_g = this.data?.assignedgroups?.filter((val)=>!val.closed);
+        const assigns_o: IAssignOrg[] | undefined = this.data?.assignedorgs?.filter((val)=>!val.closed);
+        const assigns_g: IAssignGroup[] | undefined = this.data?.assignedgroups?.filter((val)=>!val.closed);
         if (assigns_o?.length) {
             return this.nextContentItemByAssignOrg(assigns_o[0].oid, assigns_o[0]._id, bot);
         } else if (assigns_g?.length) {

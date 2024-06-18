@@ -13,14 +13,11 @@ type IMLStringEditorState = {
 }
 
 export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStringEditorState> {
-    r: number;
-    constructor(props: IMLStringEditorProps) {
-        super(props);
-        this.state = {
-            value: props.defaultValue?props.defaultValue:new MLString('')
-        }
-        this.r = Math.round(Math.random() * 1000);
+    state: IMLStringEditorState = {
+        value: this.props.defaultValue?this.props.defaultValue:new MLString('')
     }
+
+    defaultInputRef: React.RefObject<HTMLInputElement> = React.createRef();
     
     get value() {
         return this.state.value;
@@ -39,14 +36,14 @@ export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStr
                 const d: IMLString = this.value.toJSON();
                 d.default = e.currentTarget.value;
                 if (this.props.onChange) this.props.onChange(new MLString(d));
-        }}defaultValue={this.state.value.default}/></span>
+        }}defaultValue={this.state.value.default} ref={this.defaultInputRef}/></span>
             <span >
                 {Array.from(this.state.value.values).map(([l, s], k)=><div key={k} className='mlstring-values'>
                 <span><button onClick={(e)=>{
-                    this.r = Math.round(Math.random() * 1000);
                     const d: IMLString = this.value.toJSON();
                     d.default = this.state.value.values.get(l) as string;
                     this.value = new MLString(d);
+                    if (this.defaultInputRef.current) this.defaultInputRef.current.value = d.default
                     if (this.props.onChange) this.props.onChange(new MLString(d));
                 }}>^</button><button onClick={(e)=>{
                     this.state.value.values.delete(l);
@@ -59,10 +56,10 @@ export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStr
                     this.state.value.values.set(e.currentTarget.value, oldv as string);
                     if (this.props.onChange) this.props.onChange(this.value);
                     this.setState(this.state);
-                }} defaultValue={l}/><input placeholder='Type here value in language' onChange={(e)=>{
+                }} value={l}/><input placeholder='Type here value in language' onChange={(e)=>{
                     this.state.value.values.set(l, e.currentTarget.value);
                     if (this.props.onChange) this.props.onChange(this.value);
-                }}defaultValue={s}/>
+                }}value={s}/>
                 </div>)}
             </span>
         </span>;
