@@ -1,10 +1,75 @@
-.login-form {
+.login-container {
+    display: grid;
+    grid-template-rows: auto auto;
     position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--background-color);
+}
+.login-intro {
+    position: relative;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: justify;
+    padding: 10px;
+}
+.login-logo {
+    text-align: center; 
+    color: var(--joy-color);
+}
+
+@media screen and (orientation: landscape) and (min-width: 965px) {
+    .login-intro {
+        margin-left: 20%;
+        margin-right: 20%;
+    }
+    .login-logo {
+        font-size: 100px;
+    }
+    .login-logo > img{
+        height: 100px;
+    }
+}
+  
+@media screen and (orientation: landscape) and (max-width: 965px) {
+    .login-intro {
+        margin-left: 12%;
+        margin-right: 12%;
+    }
+    .login-logo > img{
+        height: 50px;
+    }
+    .login-logo {
+        font-size: 50px;
+    }
+}
+
+@media (orientation: portrait) {
+    .login-intro {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .login-logo {
+        font-size: 50px;
+    }
+    .login-logo > img{
+        height: 50px;
+    }
+}
+  
+.login-form {
+    position: relative;
     width: fit-content;
     height: auto;
     min-height: fit-content;
     max-height: fit-content;
-    margin: auto;
+    margin: 0 auto auto auto;
     left: 0;
     right: 0;
     top: 0;
@@ -21,11 +86,16 @@
 }
 
 .logged {
+    display: none;
     border-width: 0px;
-    float: right;
-    left: auto;
-    bottom: auto;
+    position: absolute;
     opacity: 0.3;
+    margin: auto auto 0 auto;
+    top: auto;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    grid-area: user-logout;
 }
 
 .versions {

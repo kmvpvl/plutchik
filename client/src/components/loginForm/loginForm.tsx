@@ -3,6 +3,7 @@ import './loginForm.css';
 import { IServerInfo, PlutchikError, serverCommand, serverFetch } from '../../model/common';
 import Pending from '../pending/pending';
 import MLString from '../../model/mlstring';
+import {ML} from '../../model/mlstring';
 
 const strTryAgain = new MLString({
     default: "Try again", 
@@ -28,6 +29,14 @@ const strSignOut = new MLString({
 
 export type LoginFormStates = 'connecting' | 'connected' | 'revealing_auth_code' | 'logging' | 'logged';
 
+const StateNames = new Map<LoginFormStates, string>([
+    ["connecting", "Connecting..."],
+    ["connected", "Connected to cloud"],
+    ["revealing_auth_code", "Sending code of safety to you..."],
+    ["logging", "Trying check your code..."],
+    ["logged", "Logged in"]
+]);
+
 interface ILoginFormProps {
     onStateChanged?: (oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo)=>void;
     onUserInfoLoaded?: (ui: any)=>void;
@@ -47,8 +56,8 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         super(props);
         this.tgUserIdRef = React.createRef();
         this.tgAuthCode = React.createRef();
-        const tgUI = localStorage.getItem('tgUserId');
-        const st = localStorage.getItem('sessiontoken');
+        const tgUI = localStorage.getItem('plutchik_tgUserId');
+        const st = localStorage.getItem('plutchik_sessiontoken');
         this.serverInfo = {};
         this.serverInfo.tguserid = tgUI?parseInt(tgUI):undefined;
         this.serverInfo.sessiontoken = st?st:undefined;
@@ -85,7 +94,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
     getAuthCode() {
         const tgUI = this.tgUserIdRef.current?.value;
         if (tgUI) {
-            localStorage.setItem('tgUserId', tgUI);
+            localStorage.setItem('plutchik_tgUserId', tgUI);
             this.props.pending?.current?.incUse();
             serverFetch(`tgcreateauthcode`,'POST', [
                 ['plutchik_tguid', tgUI]
@@ -107,7 +116,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         //debugger;
         const tgUI = this.tgUserIdRef.current.value;
         const tgAC = this.tgAuthCode.current.value;
-        localStorage.setItem('tgUserId', tgUI);
+        localStorage.setItem('plutchik_tgUserId', tgUI);
         this.props.pending?.current?.incUse();
         serverFetch(`tggetsessiontoken`, 'GET', { 
             plutchik_tguid: tgUI,
@@ -116,7 +125,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
             res=>{
                 this.serverInfo.tguserid = parseInt(tgUI);
                 this.serverInfo.sessiontoken = res;
-                localStorage.setItem('sessiontoken', res);
+                localStorage.setItem('plutchik_sessiontoken', res);
                 this.changeState('logged');
                 this.getuserinfo();
                 this.props.pending?.current?.decUse();
@@ -128,7 +137,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         );
     }
     logout() {
-        localStorage.removeItem('sessiontoken');
+        localStorage.removeItem('plutchik_sessiontoken');
         delete this.serverInfo.sessiontoken;
         this.changeState('connecting');
         this.getServerVersion();
@@ -146,10 +155,14 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
     }
     render(): React.ReactNode {
         const state = this.state.state;
-        return (
-            <div className={ 'logged' === state ?'login-form logged':'login-form'}>
+        return <div className={ 'logged' === state ?'login-container logged':'login-container'}>
+            { 'logged' !== state ?
+            <span className='login-intro'><div className='login-logo'>PLUT<img src="./plutchart_logo.svg" alt="PLUTCHART"/>CHART</div>
+            <div>{ML(`Welcome! This content creation and editing system is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The system will allow you to create content, send a task to the participant for assessment, monitor implementation and calculate the emotional azimuth of the participant. Read more details about the system here`)} (<a href={process.env.REACT_APP_LANDING_PAGE} target="_blank" rel="noreferrer">{process.env.REACT_APP_LANDING_PAGE}</a>)</div></span>:<span></span>}
+
+            <div className='login-form'>
                 <span className='login-state'>
-                    <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
+                    <span>{StateNames.get(this.state.state)}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
                 </span>
                 <span className='login-tguserid'>
                     {'connecting' !== state && 'logged' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
@@ -158,13 +171,18 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                     }}>I have code</button></>:<></>}
                 </span>
                 <span className='login-authcode'>
-                    {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
+                    {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode} onKeyDown={event=>{
+                    switch (event.key){
+                        case "Enter": this.login(); break;
+                    }
+                    }}/>:<></>}
                     {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>Log in</button>:<></>}
                     {'logged' === state ? <button onClick={()=>this.logout()}>{strSignOut}</button>:<></>}
                 </span>
                 {'connected' === state ? <span className='versions'>{JSON.stringify(this.serverInfo.version)}</span>:<span></span>}
             </div>
-        );
+        </div>;
     }
 }
+
 

@@ -1,0 +1,27 @@
+.orgs-container {
+    grid-area: app-orgs;
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    border: 1px solid var(--text-color);
+    padding: 1em 0em 0.5em 1em;
+    border-radius: 0.5em;
+    position: relative;
+    --margin-top: 0.5em;
+}
+
+.orgs-cur-org {
+
+}
+
+.orgs-toolbar {
+
+}
+
+.orgs-label {
+    position: absolute;
+    top: -0.5em;
+    left: 0.5em;
+    background-color: var(--background-color);
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}

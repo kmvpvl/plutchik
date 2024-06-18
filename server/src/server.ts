@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import User from './model/user';
 import userinfo, {getinsights, getmatchlist, informuserbytg, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
-import {createorganization, getusersassessedorganizationcontent} from './api/organization';
+import {createorganization, getinvitationstats, getorganizationstats, getusersassessedorganizationcontent, renameorganization, requesttoassignorgtouser} from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
 import getorgcontent, { addcontent, getcontentstatistics } from './api/content';
@@ -145,20 +145,23 @@ api.register({
     version: version,
     tggetsessiontoken: async (c, req, res, user) => tggetsessiontoken(c, req, res, user),
     createorganization: async (c, req, res, user) => createorganization(c, req, res, user),
+    renameorganization: async (c, req, res, user) => renameorganization(c, req, res, user),
     tgcreateauthcode: async (c, req, res, user) => tgcreateauthcode(c, req, res, user, bot),
     userinfo: async (c, req, res, user) => userinfo(c, req, res, user),
     orgsattachedtouser: async (c, req, res, user) => ogranizationAttachedToUser(c, req, res, user),
     getorgcontent: async (c, req, res, user) => getorgcontent(c, req, res, user),
     addcontent: async (c, req, res, user) => addcontent(c, req, res, user),
     addassessment: async (c, req, res, user) => addassessment(c, req, res, user),
-    getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user),
+    getnextcontentitem: async (c, req, res, user) => getnextcontentitem(c, req, res, user, bot),
     getcontentstatistics: async (c, req, res, user) => getcontentstatistics(c, req, res, user),
     getinsights: async (c, req, res, user) => getinsights(c, req, res, user),
     reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
     getmatchlist: async (c, req, res, user) => getmatchlist(c, req, res, user),
     getusersassessedorganizationcontent: async (c, req, res, user) => getusersassessedorganizationcontent(c, req, res, user),
     informuserbytg: async (c, req, res, user) => informuserbytg(c, req, res, user, bot),
-
+    requesttoassignorgtouser: async (c, req, res, user) => requesttoassignorgtouser(c, req, res, user, bot),
+    getinvitationstats: async (c, req, res, user) => getinvitationstats(c, req, res, user, bot),
+    getorganizationstats: async (c, req, res, user) => getorganizationstats(c, req, res, user),
     telegram: async (c, req, res, user) => telegram(c, req, res, bot),
 
     headAnswer: async (c, req, res) => headAnswer(c, req, res),

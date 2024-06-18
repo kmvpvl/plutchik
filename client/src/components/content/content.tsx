@@ -1,41 +1,251 @@
-import React, { RefObject } from "react";
-import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
+import React, { ReactNode, RefObject } from "react";
+import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from "../../model/common";
 import './content.css';
-import { EmotionType, Flower, emotions } from "../emotion/emotion";
+import { Flower } from "../emotion/emotion";
 import Pending from "../pending/pending";
 import MLString from "../../model/mlstring";
 import { MLStringEditor } from "../mlstring/mlstring";
-export interface IContentItemsProps {
+import Chart from "react-google-charts";
+
+export interface IContentProps {
     serverInfo: IServerInfo;
-    uid: string;
-    oid: string;
-    onSuccess: (text: string)=>void;
-    onError: (err: PlutchikError)=>void;
+    userid: string;
+    orgid: string;
     pending?: RefObject<Pending>;
+    onSuccess?: (text: string)=>void;
+    onError?: (err: PlutchikError)=>void;
 }
 
-export interface IContentItemsState {
-    items: any[];
-    currentItem: any;
-    currentItemStat: Map<EmotionType, number>;
-    currentItemAssessmentsCount: number;
-    filter: {
-        language?: string;
-        name?: string;
-    }
+type CheckResultType = "GOOD" | "WARNING" | "FAIL";
+
+interface ICheckResult {
+    _id: string;
+    checked: boolean;
+    result: CheckResultType;
 }
 
-export class ContentItems extends React.Component<IContentItemsProps, IContentItemsState> {
-    state = {
+export interface IContentState {
+    mode: string;
+    items: Array<any>;
+    curItem?: any;
+    curItemStat?: any;
+    checkResults: ICheckResult[];
+}
+
+export class Content extends React.Component<IContentProps, IContentState> {
+    itemFormRef: RefObject<ItemForm> = React.createRef();
+    imgCheckerRef: RefObject<HTMLImageElement> = React.createRef();
+    queueCheck: any[] = [];
+    state: IContentState = {
         items: [],
-        currentItem: {} as any,
-        currentItemStat: new Map<EmotionType, number>(),
-        currentItemAssessmentsCount: NaN,
-        filter: {
-            language: undefined,
-            name: undefined
+        checkResults: [],
+        mode: "content"
+    }
+    componentDidMount(): void {
+        this.loadContentItems();
+    }
+    componentDidUpdate(prevProps: Readonly<IContentProps>, prevState: Readonly<IContentState>, snapshot?: any): void {
+        if (this.props.orgid !== prevProps.orgid) this.loadContentItems();
+    }
+    loadContentItems(selectItem?: any) {
+        this.props.pending?.current?.incUse();
+        serverCommand(`getorgcontent`, this.props.serverInfo, JSON.stringify({oid: this.props.orgid}), res=>{
+            this.props.pending?.current?.decUse();
+            for (const i in res) {
+                res[i].name = new MLString(res[i].name);
+                res[i].description = new MLString(res[i].description);
+            }
+            const nState: IContentState = this.state;
+            nState.items = res;
+            nState.curItem = selectItem;
+            nState.mode = "content";
+            this.setState(nState);
+        }, err=>{
+            this.props.pending?.current?.decUse();
+            if (this.props.onError) this.props.onError(err);
+            if (err.code === "notfound") {
+
+            }
+        })
+    }
+    saveItem() {
+        const item = this.itemFormRef.current?.state.value;
+        this.props.pending?.current?.incUse();
+        serverCommand('addcontent', this.props.serverInfo, JSON.stringify({
+            contentinfo: item
+        }), res=>{
+            this.props.pending?.current?.decUse();
+            this.itemFormRef.current?.setState( {
+                value: res,
+                isChanged: false
+            });
+            if (this.props.onSuccess) this.props.onSuccess(`Saved successfully!`);//\n${JSON.stringify(res)}`);
+            this.loadContentItems(item);
+        }, err=>{
+            this.props.pending?.current?.decUse();
+            if (this.props.onError) this.props.onError(err);
+        })
+    }
+
+    onSelectItem(selectedItem: any) {
+        const nState: IContentState = this.state;
+        nState.curItem = selectedItem;
+        nState.curItemStat = undefined;
+        nState.mode = "content";
+        this.setState(nState);
+        if (selectedItem === undefined) return;
+        serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
+            cid: selectedItem._id
+        }), (res)=>{
+            const nState: IContentState = this.state;
+            nState.curItemStat = res;
+            this.setState(nState);
+        }, (err: PlutchikError)=>{
+            // for new items server returns http 404 error
+            //if (this.props.onError) this.props.onError(err);
+        });
+    }
+    onRevertItem() {
+        this.itemFormRef.current?.revert();
+    }
+
+    onBlockItem() {
+        if (this.itemFormRef.current?.blockedRef.current) this.itemFormRef.current.blockedRef.current.checked = true;
+    }
+    onNewItem() {
+        this.onSelectItem(undefined);
+    }
+
+    private checkImageErrorCB() {
+        const item = this.queueCheck[0];
+        this.state.checkResults.push({
+            _id: item._id,
+            result: "FAIL",
+            checked: true
+        });
+        this.setState(this.state);
+        this.queueCheck.splice(0, 1);
+        setTimeout(this.deepCheck.bind(this), 200);
+    }
+
+    private checkImageSuccessCB() {
+        const item = this.queueCheck[0];
+        this.state.checkResults.push({
+            _id: item._id,
+            result: "GOOD",
+            checked: true
+        });
+        this.setState(this.state);
+        this.queueCheck.splice(0, 1);
+        setTimeout(this.deepCheck.bind(this), 200);
+    }
+
+    private checkImage() {
+
+        if (this.imgCheckerRef.current) this.imgCheckerRef.current.src = this.queueCheck[0].url;
+    }
+
+    deepCheck(){
+        if (this.queueCheck.length === 0) {
+            if (this.props.onSuccess) this.props.onSuccess("All content items have checked. Consider the items with red label. Block item or change URL for image")
+            return;
+        }
+        if (this.queueCheck[0].type === "image") {
+            setTimeout(this.checkImage.bind(this), 200);
+        } else {
+            this.queueCheck.splice(0, 1);
+            setTimeout(this.deepCheck.bind(this), 200);
         }
     }
+
+    onDeepCheckButtonClick() {
+        for (let i = 0; i < this.state.items.length; i ++) {
+            this.queueCheck.push(this.state.items[i]);
+        }
+        const nState: IContentState = this.state;
+        nState.checkResults = [];
+        this.setState(nState);
+        setTimeout(this.deepCheck.bind(this), 200);
+    }
+
+    render(): React.ReactNode {
+        const items = this.state.items;
+        const statsData: any[] = [[
+            {type: "date",
+                id: "day",
+            }, {type: "number",
+                id: "Count",
+            },],]
+        if (this.state.mode === "stats") {
+            for (let i = 0; i < this.state.items.length; i++){
+                const datewotimecreated = new Date(new Date(this.state.items[i].created).toDateString());
+                const datewotimechanged = new Date(new Date(this.state.items[i].changed).toDateString());
+                let foundDate = statsData.slice(1).findIndex((elem: any)=>datewotimecreated.getDate() === elem[0].getDate());
+                if (foundDate === -1) statsData.push([datewotimecreated, 1]);
+                else statsData[foundDate+1][1] += 1;
+                foundDate = statsData.slice(1).findIndex((elem: any)=>datewotimechanged.getDate() === elem[0].getDate());
+                if (foundDate === -1) statsData.push([datewotimechanged, 1]);
+                else statsData[foundDate+1][1] += 1;
+            }
+        }
+        return <div className="content-container">
+            <img className="content-check-img" alt={"checker"} ref={this.imgCheckerRef} onError={this.checkImageErrorCB.bind(this)} onLoad={this.checkImageSuccessCB.bind(this)}/>
+            <span className="content-label">Content of set editing</span>
+            <span className="content-toolbar">
+                <button onClick={this.onNewItem.bind(this)}>New item</button>
+                {/*<button onClick={this.onBlockItem.bind(this)}>Hide item</button>*/}
+                {/*<button onClick={this.onRevertItem.bind(this)}>Revert item</button>*/}
+                 <button onClick={this.saveItem.bind(this)}>Save item</button>
+                <span>|</span>
+                <button className={this.queueCheck.length===0?"":"checking"} onClick={this.onDeepCheckButtonClick.bind(this)}>{this.queueCheck.length===0?"Deep check set":"Deep checking..."}</button>
+                <span>|</span>
+                {<button onClick={e=>{
+                    const nState: IContentState = this.state;
+                    nState.mode = "stats";
+                    this.setState(nState);
+                }}>Content stats</button>}
+                <span>|</span>
+                {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={new Map(Object.entries(this.state.curItemStat).map((v:any, i:any)=>[v[0], v[1]]))}/></span>:<></>}
+            </span>
+            <span className="content-area">
+                <span className="content-items">
+                    {items.length === 0?"No items in this set. Create one":items.map((v, i)=>{
+                        const checkFound = this.state.checkResults.filter(cr=>v._id === cr._id);
+                        const checkRes = checkFound.length === 1? checkFound[0].result:undefined; 
+                        return <ContentItem checkResult={checkRes} key={i} item={v} onSelect={this.onSelectItem.bind(this, v)} selected={this.state.curItem?._id === v._id}/>
+                        })}
+                </span>
+                {this.state.mode === "content"?<ItemForm key={this.state.curItem?this.props.orgid+this.state.curItem._id:""} ref={this.itemFormRef} default_value={this.state.curItem} orgid={this.props.orgid}/>:
+                <Chart chartType="Calendar" width="100%" height="400px" data={statsData} options={{title: "Stats: content created and changed by date"}}/>}
+            </span>
+        </div>
+    }
+}
+
+export interface IItemFormProps {
+    orgid: string;
+    pending?: RefObject<Pending>;
+    default_value: any;
+}
+
+export interface IItemFormState {
+    value: any;
+    isChanged: boolean;
+}
+
+export class ItemForm extends React.Component<IItemFormProps, IItemFormState> {
+    constructor(props: any) {
+        super(props);
+        //r = Math.round(Math.random()*1000);
+        const tvalue = this.props.default_value?JSON.parse(JSON.stringify(this.props.default_value)):this.newItem();
+        tvalue.name = new MLString(tvalue.name);
+        tvalue.decription = new MLString(tvalue.description);
+        this.state = {
+            value: tvalue,
+            isChanged: false
+        };
+    }
+
     langRef: RefObject<HTMLSelectElement> = React.createRef();
     groupsRef: RefObject<HTMLInputElement> = React.createRef();
     nameRef: RefObject<MLStringEditor> = React.createRef();
@@ -44,185 +254,93 @@ export class ContentItems extends React.Component<IContentItemsProps, IContentIt
     typeRef: RefObject<HTMLSelectElement> = React.createRef();
     blockedRef: RefObject<HTMLInputElement> = React.createRef();
     flowerRef: RefObject<Flower> = React.createRef();
-    
-    loadContentItems() {
-        this.props.pending?.current?.incUse();
-        serverCommand(`getorgcontent`, this.props.serverInfo, JSON.stringify({oid: this.props.oid}), res=>{
-            for (const i in res) {
-                res[i].name = new MLString(res[i].name);
-                res[i].description = new MLString(res[i].description);
-            }
-            const nState: IContentItemsState = this.state;
-            nState.items = res;
-            nState.currentItem = undefined;
-            this.setState(nState);
-            this.props.pending?.current?.decUse();
-        }, err=>{
-            this.props.onError(err);
-            this.props.pending?.current?.decUse();
-        })
-    }
-    
-    componentDidMount(): void {
-        this.loadContentItems();
-    }
-    
-    componentDidUpdate(prevProps: Readonly<IContentItemsProps>, prevState: Readonly<IContentItemsState>, snapshot?: any): void {
-        if (prevProps.oid !== this.props.oid) this.loadContentItems();
-    }
-    
-    onSaveForm(e: any) {
-        let ci: any;
-        if (this.state.currentItem) {
-            ci = this.state.currentItem;
-        } else {
-            ci = {
-                organizationid: this.props.oid,
-                source: "web",
-                tags: [],
-                restrictions: [],
-              }            
+
+    revert() {
+        const tvalue = this.props.default_value?JSON.parse(JSON.stringify(this.props.default_value)):this.newItem();
+        tvalue.name = new MLString(tvalue.name);
+        tvalue.description = new MLString(tvalue.description);
+        const nState: IItemFormState = {
+            value: tvalue,
+            isChanged: false
         }
-        ci.groups = this.groupsRef.current?.value.split(';');
-        if (ci.groups.length === 1 && ci.groups[0] === '') delete ci.groups;
-        ci.language = this.langRef.current?.value;
-        ci.name = this.nameRef.current?.value;
-        ci.description = this.descRef.current?.value;
-        ci.url = this.urlRef.current?.value;
-        ci.type = this.typeRef.current?.value;
-        ci.blocked = this.blockedRef.current?.checked;
-        this.props.pending?.current?.incUse();
-        serverCommand('addcontent', this.props.serverInfo, JSON.stringify({
-            contentinfo: ci
-        }), res=>{
-            this.props.onSuccess(`Success!\n${JSON.stringify(res)}`);
-            this.loadContentItems();
-            this.clearContentForm();
-            this.props.pending?.current?.decUse();
-        }, err=>{
-            this.props.onError(err);
-            this.props.pending?.current?.decUse();
-        })
-    }
-    clearContentForm() {
-        if (this.nameRef.current) this.nameRef.current.value = new MLString("");
-        if (this.descRef.current) this.descRef.current.value = new MLString("");
-        if (this.urlRef.current) this.urlRef.current.value = "";
-        const nState: IContentItemsState = this.state;
-        nState.currentItem = undefined;            
         this.setState(nState);
     }
+
+    newItem (): any {
+        const item: any = {};
+        item.blocked = false;
+        item.organizationid = this.props.orgid;
+        item.name = "";
+        item.description = "";
+        item.language = MLString.getLang().split('-')[0];;
+        item.url = "";
+        item.source = "web";
+        item.tags = [];
+        item.restrictions = [];
+        item.type = "image";
+        return item;
+    }
+            
+    updateAttribute(attrName: string, event: any) {
+        const nState: IItemFormState = this.state;
+
+        switch (attrName) {
+            case 'groups':
+                nState.value[attrName] = event.currentTarget.value.split(';');
+                break;
+
+            case 'url':
+            case 'type':
+            case 'language':
+                nState.value[attrName] = event.currentTarget.value;  
+                break;
+
+            case 'blocked':
+                nState.value[attrName] = event.currentTarget.checked;  
+                break;
+            
+            case 'description':
+            case 'name':
+                nState.value[attrName] = event;  
+                break;
+        }
+        nState.isChanged = true;
+        this.setState(nState);
+    }
+    
     render(): React.ReactNode {
-        const items = this.state.items.reverse().filter((item: any)=>(this.state.filter.language === undefined || item.language === this.state.filter.language) 
-        && (this.state.filter.name === undefined || item.name.includes(this.state.filter.name)));
-        return (
-            <div className="content-container">
-                <span className="content-controls">Content<button onClick={(e: any)=>{
-                    this.clearContentForm();
-                }}>New</button>
-                <button onClick={(e)=>this.onSaveForm(e)}>Save</button>
-                Filters: 
-                <input placeholder="language" onChange={(e)=>{
-                    let nState: IContentItemsState = this.state;
-                    nState.filter.language = e.currentTarget.value === ""?undefined:e.currentTarget.value;
-                    this.setState(nState);
-                }}/>
-                <input placeholder="name" onChange={(e)=>{
-                    let nState: IContentItemsState = this.state;
-                    nState.filter.name = e.currentTarget.value === ""?undefined:e.currentTarget.value;
-                    this.setState(nState);
-                }}/>
-                </span>
-                {items.length > 0?<div className="content-items">{items.map((v: any, i)=>
-                    <ContentItem key={i} item={v} selected={v._id === this.state.currentItem?._id} onSelect={v=>{
-                        const nState: IContentItemsState = this.state;
-                        nState.currentItem = v;
-                        nState.currentItemStat = new Map<EmotionType, number>();
-                        nState.currentItemAssessmentsCount = NaN;
-                        this.setState(nState);
-                        this.props.pending?.current?.incUse();
-                        serverCommand('getcontentstatistics', this.props.serverInfo, JSON.stringify({
-                            cid: v._id
-                        }), (res)=>{
-                            const nState: IContentItemsState = this.state;
-                            for (const i in emotions) {
-                                nState.currentItemStat.set(emotions[i], res[emotions[i]]);
-                            }
-                            nState.currentItemAssessmentsCount = res.count;
-                            this.setState(nState);
-                            this.props.pending?.current?.decUse();
-                        }, (err: PlutchikError)=>{
-                            //this.props.onError(err);
-                            this.props.pending?.current?.decUse();
-                        });
-                    }}/>)}
-                </div>:<div></div>}
-                
-                {this.state.currentItem?._id?<div className="content-form">
-                    <div className="content-form-tools">
-                        <Flower ref={this.flowerRef} vector={this.state.currentItemStat}/> <span>Count: {this.state.currentItemAssessmentsCount}</span>
-                    </div>
-                    <div>
-                        <MLStringEditor key={`mlse${this.state.currentItem?._id}`} caption="Name" defaultValue={this.state.currentItem.name} ref={this.nameRef}/>
-                        Lang <select key={`${this.state.currentItem._id}_2`} ref={this.langRef} defaultValue={this.state.currentItem.language}>
-                            <option value='en'>en</option>
-                            <option value='uk'>uk</option>
-                            <option value='es'>es</option>
-                            <option value='de'>de</option>
-                            <option value='ru'>ru</option>
-                        </select>
+        const item = this.state.value;
+        return <div className="content-item-form">
+            <span className={`content-item-changed-status ${this.state.isChanged?'':'changes-saved'}`}>Item {this.state.isChanged?"changed":"saved"}</span>
+            <div>
+                <MLStringEditor caption="Name" defaultValue={item.name} ref={this.nameRef} onChange={this.updateAttribute.bind(this, 'name')}/>
+                <MLStringEditor caption="Description" defaultValue={item.description} ref={this.descRef} onChange={this.updateAttribute.bind(this, 'description')}/>
+                Lang<select ref={this.langRef} defaultValue={item.language} onChange={this.updateAttribute.bind(this, 'language')}>
+                    <option value='en'>en</option>
+                    <option value='fr'>fr</option>
+                    <option value='es'>es</option>
+                    <option value='de'>de</option>
+                    <option value='uk'>uk</option>
+                    <option value='ru'>ru</option>
+                    <option value='it'>it</option>
+                </select>
 
-                        Type <select key={`${this.state.currentItem._id}_3`} ref={this.typeRef} defaultValue={this.state.currentItem.type}>
-                            <option value='image'>image</option>
-                            <option value='text'>text</option>
-                        </select>
+                <span> | </span><span>Type</span><select ref={this.typeRef} defaultValue={item.type} onChange={this.updateAttribute.bind(this, 'type')}>
+                    <option value='image'>image</option>
+                    <option value='text'>text</option>
+                </select>
 
-                        Blocked <input type="checkbox" key={`${this.state.currentItem._id}_7`} ref={this.blockedRef} defaultChecked={this.state.currentItem.blocked}/>
+                <span> | </span><input type="checkbox" ref={this.blockedRef} defaultChecked={item.blocked} onChange={this.updateAttribute.bind(this, 'blocked')}/><span>Blocked</span>
 
-                        Groups <input key={`${this.state.currentItem._id}_6`} ref={this.groupsRef} defaultValue={this.state.currentItem.groups.map((v: any)=>v.name).join(';')}/>
-                    </div>
-                    <MLStringEditor key={`mlsd${this.state.currentItem?._id}`} caption="Desc" defaultValue={this.state.currentItem.description} ref={this.descRef}/>
-                    <div className="">
-                        Url <textarea key={`${this.state.currentItem._id}_5`} ref={this.urlRef} defaultValue={this.state.currentItem.url}/></div>
-                    
-                    {this.state.currentItem.type==='image'?
-                    <div className="img-to-center">
-                        <img key={`img_${Math.random()}`} className="content-fit-to" src={this.state.currentItem.url} alt={this.state.currentItem.description}/>
-                    </div>
-                    :<></>}
-                </div>
-                :
-                <div className="content-form">
-                    <div>
-                        <MLStringEditor key={`${'new'}_1`} caption="Name" ref={this.nameRef}/>
-                        Lang <select key={`${'new'}_2`} ref={this.langRef}>
-                            <option value='en'>en</option>
-                            <option value='uk'>uk</option>
-                            <option value='es'>es</option>
-                            <option value='de'>de</option>
-                            <option value='ru'>ru</option>
-                        </select>
-
-                        Type <select key={`${'new'}_3`} ref={this.typeRef} defaultValue={'image'}>
-                            <option value='image'>image</option>
-                            <option value='text'>text</option>
-                        </select>
-
-                        Blocked <input type="checkbox" key={`${'new'}_7`} ref={this.blockedRef} defaultChecked={false}/>
-                        Groups <input key={`${'new'}_6`} ref={this.groupsRef} defaultValue={''}/>
-                    </div>
-                    <MLStringEditor key={`${'new'}_11`} caption="Desc" ref={this.descRef}/>
-                    <div>
-                        Url <textarea key={`${'new'}_5`} ref={this.urlRef} defaultValue={''}/></div>
-                    <div>
-                    </div>
-                    
-                    <div className="img-to-center">
-                        <img className="content-fit-to" alt={''}/>
-                    </div>
-                </div>}
+                <span> | </span><span>Groups<input ref={this.groupsRef} defaultValue={item.groups?.map((v: any)=>v.name).join(';')} onChange={this.updateAttribute.bind(this, 'groups')}/></span>
             </div>
-        );
+
+            <div>Url</div>
+            <textarea ref={this.urlRef} defaultValue={item.url} onChange={this.updateAttribute.bind(this, 'url')}/>
+            {item.type ==='image'?<div className="img-to-center">
+                    <img key={`img_${Math.random()}`} className="content-fit-to" src={item.url} alt={item.description}/>
+            </div>:<></>}
+        </div>;
     }
 }
 
@@ -230,6 +348,7 @@ interface IContentItemProps {
     item: any;
     onSelect: (v: any)=>void;
     selected: boolean;
+    checkResult?: CheckResultType;
 }
 
 interface IContentItemState {
@@ -238,11 +357,13 @@ interface IContentItemState {
 
 export class ContentItem extends React.Component<IContentItemProps, IContentItemState> {
     render(): React.ReactNode {
+        const deltastr = relativeDateString(new Date(this.props.item.changed));
         return (
-        <span className="content-item" onClick={()=>this.props.onSelect(this.props.item)}>
+        <span className={`content-item-container ${this.props.selected?'selected':''} ${this.props.checkResult?this.props.checkResult:""}`} onClick={()=>this.props.onSelect(this.props.item)}>
             <div className="content-item-type">{this.props.item.type}</div>
-            <div className={`content-item-header ${this.props.selected?'selected':''}`}>{this.props.item.name}</div>
+            <div className={`content-item-header`}>{this.props.item.name}</div>
             <div className="content-item-desc">{this.props.item.description}</div>
+            <div className="content-item-time-label">changed: {deltastr}</div>
         </span> 
         )};
 }

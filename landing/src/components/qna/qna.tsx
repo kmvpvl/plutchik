@@ -24,7 +24,7 @@ const strQNA = new MLString({
 const strQNAText = new MLString({
     default: 
     "❓: How do I log in?\n"+
-    `✅: Find the bot named @${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} in Telegram and run the /start command. If you have not previously registered or have previously revoked your consent to use your ratings, you will be re-registered. If you have a valid registration, we will provide all the data we have about you.\n\n`+
+    `✅: Find the bot named @${`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`} ${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} in Telegram and run the /start command. If you have not previously registered or have previously revoked your consent to use your ratings, you will be re-registered. If you have a valid registration, we will provide all the data we have about you.\n\n`+
     
     "❓: How can I find out my emotional vector?\n"+
     "✅: To do this, you need to start assessing the content. Click the “Assess new content” button and a content element will appear in front of you. Below you will see a list of basic emotions. Mark the emotions that the proposed content evokes in you and their level and click the “Next” button. If for some reason you want to leave the proposed content without rating, click the “Skip” button. The more elements you assess, the more accurate the measurement will be. When you decide that you have assessed enough, click the “Insights” button. You will see your average emotional vector and the average emotional vector of people who have previously assessed the same content. The system will calculate the difference between these two vectors and highlight your differences.\n\n"+
@@ -42,7 +42,7 @@ const strQNAText = new MLString({
     "✅: You can click the “Delete My Data” button. All your data will be deleted.\n\n"+
     
     "❓: How do I invite my team or client to take an assessment?\n"+
-    "✅: Click the “Invite” button, enter the name of the user you want to invite, and wait for the invitee to accept or decline your invitation.\n\n"+
+    `✅: Prepare content (one or more sets). You can prepare content sets @${process.env.REACT_APP_PLUTCHART_EDIT_CONTENT_URL} here. Get clients, employees, or users to get started with the bot. Find out their Telegram ID. Click the “Invite” button, enter the name of the user you want to invite, and wait for the invitee to accept or decline your invitation.\n\n`+
     
     "❓: How do I get informed consent from team members to view their assessment results?\n"+
     "✅: Accepting your invitation to take an assessment constitutes informed consent to view the assessment results.\n\n"+
@@ -55,7 +55,7 @@ const strQNAText = new MLString({
     values: new Map([
         ["de", 
         "❓: Wie melde ich mich an?\n"+
-        `✅: Suchen Sie in Telegram nach dem Bot mit dem Namen @${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} und führen Sie den Befehl /start aus. Wenn Sie sich zuvor nicht registriert haben oder Ihre Zustimmung zur Verwendung Ihrer Bewertungen zuvor widerrufen haben, werden Sie erneut registriert. Wenn Sie über eine gültige Registrierung verfügen, stellen wir Ihnen alle Daten zur Verfügung, die wir über Sie haben.\n\n`+
+        `✅: Suchen Sie in Telegram nach dem Bot mit dem Namen @${`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`} ${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} und führen Sie den Befehl /start aus. Wenn Sie sich zuvor nicht registriert haben oder Ihre Zustimmung zur Verwendung Ihrer Bewertungen zuvor widerrufen haben, werden Sie erneut registriert. Wenn Sie über eine gültige Registrierung verfügen, stellen wir Ihnen alle Daten zur Verfügung, die wir über Sie haben.\n\n`+
         
         "❓: Wie kann ich meinen emotionalen Vektor herausfinden?\n"+
         "✅: Dazu müssen Sie mit der Bewertung des Inhalts beginnen. Klicken Sie auf die Schaltfläche „Neuen Inhalt bewerten“ und ein Inhaltselement wird vor Ihnen angezeigt. Darunter sehen Sie eine Liste grundlegender Emotionen. Markieren Sie die Emotionen, die der vorgeschlagene Inhalt in Ihnen hervorruft, und deren Ausmaß und klicken Sie auf die Schaltfläche „Weiter“. Wenn Sie den vorgeschlagenen Inhalt aus irgendeinem Grund ohne Bewertung belassen möchten, klicken Sie auf die Schaltfläche „Überspringen“. Je mehr Elemente Sie bewerten, desto genauer ist die Messung. Wenn Sie entscheiden, dass Sie genug bewertet haben, klicken Sie auf die Schaltfläche „Erkenntnisse“. Sie sehen Ihren durchschnittlichen emotionalen Vektor und den durchschnittlichen emotionalen Vektor von Personen, die denselben Inhalt zuvor bewertet haben. Das System berechnet die Differenz zwischen diesen beiden Vektoren und hebt Ihre Unterschiede hervor.\n\n"+
@@ -73,7 +73,7 @@ const strQNAText = new MLString({
         "✅: Sie können auf die Schaltfläche „Meine Daten löschen“ klicken. Alle Ihre Daten werden gelöscht.\n\n"+
 
         "❓: Wie lade ich mein Team oder meinen Kunden zu einer Bewertung ein?\n"+
-        "✅: Klicken Sie auf die Schaltfläche „Einladen“, geben Sie den Namen des Benutzers ein, den Sie einladen möchten, und warten Sie, bis der Eingeladene Ihre Einladung annimmt oder ablehnt.\n\n"+
+        `✅: Bereiten Sie Inhalte vor (ein oder mehrere Sets). @${process.env.REACT_APP_PLUTCHART_EDIT_CONTENT_URL} Hier können Sie Inhaltssets vorbereiten. Ermutigen Sie Kunden, Mitarbeiter oder Benutzer, mit dem Bot zu beginnen. Finden Sie ihre Telegram-ID heraus. Klicken Sie auf die Schaltfläche „Einladen“, geben Sie den Namen des Benutzers ein, den Sie einladen möchten, und warten Sie, bis der Eingeladene Ihre Einladung annimmt oder ablehnt.\n\n`+
 
         "❓: Wie erhalte ich die informierte Zustimmung von Teammitgliedern zur Anzeige ihrer Bewertungsergebnisse?\n"+
         "✅: Die Annahme Ihrer Einladung zur Teilnahme an einer Bewertung gilt als informierte Zustimmung zur Anzeige der Bewertungsergebnisse.\n\n"+
@@ -85,7 +85,7 @@ const strQNAText = new MLString({
         "✅: Sie erhalten eine Nachricht, wenn jemand, den Sie eingeladen haben, seine Bewertung Ihres Inhalts abgeschlossen hat."],
         ["fr", 
         "❓: Comment puis-je me connecter ?\n"+
-        `✅: Recherchez le bot nommé @${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} dans Telegram et exécutez la commande /start. Si vous ne vous êtes pas encore inscrit ou si vous avez déjà révoqué votre consentement à l'utilisation de vos notes, vous serez réinscrit. Si vous avez une inscription valide, nous vous fournirons toutes les données dont nous disposons sur vous.\n\n`+
+        `✅: Recherchez le bot nommé @${`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`} ${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} dans Telegram et exécutez la commande /start. Si vous ne vous êtes pas encore inscrit ou si vous avez déjà révoqué votre consentement à l'utilisation de vos notes, vous serez réinscrit. Si vous avez une inscription valide, nous vous fournirons toutes les données dont nous disposons sur vous.\n\n`+
         
         "❓: Comment puis-je connaître mon vecteur émotionnel ?\n"+
         "✅: Pour ce faire, vous devez commencer à évaluer le contenu. Cliquez sur le bouton « Évaluer le nouveau contenu » et un élément de contenu apparaîtra devant vous. Ci-dessous, vous verrez une liste d'émotions de base. Marquez les émotions que le contenu proposé évoque en vous et leur niveau et cliquez sur le bouton « Suivant ». Si pour une raison quelconque vous souhaitez laisser le contenu proposé sans évaluation, cliquez sur le bouton « Ignorer ». Plus vous évaluez d'éléments, plus la mesure sera précise. Lorsque vous décidez que vous avez suffisamment évalué, cliquez sur le bouton « Insights ». Vous verrez votre vecteur émotionnel moyen et le vecteur émotionnel moyen des personnes qui ont déjà évalué le même contenu. Le système calculera la différence entre ces deux vecteurs et mettra en évidence vos différences.\n\n"+
@@ -103,7 +103,7 @@ const strQNAText = new MLString({
         "✅: Vous pouvez cliquer sur le bouton « Supprimer mes données ». Toutes vos données seront supprimées.\n\n"+
 
         "❓: Comment puis-je inviter mon équipe ou mon client à passer une évaluation ?\n"+
-        "✅: Cliquez sur le bouton « Inviter », saisissez le nom de l'utilisateur que vous souhaitez inviter et attendez que l'invité accepte ou refuse votre invitation.\n\n"+
+        `✅: Préparer le contenu (un ou plusieurs ensembles). @${process.env.REACT_APP_PLUTCHART_EDIT_CONTENT_URL} Ici, vous pouvez préparer des ensembles de contenus. Encouragez les clients, les employés ou les utilisateurs à démarrer avec le bot. Découvrez leur identifiant Telegram ID. Cliquez sur le bouton « Inviter », saisissez le nom de l'utilisateur que vous souhaitez inviter et attendez que l'invité accepte ou refuse votre invitation.\n\n`+
 
         "❓: Comment puis-je obtenir le consentement éclairé des membres de l'équipe pour consulter leurs résultats d'évaluation ?\n"+
         "✅: Accepter votre invitation à passer une évaluation constitue un consentement éclairé pour consulter les résultats de l'évaluation.\n\n"+
@@ -115,7 +115,7 @@ const strQNAText = new MLString({
         "✅: Vous recevrez un message lorsque la personne que vous avez invitée aura terminé son évaluation de votre contenu."],
         ["es", 
         "❓: ¿Cómo puedo iniciar sesión?\n"+
-        `✅: Busca el bot llamado @${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} en Telegram y ejecuta el comando /start. Si no te has registrado previamente o has revocado previamente tu consentimiento para usar tus valoraciones, se te volverá a registrar. Si tienes un registro válido, proporcionaremos todos los datos que tenemos sobre ti.\n\n`+
+        `✅: Busca el bot llamado @${`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`} ${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} en Telegram y ejecuta el comando /start. Si no te has registrado previamente o has revocado previamente tu consentimiento para usar tus valoraciones, se te volverá a registrar. Si tienes un registro válido, proporcionaremos todos los datos que tenemos sobre ti.\n\n`+
         
         "❓: ¿Cómo puedo saber mi vector emocional?\n"+
         "✅: Para ello, debes empezar a evaluar el contenido. Haz clic en el botón “Evaluar nuevo contenido” y aparecerá un elemento de contenido frente a ti. A continuación verás una lista de emociones básicas. Marca las emociones que te evoca el contenido propuesto y su nivel y haz clic en el botón “Siguiente”. Si por alguna razón quieres dejar el contenido propuesto sin calificación, haz clic en el botón “Omitir”. Cuantos más elementos evalúes, más precisa será la medición. Cuando decidas que has evaluado lo suficiente, haz clic en el botón “Insights”. Verás tu vector emocional medio y el vector emocional medio de las personas que han evaluado previamente el mismo contenido. El sistema calculará la diferencia entre estos dos vectores y resaltará sus diferencias.\n\n"+
@@ -133,7 +133,7 @@ const strQNAText = new MLString({
         "✅: Puede hacer clic en el botón “Eliminar mis datos”. Se eliminarán todos sus datos.\n\n"+
 
         "❓: ¿Cómo puedo invitar a mi equipo o cliente a realizar una evaluación?\n"+
-        "✅: Haga clic en el botón “Invitar”, ingrese el nombre del usuario que desea invitar y espere a que el invitado acepte o rechace su invitación.\n\n"+
+        `✅: Preparar contenido (uno o más conjuntos). @${process.env.REACT_APP_PLUTCHART_EDIT_CONTENT_URL} Aquí puede preparar conjuntos de contenidos. Anime a los clientes, empleados o usuarios a comenzar con el bot. Descubra su ID de Telegram ID. Haga clic en el botón “Invitar”, ingrese el nombre del usuario que desea invitar y espere a que el invitado acepte o rechace su invitación.\n\n`+
 
         "❓: ¿Cómo obtengo el consentimiento informado de los miembros del equipo para ver los resultados de su evaluación?\n"+
         "✅: Aceptar su invitación para realizar una evaluación constituye el consentimiento informado para ver los resultados de la evaluación.\n\n"+
@@ -145,7 +145,7 @@ const strQNAText = new MLString({
         "✅: Recibirá un mensaje cuando alguien a quien haya invitado haya completado su evaluación de su contenido."],
         ["uk", 
         "❓: як мені увійти?\n"+
-        `✅: знайдіть у Telegram бота під назвою @${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} і запустіть команду /start. Якщо ви раніше не реєструвалися або раніше відкликали згоду на використання своїх рейтингів, вас буде повторно зареєстровано. Якщо у вас є дійсна реєстрація, ми надамо всі наявні у нас дані про вас.\n\n`+
+        `✅: знайдіть у Telegram бота під назвою @${`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`} ${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} і запустіть команду /start. Якщо ви раніше не реєструвалися або раніше відкликали згоду на використання своїх рейтингів, вас буде повторно зареєстровано. Якщо у вас є дійсна реєстрація, ми надамо всі наявні у нас дані про вас.\n\n`+
         
         "❓: Як дізнатися свій емоційний вектор?\n"+
         "✅: Для цього потрібно почати оцінювати контент. Натисніть кнопку «Оцінити новий вміст», і перед вами з’явиться елемент контенту. Нижче ви побачите список основних емоцій. Позначте емоції, які у вас викликає запропонований контент, та їх рівень і натисніть кнопку «Далі». Якщо з якоїсь причини ви хочете залишити запропонований контент без рейтингу, натисніть кнопку «Пропустити». Чим більше елементів ви оціните, тим точнішим буде вимірювання. Коли ви вирішите, що оцінили достатньо, натисніть кнопку «Insights». Ви побачите свій середній емоційний вектор і середній емоційний вектор людей, які раніше оцінювали той самий контент. Система обчислить різницю між цими двома векторами та підкреслить ваші відмінності.\n\n"+
@@ -163,7 +163,7 @@ const strQNAText = new MLString({
         "✅: Ви можете натиснути кнопку «Видалити мої дані». Усі ваші дані буде видалено.\n\n"+
 
         "❓: Як запросити свою команду чи клієнта пройти оцінювання?\n"+
-        "✅: Натисніть кнопку «Запросити», введіть ім’я користувача, якого ви хочете запросити, і зачекайте, поки запрошений прийме або відхилить ваше запрошення.\n\n"+
+        `✅: Підготуйте контент (один чи кілька наборів). @${process.env.REACT_APP_PLUTCHART_EDIT_CONTENT_URL} Тут можна підготувати набори контенту. Запропонуйте клієнтам, співробітникам або користувачам розпочати роботу з ботом. Дізнайтеся про їх Telegram ID. Натисніть кнопку «Запросити», введіть ім’я користувача, якого ви хочете запросити, і зачекайте, поки запрошений прийме або відхилить ваше запрошення.\n\n`+
 
         "❓: Як отримати інформовану згоду членів команди на перегляд результатів оцінювання?\n"+
         "✅: Прийняття вашого запрошення пройти оцінювання означає інформовану згоду на перегляд результатів оцінювання.\n\n"+
@@ -175,7 +175,7 @@ const strQNAText = new MLString({
         "✅: Ви отримаєте повідомлення, коли хтось із запрошених завершить оцінку вашого вмісту."],
         ["ru", 
         "❓: Как мне зайти в систему?\n" +
-        `✅: Найдите в Telegram бот @${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} и выполните команду /start. Если Вы не были ранее зарегистрированы или ранее отозвали свое согласие на использование своих оценок, то Вы будете вновь зарегистрированы. Если же у Вас есть действующая регистрация, то мы сообщим все имеющиеся у нас данные о Вас.\n\n`+
+        `✅: Найдите в Telegram бот @${`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`} ${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME} и выполните команду /start. Если Вы не были ранее зарегистрированы или ранее отозвали свое согласие на использование своих оценок, то Вы будете вновь зарегистрированы. Если же у Вас есть действующая регистрация, то мы сообщим все имеющиеся у нас данные о Вас.\n\n`+
         
         "❓: Как мне узнать мой эмоциональный вектор? \n"+
         "✅: Для этого Вам необходимо начать оценивать контент. Нажмите на кнопку “Оценить еще” и перед Вами появится элемент контента. Ниже Вы увидите список базовых эмоций. Отметьте те эмоции, которые у Вас вызывает предложенный контент и их уровень и нажмите кнопку “Следующий”. Если по какой-то причине Вы хотите оставить предложенный контент без оценки, нажмите кнопку “Пропустить”. Чем больше элементов Вы оцените, тем точнее будет измерение. Когда Вы решите, что оценили уже достаточно, нажмите кнопку “Инсайты”. Вы увидите Ваш средний эмоциональный вектор и средний эмоциональный вектор людей, оценивших ранее тот же контент. Система вычислит, отличие этих двух векторов и подсветит Ваши отличия.\n\n"+
@@ -193,7 +193,7 @@ const strQNAText = new MLString({
         "✅: Вы можете нажать кнопку “Удалить мои данные”. Все Ваши данные будут удалены.\n\n"+
         
         "❓: Как мне пригласить мою команду или клиента пройти оценку?\n"+
-        "✅: Нажмите кнопку “Пригласить”, укажите имя пользователя, которого Вы хотите пригласить, и ожидайте, что приглашенный Вами примет или отклонит Ваше приглашение.\n\n"+
+        `✅: Подготовьте контент (один или несколько наборов). @${process.env.REACT_APP_PLUTCHART_EDIT_CONTENT_URL} Здесь вы можете подготовить наборы контента. Поощряйте клиентов, сотрудников или пользователей начать работу с ботом. Узнайте их Telegram ID. Нажмите кнопку “Пригласить”, укажите имя пользователя, которого Вы хотите пригласить, и ожидайте, что приглашенный Вами примет или отклонит Ваше приглашение.\n\n`+
         
         "❓: Как получить от членов команды информированное согласие на ознакомление с результатами их оценки?\n"+
         "✅: Принятие Вашего приглашения на прохождение оценки означает информированное согласие на ознакомление с результатами оценки.\n\n"+
@@ -214,7 +214,12 @@ export default class QNA extends React.Component<QNAProps, QNAState> {
                 if (i === 0) return <span key={i}>{v}</span>;
                 //cut first word
                 const wofirstword = v.substring(v.indexOf(" ") + 1);
-                return <span key={i}><a target="blank" href={`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`}>@{process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}</a> {wofirstword} </span>
+                const firstword = v.substring(0, v.indexOf(" "));
+                const wosecondword = wofirstword.substring(wofirstword.indexOf(" ") + 1);
+                const secondword = wofirstword.substring(0, wofirstword.indexOf(" "));
+
+//                return <span key={i}><a target="blank" href={`https://t.me/${process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}/?start=${process.env.REACT_APP_PLUTCHART_BOT_START_COMMAND}`}>@{process.env.REACT_APP_PLUTCHART_BOT_USER_NAME}</a> {wofirstword} </span>
+                return <span key={i}><a target="blank" href={firstword}>{secondword}</a> {wosecondword} </span>
                 
             })}
         </>

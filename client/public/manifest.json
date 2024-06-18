@@ -1,16 +1,21 @@
 {
-  "short_name": "PLUTCHIK",
-  "name": "Plutchik",
+  "short_name": "Plutchart",
+  "name": "Plutchart tool for researchers",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "plutchart_logo.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/svg"
     },
     {
-      "src": "android-chrome-192x192.png",
+      "src": "plutchart192.png",
       "type": "image/png",
       "sizes": "192x192"
+    },
+    {
+      "src": "plutchart512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": ".",

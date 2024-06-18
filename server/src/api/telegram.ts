@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import PlutchikError, { ErrorCode } from '../model/error';
 import colours from "../model/colours";
 import TelegramBot, { InlineKeyboardButton} from 'node-telegram-bot-api';
-import Organization, { IOrganization, mongoOrgs } from '../model/organization';
+import Organization, { IOrganization, IResponseToInvitation, mongoOrgs } from '../model/organization';
 import Content, { ContentGroup, IContent, mongoContent } from '../model/content';
 import User, { mongoUsers } from '../model/user';
 import { google } from 'googleapis';
@@ -258,7 +258,7 @@ function tg_bot_settings_menu(lang: string, user: User, MainKeyboardMenu: Inline
         {text: `${set_gender(lang)}: ${gender}`, callback_data: 'select_gender'},
         {text: deleteMyAccount(lang), callback_data: 'delete_account'}
     ]];
-    fullMenu.push(...MainKeyboardMenu); 
+    //fullMenu.push(...MainKeyboardMenu); 
     return { disable_notification: true,
         reply_markup: {inline_keyboard: fullMenu}
     }
@@ -455,6 +455,67 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
         case 'set_age':
             menuSetAge(bot, chat_id, user);
             break;
+
+        case 'decline_org':
+        case 'accept_org':
+            const inv_id = new Types.ObjectId(cbcommand[1]);
+            const acceptordecline = cbcommand[0]==='accept_org';
+            if (acceptordecline)
+                console.log(`Accept assignment to org '${inv_id}'`);
+            else 
+                console.log(`Decline assignment to org '${inv_id}'`);
+            // need to:
+            try {
+                const org = await Organization.getOrganizationByInvitationId(inv_id);
+                console.log(`${colours.fg.blue}Organization id found '${org.uid}'${colours.reset}`);
+                const invitation = org.json?.invitations?.filter(v=>inv_id.equals(v._id));
+                if (invitation === undefined || invitation.length ===0 || invitation.length > 1) throw new PlutchikError("organization:broken", `Could not find invitation  id = '${inv_id}' in org id = '${org.uid}'`)
+                // send message to user
+                if (acceptordecline){
+                    bot.sendMessage(chat_id, ML("Now you can assess new content. The assigned sets have priority and be proposed first. When you assess all assigned item we'll text to author of set", ulang), {reply_markup: {inline_keyboard: mainKeyboard}})
+                } else { 
+                    bot.sendMessage(chat_id, ML("You declined the invitation", ulang), {reply_markup: {inline_keyboard: mainKeyboard}})
+                }
+                // send message to orgs author
+                ///!!!  solve task with type of userId
+                try {
+                    const author = await User.getUserByTgUserId(parseInt(invitation[0].from_tguserid.toString()));
+                    if (acceptordecline)
+                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has accepted your invitation to set", author?.json?.nativelanguage)} ${org.json?.name}`);
+                    else
+                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has declined your invitation to set", author?.json?.nativelanguage)} ${org.json?.name}`);
+                } catch(e: any) {
+
+                }
+                // save Update to org answers as evidence
+                const answer: IResponseToInvitation = {
+                    _id: new Types.ObjectId(),
+                    response_to: inv_id,
+                    acceptordecline: acceptordecline,
+                    user_reply: tgData,
+                    created: new Date()
+                }
+                org.logResponseToInvitation(answer);
+                await org.save();
+
+                // add org to user tasks to do
+                if (acceptordecline)
+                    await user.assignContentOrg(answer._id, invitation[0].from_tguserid, org);
+                else {
+                    ; // !!! here we must check either we create assign before? If yep, need to delete one
+                    const all_responses_to_invitation = org.json?.responses_to_invitations?.filter(v=>inv_id.equals(v.response_to) && v.acceptordecline);
+                    if (all_responses_to_invitation !== undefined && all_responses_to_invitation.length > 0) {
+                        const last_response_to_invitation = all_responses_to_invitation.pop();
+                        await user.deleteAssignContentOrg(new Types.ObjectId(last_response_to_invitation?._id))
+                    }
+                }
+
+        } catch (e: any) {
+                console.log(`${colours.fg.red}${e.message}${colours.reset}`);
+                // send message to user about error
+                bot.sendMessage(chat_id, ML("Invitation expired and couldn't be use anymore. Ask your contact invite you again"), {disable_notification: true});
+            }
+            break;
         case 'accept_assignment':
             console.log(`Accept assignment to group '${cbcommand[1]}' from user tg_id = '${cbcommand[2]}'`);
             const g = await ContentGroup.findContentGroup(cbcommand[1]);
@@ -624,7 +685,7 @@ async function command_process(tgData: TelegramBot.Update, bot: TelegramBot, use
                     }
                 }
             case '/home':
-                bot.sendMessage(chat_id, `${ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, lang)} (${process.env.landing_url})`, {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
+                bot.sendMessage(chat_id, `${ML(`Welcome! This bot is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The bot will allow you to calculate your emotional azimuth, compare it with other participants, while remaining safe. Be sure that information about you will be deleted the moment you ask for it. Read more details about the system here`, lang)} (${process.env.landing_url})\n${ML("Your Telegram ID is ", lang)}${chat_id}\n${ML("Use your Telegram ID to create own content sets or to be invited assessing other sets", lang)}`, {disable_notification: true, reply_markup: {inline_keyboard: mainKeyboard}});
                 break;
             case '/assign':
                 const sp = tgData.message?.text?.split(' ');
