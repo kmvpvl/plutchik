@@ -29,6 +29,14 @@ const strSignOut = new MLString({
 
 export type LoginFormStates = 'connecting' | 'connected' | 'revealing_auth_code' | 'logging' | 'logged';
 
+const StateNames = new Map<LoginFormStates, string>([
+    ["connecting", "Connecting..."],
+    ["connected", "Connected to cloud"],
+    ["revealing_auth_code", "Sending code of safety to you..."],
+    ["logging", "Trying check your code..."],
+    ["logged", "Logged in"]
+]);
+
 interface ILoginFormProps {
     onStateChanged?: (oldState: LoginFormStates, newState: LoginFormStates, info: IServerInfo)=>void;
     onUserInfoLoaded?: (ui: any)=>void;
@@ -149,12 +157,12 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         const state = this.state.state;
         return <div className={ 'logged' === state ?'login-container logged':'login-container'}>
             { 'logged' !== state ?
-            <span className='login-intro'><div style={{textAlign: "center", color: "var(--joy-color)", fontSize: "100px"}}>PLUT<img src="./plutchart_logo.svg" alt="PLUTCHART"/>CHART</div>
+            <span className='login-intro'><div className='login-logo'>PLUT<img src="./plutchart_logo.svg" alt="PLUTCHART"/>CHART</div>
             <div>{ML(`Welcome! This content creation and editing system is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The system will allow you to create content, send a task to the participant for assessment, monitor implementation and calculate the emotional azimuth of the participant. Read more details about the system here`)} (<a href={process.env.REACT_APP_LANDING_PAGE} target="_blank" rel="noreferrer">{process.env.REACT_APP_LANDING_PAGE}</a>)</div></span>:<span></span>}
 
             <div className='login-form'>
                 <span className='login-state'>
-                    <span>{this.state.state}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
+                    <span>{StateNames.get(this.state.state)}</span>{'logged' === state ?<span></span>:<button onClick={()=>this.getServerVersion()}>{strTryAgain}</button>}
                 </span>
                 <span className='login-tguserid'>
                     {'connecting' !== state && 'logged' !== state ? <input type="text" placeholder='Telegram user id' ref={this.tgUserIdRef} defaultValue={this.serverInfo.tguserid}/>:<></>}
