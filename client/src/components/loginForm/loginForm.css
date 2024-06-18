@@ -19,6 +19,50 @@
     text-align: justify;
     padding: 10px;
 }
+.login-logo {
+    text-align: center; 
+    color: var(--joy-color);
+}
+
+@media screen and (orientation: landscape) and (min-width: 965px) {
+    .login-intro {
+        margin-left: 20%;
+        margin-right: 20%;
+    }
+    .login-logo {
+        font-size: 100px;
+    }
+    .login-logo > img{
+        height: 100px;
+    }
+}
+  
+@media screen and (orientation: landscape) and (max-width: 965px) {
+    .login-intro {
+        margin-left: 12%;
+        margin-right: 12%;
+    }
+    .login-logo > img{
+        height: 50px;
+    }
+    .login-logo {
+        font-size: 50px;
+    }
+}
+
+@media (orientation: portrait) {
+    .login-intro {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .login-logo {
+        font-size: 50px;
+    }
+    .login-logo > img{
+        height: 50px;
+    }
+}
+  
 .login-form {
     position: relative;
     width: fit-content;
