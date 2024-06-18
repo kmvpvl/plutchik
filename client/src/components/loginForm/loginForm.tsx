@@ -3,6 +3,7 @@ import './loginForm.css';
 import { IServerInfo, PlutchikError, serverCommand, serverFetch } from '../../model/common';
 import Pending from '../pending/pending';
 import MLString from '../../model/mlstring';
+import {ML} from '../../model/mlstring';
 
 const strTryAgain = new MLString({
     default: "Try again", 
@@ -148,7 +149,8 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         const state = this.state.state;
         return <div className={ 'logged' === state ?'login-container logged':'login-container'}>
             { 'logged' !== state ?
-            <span className='login-intro'>Добро пожаловать! Этот бот является частью большой системы для взаимодействия психологов, их клиентов, работодателей и их работников. Система нацелена на повышение комфортности взаимодействия и улучшения качества жизни всех участников. Бот позволит Вам вычислить Ваш эмоциональный азимут, сравнить его с другими участниками, оставаясь в безопасности. Будьте уверены, что информация о Вас будет удалена в тот момент, как Вы об этом попросите. Больше подробностей о системе прочитайте тут (https://plutchik-landing.onrender.com)</span>:<span></span>}
+            <span className='login-intro'><div style={{textAlign: "center", color: "var(--joy-color)", fontSize: "100px"}}>PLUT<img src="./plutchart_logo.svg" alt="PLUTCHART"/>CHART</div>
+            <div>{ML(`Welcome! This content creation and editing system is part of a larger system for interaction between psychologists, their clients, employers and their employees. The system is aimed at increasing the comfort of interaction and improving the quality of life of all participants. The system will allow you to create content, send a task to the participant for assessment, monitor implementation and calculate the emotional azimuth of the participant. Read more details about the system here`)} (<a href={process.env.REACT_APP_LANDING_PAGE} target="_blank" rel="noreferrer">{process.env.REACT_APP_LANDING_PAGE}</a>)</div></span>:<span></span>}
 
             <div className='login-form'>
                 <span className='login-state'>
@@ -161,7 +163,11 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
                     }}>I have code</button></>:<></>}
                 </span>
                 <span className='login-authcode'>
-                    {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode}/>:<></>}
+                    {'revealing_auth_code' === state || 'logging' === state ? <input type="password" placeholder='Code from bot' ref={this.tgAuthCode} onKeyDown={event=>{
+                    switch (event.key){
+                        case "Enter": this.login(); break;
+                    }
+                    }}/>:<></>}
                     {'revealing_auth_code' === state || 'logging' === state ? <button onClick={()=>this.login()}>Log in</button>:<></>}
                     {'logged' === state ? <button onClick={()=>this.logout()}>{strSignOut}</button>:<></>}
                 </span>
@@ -170,4 +176,5 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         </div>;
     }
 }
+
 
