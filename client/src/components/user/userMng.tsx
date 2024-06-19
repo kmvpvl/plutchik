@@ -5,6 +5,8 @@ import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from '.
 import Insights from '../insights/insights';
 import Chart from 'react-google-charts';
 import Pending from '../pending/pending';
+import { EmotionType } from '../emotion/emotion';
+import MLString from '../../model/mlstring';
 export interface  IUserMngProps {
     serverInfo: IServerInfo;
     org: any;
@@ -131,6 +133,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
             const answers = this.state.answersOnSelectedInvitation;
             const inv_date = new Date(inv.messageToUser.date * 1000);
             const observe = this.state.invitationStats?.observe;
+            const diffs = this.state.selectedInvitation?.diffs;
             return <>
                 <div>Invitation was sent: {inv_date.toLocaleString()}{/*<button>Retry</button><button>Clear</button>*/}</div>
                 {answers.length === 0?<div>No answers</div>:
@@ -144,7 +147,29 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 <div>Stats: {this.state.invitationStats?<>{this.state.invitationStats.assigned?`Assigned ${new Date(this.state.invitationStats.assigndate).toLocaleString()}, Progress: ${this.state.invitationStats.contentassessed} of ${this.state.invitationStats.contentcount}, ${this.state.invitationStats.closed?`Closed ${new Date(this.state.invitationStats.closedate).toLocaleString()}`:"Not closed"}`:"Not assigned"}</>:
                 <></>}</div>
                 {observe !== undefined && observe.ownVector !== undefined?
-                <div><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector}></Insights></div>
+                <><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector} onClick={(emotion: EmotionType)=>{
+                    serverCommand("reviewemotionaboveothers", this.props.serverInfo, JSON.stringify({emotion: emotion, invitationid: this.state.selectedInvitation._id}), res=>{
+                        this.state.selectedInvitation.diffs = {
+                            emotion: emotion,
+                            decoding: res.decoding
+                        }
+                        this.setState(this.state);
+                    }, err=>{
+                        if (this.props.onError) this.props.onError(err);
+                    });
+                }}></Insights>
+                {diffs !== undefined?<div className='user-mng-user-assessments'>
+                    <div className='user-mng-user-assessments-emotion'>Emotion: <span style={{backgroundColor: `var(--${diffs.emotion}-color)`}}>{diffs.emotion}</span></div>
+                    <div>Below items to see how user's scores differ from other people's scores</div>
+                    <div className='user-mng-user-assessments-thumbs'>{diffs.decoding.map((v: any, i: any)=>{
+                        const mlName = new MLString(v.contentitem.name);
+                        return <span key={i} className='user-mng-user-assessments-thumb'>
+                            <span className='user-mng-user-assessments-thumb-label'>{mlName.toString()}</span>
+                            <span className='user-mng-user-assessments-thumb-user'>User discovered: {Math.round(v.vector[diffs.emotion]*100)}%</span>
+                            <span className='user-mng-user-assessments-thumb-others'>Others assessed: {Math.round(v.others.emotion*100)}%</span>
+                            <span className='user-mng-user-assessments-thumb-img-fit'><img src={v.contentitem.url} alt={mlName.toString()}/></span>
+                        </span>})}</div>
+                </div>:<></>}</>
                 :<></>}
             </>;
         } else return <></>;

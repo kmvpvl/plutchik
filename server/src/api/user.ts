@@ -21,8 +21,18 @@ export async function getinsights(c: any, req: Request, res: Response, user: Use
 
 export async function reviewemotionaboveothers(c: any, req: Request, res: Response, user: User){
     const em = req.body.emotion;
-    const ob = await user.reviewByEmotion(em);
-    return res.status(200).json({decoding: ob, user: user.json});
+    const invitationid = req.body.invitationid !== undefined?new Types.ObjectId(req.body.invitationid):undefined;
+    console.log(`${colours.fg.blue}Values: emotion = '${em}', invitationid = '${invitationid}'${colours.reset}`);
+    if (invitationid !== undefined){
+        const org = await Organization.getOrganizationByInvitationId(invitationid);
+        if (!org.checkRoles(user, "manage_users")) return res.status(403).json('User has no role "manage_users"');
+        const una = await org.getUserAndAssignByInvitationId(invitationid);
+        const ob = await una.user.reviewByEmotion(em, una.assign?._id);
+        return res.status(200).json({decoding: ob, user: user.json});
+    } else {
+        const ob = await user.reviewByEmotion(em);
+        return res.status(200).json({decoding: ob, user: user.json});
+    }
 }
 
 export async function getmatchlist(c: any, req: Request, res: Response, user: User){
