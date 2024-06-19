@@ -10,11 +10,8 @@
 * {
     box-sizing: border-box;
 }    
-html {
-    height: 100%;
+html, body {
     font-family: "UbuntuMono", monospace;
-}
-body {
     min-height: 100%;
     max-height: 100%;
     min-width: 100%;
@@ -23,12 +20,11 @@ body {
     width: 100%;
     height:100%;
     margin: 0;
-    padding: 2px;
     color: var(--tg-theme-text-color);
     background-color: var(--tg-theme-bg-color);
-    display: grid;
-    grid-template-rows: 1fr;
-    position: relative;
+}
+body {
+    padding: 5px;
 }
 .disabled{
   fill:silver;
@@ -47,9 +43,8 @@ body {
     overflow:hidden;
     width: 100%;
     height:100%;
-    margin: 0;
     display: grid;
-    grid-template-rows: auto auto 0.9fr auto auto 0.9fr auto; /* 1fr auto;*/
+    grid-template-rows: auto auto 1fr auto auto 1fr auto auto; /* 1fr auto;*/
 }
 .header {
     text-align: center;
@@ -69,17 +64,15 @@ body {
     margin: 3px;
 }
 .decoding-container{
-    position: absolute;
-    margin:auto;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width:auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 100%;
+    min-height: 100%;
     display: none;
     background-color: var(--tg-theme-bg-color);
-    padding: 5px;
+    --padding: 2px;
 }
 .decoding {
     width: 100%;
@@ -98,7 +91,7 @@ body {
 }
 #decoding-emotion {
     font-size: xx-large;
-    padding: 5px;
+    padding: 2px;
 }
 #thumbs {
     display: flex;
@@ -136,18 +129,34 @@ img.thumb {
     height: 40px;
 }
 
-.fit-img {
-    max-width: 100%;
+div.fit-img {
+    min-height: 100%;
     max-height: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+img.fit-img {
+    border: 1px solid var(--tg-theme-text-color);
+    max-height: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #decoding-content {
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    text-align: center;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 2px;
+    min-height: 100%;
+    max-height: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .decoding-contentitem-name {
@@ -159,13 +168,13 @@ img.thumb {
 </head>
 <body>
 <div class="content">
-    <span id="prompt" class="prompt"></span>
-    <span id="diff_desc" class="prompt"></span>
-    <span id="flower_own" class="flower"></span>
-    <span id="own-header" class="header"></span>
-    <span id="separator" class="separator"></span>
-    <span id="flower_others" class="flower"></span>
-    <span id="others-header" class="header"></span>
+    <div id="prompt" class="prompt"></div>
+    <div id="diff_desc" class="prompt"></div>
+    <div id="flower_own" class="flower"></div>
+    <div id="own-header" class="header"></div>
+    <div id="separator" class="separator"></div>
+    <div id="flower_others" class="flower"></div>
+    <div id="others-header" class="header"></div>
     <!--span id="separator" class="separator"></span>
     <span id="flower_diff" class="flower"></span>
     <span id="diff-header" class="header"></span-->
@@ -214,10 +223,10 @@ function init() {
             const diff = vector_sub(data.observe.ownVector, data.observe.othersVector);
             $('#own-header').append(`: ${data.observe.ownVector.count}`);
             $('#others-header').append(`: ${data.observe.othersVector.count}`);
+            drawDiff($('#diff_desc'), diff, data.user.nativelanguage);
             drawCharts($('#flower_own'), data.observe.ownVector, data.user.nativelanguage);
             drawCharts($('#flower_others'), data.observe.othersVector, data.user.nativelanguage);
 
-            drawDiff($('#diff_desc'), diff, data.user.nativelanguage);
 
             $('g[emotion]').on('click', (e)=> {
                 $.ajaxSetup({
@@ -231,6 +240,7 @@ function init() {
                     const strE = e.currentTarget.attributes["emotion"].value;
                     if ('success' == status) {
                         $('#btnBack').text(`← ${strBack.toString(data.user.nativelanguage)}`);
+                        $('div.content').hide();
                         $('div.decoding-container').show();
                         $('#decoding-emotion').html(`${strEmotion.toString(data.user.nativelanguage)}: <span class="${strE}">${ml_emotions.get(data.user.nativelanguage).get(strE)}</span>`);
                         $('.decoding-tip').text(strDecodingTip.toString(data.user.nativelanguage));
@@ -244,7 +254,7 @@ function init() {
                             e.currentTarget.classList.add('selected');
                             const el = data.decoding.filter(v=>v.cid === e.currentTarget.attributes['cid'].value );
                             const n = new MLString(el[0].contentitem.name);
-                            $('#decoding-content').html(`<div>${strDecodingYouFound.toString(data.user.nativelanguage)} ${ml_emotions.get(data.user.nativelanguage).get(strE)} ${Math.round(el[0].vector[strE]*100)}%. ${strDecodingOthersAssessed.toString(data.user.nativelanguage)}: ${Math.round(el[0].others.emotion*100)}%</div><div class="decoding-contentitem-name">${n.toString(data.user.nativelanguage)}</div>${el[0].contentitem.type==='image'?'<img class="fit-img" src="'+el[0].contentitem.url+'">':''}`);
+                            $('#decoding-content').html(`<div>${strDecodingYouFound.toString(data.user.nativelanguage)} ${ml_emotions.get(data.user.nativelanguage).get(strE)} ${Math.round(el[0].vector[strE]*100)}%. ${strDecodingOthersAssessed.toString(data.user.nativelanguage)}: ${Math.round(el[0].others.emotion*100)}%</div><div class="decoding-contentitem-name">${n.toString(data.user.nativelanguage)}</div>${el[0].contentitem.type==='image'?'<div class="fit-img"><img class="fit-img" src="'+el[0].contentitem.url+'"></div>':''}`);
                         })
                     } else {
                         $('div.decoding-container').hide();
@@ -265,6 +275,7 @@ function init() {
     });
     $('#btnBack').click(e=>{
         $('div.decoding-container').hide();
+        $('div.content').show();
     });
 }
 init();
@@ -278,7 +289,7 @@ tg.expand();
 
 function drawCharts (element, emotion, lang='en') {
 	const w = element.innerWidth();
-	const h = element.innerHeight();
+	const h = element.innerHeight()-10;
 	const N = 8;
     const we = w/N;
     const wc = 20; 
@@ -288,7 +299,8 @@ function drawCharts (element, emotion, lang='en') {
 	if (emotion) {
 		for (i=0; i<N; i++) {
             s += `<g emotion="${emotions[i]}">`
-            const v = emotion[emotions[i]]?emotion[emotions[i]]:0;
+            let v = emotion[emotions[i]]?emotion[emotions[i]]:0;
+            v = Math.sqrt(v);
             const y = h*(v);
             s += `<rect class="${emotions[i]}" x="${i* we}" y="${h-y}" width="${wc}" height="${y-z*h}"></rect>`;
             s += `<text class="${v?emotions[i]:'disabled'}" x="0" y="0" transform="rotate(270) translate(${-h},${we*i+1.5*wc})">${ml_emotions.get(lang).get(emotions[i])}</text>`;
