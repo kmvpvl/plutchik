@@ -38,6 +38,7 @@ export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStr
                 const d: IMLString = this.value.toJSON();
                 d.default = e.currentTarget.value;
                 if (this.props.onChange) this.props.onChange(new MLString(d));
+                this.setState({value: new MLString(d)});
         }}defaultValue={this.state.value.default} ref={this.defaultInputRef}/></span>
             <span >
                 {Array.from(this.state.value.values).map(([l, s], k)=><div key={k} className='mlstring-values'>
