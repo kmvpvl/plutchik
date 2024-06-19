@@ -453,9 +453,13 @@ export default class User extends MongoProto<IUser> {
         }]);
         return orgs;
     }
-    async reviewByEmotion(emotion: string): Promise<Array<Assessment>>{
-        const emMatch: any = 
+    async reviewByEmotion(emotion: string, assignid?: Types.ObjectId): Promise<Array<Assessment>>{
+        let emMatch: any = 
             {'$match': {'uid': this.uid}};
+        if (assignid !== undefined) {
+            emMatch = 
+            {'$match': {'assignid': assignid}};
+        }
         emMatch['$match']['vector.'+emotion] = {
             '$gt': 0
         };

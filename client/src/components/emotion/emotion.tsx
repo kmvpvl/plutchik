@@ -8,6 +8,7 @@ interface IEmotionProps {
     disabled: boolean;
     viewmode: EmotionViewModeType;
     onChange?: (value: number)=>void;
+    onClick?: () => void;
 }
 export const emotions: EmotionType[] = ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'];
 
@@ -45,7 +46,7 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
                 h = "100%";
         }
         return <>
-        <svg ref={this.svgRef} xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width='100%' height='100%' className='emotion-slider'>
+        <svg ref={this.svgRef} xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink' width='100%' height='100%' className='emotion-slider' onClick={ev=>this.props.onClick?this.props.onClick():null} style={this.props.onClick?{cursor: "pointer"}:{}}>
             {this.props.viewmode === "chart"?<rect className="dotted" x="0em" y="0" width="1em" height="100%"/>:<></>}
             <rect style={{fill: `var(--${this.props.emotion}-color)`}} x="0em" y={y} width="1em" height={h}/>
             {this.props.viewmode === 'slider'?<rect className={this.props.emotion} x="-0" y={`calc(${(1 - this.state.value) * 100}% - ${1 - this.state.value}em)`} width="1.5em" height="1em" rx="0.5em"/>:<></>}
@@ -108,22 +109,27 @@ export interface EmotionVector {
 interface IChartsProps {
     vector: EmotionVector;
     label: string;
+    onClick?: (emotion: EmotionType)=>void;
 }
 interface IChartsState {
 
 }
 
 export class Charts extends React.Component<IChartsProps, IChartsState> {
+    private onEmotionClick(emotion: EmotionType) {
+        if (this.props.onClick) this.props.onClick(emotion);
+    }
+    
     render(): React.ReactNode {
-        return <>
-        <div className='charts-emotions'>
-            <div className="charts-label">{this.props.label}</div>
-            {emotions.map((v, i)=>{
-                let val: number | undefined = this.props.vector[emotions[i]];
-                val = val?val:0;
-                return <Emotion viewmode='chart' disabled={false} value={val} emotion={emotions[i]} key={i}/>
-            })}
-        </div>
-        </>;
+    return <>
+    <div className='charts-emotions'>
+        <div className="charts-label">{this.props.label}</div>
+        {emotions.map((v, i)=>{
+            let val: number | undefined = this.props.vector[emotions[i]];
+            val = val?val:0;
+            return <Emotion viewmode='chart' disabled={false} value={val} emotion={emotions[i]} key={i} onClick={this.props.onClick?this.onEmotionClick.bind(this, emotions[i]):undefined}/>
+        })}
+    </div>
+    </>;
     }
 }

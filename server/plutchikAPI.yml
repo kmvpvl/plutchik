@@ -378,9 +378,22 @@ paths:
         '200':
           description: OK
   /reviewemotionaboveothers:
-    description: Returns assessments 
+    description: Returns assessments of user. Own or by invitation id
     post:
       operationId: reviewemotionaboveothers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emotion:
+                  type: string
+                invitationid:
+                  type: string
+                  nullable: true
+              required:
+                - emotion
       responses:
         '200':
           description: OK
