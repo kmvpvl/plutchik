@@ -29,9 +29,11 @@ export class MLStringEditor extends React.Component<IMLStringEditorProps, IMLStr
         return <span className='mlstring-container'>
             <span className='mlstring-caption'>{this.props.caption}</span>
             <span className='mlstring-default'><button onClick={()=>{
-                this.state.value.values.set('', '');
-                if (this.props.onChange) this.props.onChange(this.value);
-                this.setState(this.state);
+                const bvalue = this.state.value;
+                bvalue.values.set('', '');
+                //this.state.value.default = bvalue;
+                if (this.props.onChange) this.props.onChange(bvalue);
+                this.setState({value: bvalue});
             }}>+</button><input placeholder="Type in default language" onChange={(e)=>{
                 const d: IMLString = this.value.toJSON();
                 d.default = e.currentTarget.value;
