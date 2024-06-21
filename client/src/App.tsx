@@ -9,14 +9,14 @@ import Organizations from './components/manageOrgs/organizations';
 import { Content } from './components/content/content';
 import UserMng from './components/user/userMng';
 
-type AppMode = "content" | "users";
+export type AppMode = "content" | "edit set name" | "users";
 
 interface IAppState {
     logged: boolean;
     serverInfo: IServerInfo;
     userInfo?: any;
     currentOrg?: string;
-    mode?: string;
+    mode?: AppMode;
     orgs: any[];
 }
 
@@ -62,7 +62,8 @@ export default class App extends React.Component <{}, IAppState> {
         this.pendingRef?.current?.incUse();
         serverCommand('orgsattachedtouser', this.state.serverInfo, undefined, res=>{
             this.pendingRef.current?.decUse();
-            this.state.orgs = res;
+            const nState: IAppState = this.state;
+            nState.orgs = res;
             this.onOrgsListUpdated();
         }, err=>{
             this.pendingRef.current?.decUse();
@@ -77,14 +78,15 @@ export default class App extends React.Component <{}, IAppState> {
         localStorage.setItem('plutchik_currentOrg', org._id);
         const foundOrg = this.state.orgs.findIndex((v: any) =>v._id === org._id);
         if (foundOrg > -1) {
-            this.state.orgs[foundOrg] = org;
+            const nState: IAppState = this.state;
+            nState.orgs[foundOrg] = org;
         } else {
             this.state.orgs.push(org);
         }
         this.onOrgsListUpdated();
     }
 
-    onModeChanged(newMode: string) {
+    onModeChanged(newMode: AppMode) {
         const nState: IAppState = this.state;
         localStorage.setItem("plutchik_app_mode", newMode);
         nState.mode = newMode;
@@ -117,13 +119,14 @@ export default class App extends React.Component <{}, IAppState> {
     onOrgsListUpdated() {
         const nState: IAppState = this.state;
         nState.currentOrg = localStorage.getItem('plutchik_currentOrg') === null?undefined:localStorage.getItem('plutchik_currentOrg') as string;
-        this.setState(this.state);
+        this.setState(nState);
     }
 
     onUserMngOrgUpdated(org: any) {
+        const nState: IAppState = this.state;
         const foundEl = this.state.orgs.findIndex(v=>v._id === org._id);
-        this.state.orgs[foundEl] = org;
-
+        nState.orgs[foundEl] = org;
+        this.setState(nState);
     }
 
     onContentError(err: PlutchikError) {

@@ -148,12 +148,16 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 <></>}</div>
                 {observe !== undefined && observe.ownVector !== undefined?
                 <><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector} onClick={(emotion: EmotionType)=>{
-                    serverCommand("reviewemotionaboveothers", this.props.serverInfo, JSON.stringify({emotion: emotion, invitationid: this.state.selectedInvitation._id}), res=>{
-                        this.state.selectedInvitation.diffs = {
+                    serverCommand("reviewemotionaboveothers", this.props.serverInfo, JSON.stringify({
+                        emotion: emotion, 
+                        invitationid: this.state.selectedInvitation._id}), res=>{
+                        const nState: IUserMngState = this.state;
+
+                        nState.selectedInvitation.diffs = {
                             emotion: emotion,
                             decoding: res.decoding
                         }
-                        this.setState(this.state);
+                        this.setState(nState);
                     }, err=>{
                         if (this.props.onError) this.props.onError(err);
                     });

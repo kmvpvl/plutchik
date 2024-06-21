@@ -1,4 +1,4 @@
-import React, { ReactNode, RefObject } from "react";
+import React, { RefObject } from "react";
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from "../../model/common";
 import './content.css';
 import { Flower } from "../emotion/emotion";

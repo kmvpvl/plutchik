@@ -2,8 +2,7 @@ import React, { RefObject, createRef } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import Pending from "../pending/pending";
 import "./organizations.css";
-
-type OrgsModes = "content" | "edit set name";
+import { AppMode } from "../../App";
 
 interface IOrgsProps {
     serverInfo: IServerInfo,
@@ -11,10 +10,10 @@ interface IOrgsProps {
     onSuccess?: (text: string)=>void,
     onCreateNewOrg?: ( org: any)=>void,
     onOrgSelected:(orgid: string)=>void,
-    onModeChanged: (newmode: string)=>void,
+    onModeChanged: (newmode: AppMode)=>void,
     orgs: any[];
     currentOrg?: string;
-    mode: string;
+    mode: AppMode;
     pending?: RefObject<Pending>
 }
 
