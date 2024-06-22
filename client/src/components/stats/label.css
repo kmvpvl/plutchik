@@ -1,0 +1,25 @@
+.label-container {
+    padding: 5px;
+    border: 1px solid var(--text-color);
+    display: grid;
+    grid-template-rows: auto auto;
+    width: fit-content;
+    height: fit-content;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.label-caption {
+    text-align: center;
+    font-size: large;
+    width: 100%;
+    text-wrap: nowrap;
+}
+
+.label-value {
+    text-align: center;
+    font-size: x-large;
+    font-weight: bold;
+    width: 100%;
+    text-wrap: nowrap;
+}

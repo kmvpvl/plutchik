@@ -8,15 +8,17 @@ import User from './components/user/user';
 import Organizations from './components/manageOrgs/organizations';
 import { Content } from './components/content/content';
 import UserMng from './components/user/userMng';
+import Stats from './components/stats/stats';
 
-type AppMode = "content" | "users";
+export type AppMode = "content" | "edit set name" | "users" | "stats";
 
 interface IAppState {
     logged: boolean;
     serverInfo: IServerInfo;
     userInfo?: any;
     currentOrg?: string;
-    mode?: string;
+    currentOrgStats?: any;
+    mode?: AppMode;
     orgs: any[];
 }
 
@@ -49,6 +51,8 @@ export default class App extends React.Component <{}, IAppState> {
     private onOrgSelected(orgid: string) {
         const nState: IAppState = this.state;
         nState.currentOrg = orgid;
+        nState.currentOrgStats = undefined;
+        this.loadOrganizationStats();
         this.setState(nState);
     }
 
@@ -62,7 +66,8 @@ export default class App extends React.Component <{}, IAppState> {
         this.pendingRef?.current?.incUse();
         serverCommand('orgsattachedtouser', this.state.serverInfo, undefined, res=>{
             this.pendingRef.current?.decUse();
-            this.state.orgs = res;
+            const nState: IAppState = this.state;
+            nState.orgs = res;
             this.onOrgsListUpdated();
         }, err=>{
             this.pendingRef.current?.decUse();
@@ -77,14 +82,15 @@ export default class App extends React.Component <{}, IAppState> {
         localStorage.setItem('plutchik_currentOrg', org._id);
         const foundOrg = this.state.orgs.findIndex((v: any) =>v._id === org._id);
         if (foundOrg > -1) {
-            this.state.orgs[foundOrg] = org;
+            const nState: IAppState = this.state;
+            nState.orgs[foundOrg] = org;
         } else {
             this.state.orgs.push(org);
         }
         this.onOrgsListUpdated();
     }
 
-    onModeChanged(newMode: string) {
+    onModeChanged(newMode: AppMode) {
         const nState: IAppState = this.state;
         localStorage.setItem("plutchik_app_mode", newMode);
         nState.mode = newMode;
@@ -117,13 +123,16 @@ export default class App extends React.Component <{}, IAppState> {
     onOrgsListUpdated() {
         const nState: IAppState = this.state;
         nState.currentOrg = localStorage.getItem('plutchik_currentOrg') === null?undefined:localStorage.getItem('plutchik_currentOrg') as string;
-        this.setState(this.state);
+        nState.currentOrgStats = undefined;
+        this.loadOrganizationStats();
+        this.setState(nState);
     }
 
     onUserMngOrgUpdated(org: any) {
+        const nState: IAppState = this.state;
         const foundEl = this.state.orgs.findIndex(v=>v._id === org._id);
-        this.state.orgs[foundEl] = org;
-
+        nState.orgs[foundEl] = org;
+        this.setState(nState);
     }
 
     onContentError(err: PlutchikError) {
@@ -133,6 +142,29 @@ export default class App extends React.Component <{}, IAppState> {
         } else {
             this.displayError(err)
         }
+    }
+
+    prepareStats() {
+        const stats = this.state.currentOrgStats;
+        stats.organizations.forEach((org: any)=>{org.created = new Date(org.created); org.changed = new Date(org.changed)});
+        stats.contents.forEach((ci: any)=>{ci.created = new Date(ci.created); ci.changed = new Date(ci.changed)});
+        stats.assessments.forEach((a: any)=>{a.created = new Date(a.created)});
+    }
+
+    loadOrganizationStats() {
+        if (this.state.currentOrg === undefined) return;
+        this.pendingRef.current?.incUse();
+        serverCommand("getorganizationstats", this.state.serverInfo, JSON.stringify({
+            oid: this.state.currentOrg}), res=>{
+                this.pendingRef.current?.decUse();
+                const nState: IAppState = this.state;
+                nState.currentOrgStats = res;
+                this.prepareStats();
+                this.setState(nState);
+            }, err=>{
+                this.pendingRef.current?.decUse();
+                this.displayError(err);
+            })
     }
     
     render(): React.ReactNode {
@@ -144,11 +176,18 @@ export default class App extends React.Component <{}, IAppState> {
             
             {this.state.logged?<Organizations mode={this.state.mode?this.state.mode:"content"} onSuccess={res=>this.displayInfo(res)} serverInfo={this.state.serverInfo} onOrgSelected={this.onOrgSelected.bind(this)} onError={err=>this.displayError(err)} onModeChanged={this.onModeChanged.bind(this)} currentOrg={this.state.currentOrg} onCreateNewOrg={this.onNewOrgCreated.bind(this)} orgs={this.state.orgs}></Organizations>:<div/>}
             
-            {this.state.logged?this.state.mode === "users"?this.state.currentOrg === undefined?<div></div>:
+            {this.state.logged?
+            /** users mode */
+            this.state.mode === "users"?
+            this.state.currentOrg === undefined?<></>:
             <UserMng onOrgUpated={this.onUserMngOrgUpdated.bind(this)} serverInfo={this.state.serverInfo} org={current_org} onSuccess={res=>this.displayInfo(res)} onError={err=>this.displayError(err)} userid={this.state.userInfo._id} pending={this.pendingRef}/>
-            
-            :this.state.currentOrg === undefined?<div></div>:
-            
+
+            /** stats mode */
+            :this.state.mode === "stats"?this.state.currentOrg === undefined?<></>:
+            <Stats stats={this.state.currentOrgStats}/>
+
+            /** content mode */
+            :this.state.currentOrg === undefined?<></>:
             <Content key={this.state.currentOrg} ref={this.contentRef} serverInfo={this.state.serverInfo} orgid={this.state.currentOrg} userid={this.state.userInfo._id} onSuccess={res=>this.displayInfo(res)} onError={this.onContentError.bind(this)} pending={this.pendingRef}></Content>:<div/>}
             
             <Infos ref={this.messagesRef}/>
