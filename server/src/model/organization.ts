@@ -306,6 +306,7 @@ export default class Organization extends MongoProto <IOrganization>{
                 'localField': 'assessment.uid', 
                 'foreignField': '_id', 
                 'as': 'user'}
+            }, {$group:{_id: "$user._id",user: {$first: "$user"}}
             }, {'$unwind': {'path': '$user', 'preserveNullAndEmptyArrays': false}
             }, {'$replaceRoot': {'newRoot': '$user'}
             }

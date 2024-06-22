@@ -149,6 +149,7 @@ export default class App extends React.Component <{}, IAppState> {
         stats.organizations.forEach((org: any)=>{org.created = new Date(org.created); org.changed = new Date(org.changed)});
         stats.contents.forEach((ci: any)=>{ci.created = new Date(ci.created); ci.changed = new Date(ci.changed)});
         stats.assessments.forEach((a: any)=>{a.created = new Date(a.created)});
+        stats.users.forEach((u: any)=>{u.created = new Date(u.created); u.changed = new Date(u.changed)});
     }
 
     loadOrganizationStats() {

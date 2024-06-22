@@ -69,7 +69,17 @@
 
 .stats-content_assessing-container {
     display: grid;
-    grid-template-areas:    "created count-content count-assessments count-content-assessed"
-                            "avg-vector avg-vector avg-vector avg-vector"
-                            "calendar calendar calendar calendar";
+    grid-template-areas:    "created            count-content           avg-vector  avg-vector"
+                            "count-assessments  count-content-assessed  avg-vector  avg-vector "
+                            "calendar           calendar                calendar    calendar";
+}
+
+.stats-user_assessmennts-container {
+    display: grid;
+    grid-template-areas:    
+                            "count-assessments  avg-vector      avg-vector"
+                            "count-users        avg-vector      avg-vector"
+                            "pie-language       pie-age         pie-gender"
+                            "content-items      content-items   content-items";
+    grid-template-columns: 1fr 1fr 1fr;
 }
