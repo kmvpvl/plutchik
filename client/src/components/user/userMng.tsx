@@ -64,6 +64,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         }), res=>{
             this.props.pending?.current?.decUse();
             if (this.props.onSuccess) this.props.onSuccess("Invitation sent successfully");
+            //!!!need to update organization
             this.setState((prev, props)=>{})
         }, err=>{
             this.props.pending?.current?.decUse();
