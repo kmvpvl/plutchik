@@ -35,7 +35,7 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
         switch (this.props.viewmode) {
             case "chart":
                 let v = this.props.value;
-                v = v?v:0;
+                v = v?Math.sqrt(v):0;
                 y = `${(1 - v) * 100}%`;
                 h = `${v*100}%`;
                 break;
@@ -110,6 +110,7 @@ interface IChartsProps {
     vector: EmotionVector;
     label: string;
     onClick?: (emotion: EmotionType)=>void;
+    gridArea?: string;
 }
 interface IChartsState {
 
@@ -122,7 +123,7 @@ export class Charts extends React.Component<IChartsProps, IChartsState> {
     
     render(): React.ReactNode {
     return <>
-    <div className='charts-emotions'>
+    <div className='charts-emotions' style={{gridArea: this.props.gridArea}}>
         <div className="charts-label">{this.props.label}</div>
         {emotions.map((v, i)=>{
             let val: number | undefined = this.props.vector[emotions[i]];

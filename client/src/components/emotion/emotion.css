@@ -20,7 +20,7 @@
 
 .charts-label {
     position: absolute;
-    font-size: 120%;
+    font-size: x-large;
     top: -0.5em;
     left: 0.5em;
     background-color: var(--background-color);

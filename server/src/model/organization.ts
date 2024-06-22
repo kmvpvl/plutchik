@@ -1,12 +1,12 @@
 import { Schema, Types, model } from "mongoose";
 import PlutchikError from "./error";
 import {MLString, MLStringSchema} from "./mlstring";
-import User, { IAssignOrg, RoleType } from "./user";
+import User, { IAssignOrg, IUser, RoleType } from "./user";
 import colours from "./colours";
 import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
 import MongoProto from "./mongoproto";
-import { mongoAssessments } from "./assessment";
+import { IAssessment, mongoAssessments } from "./assessment";
 import Telegram from "./telegram";
 
 export const DEFAULT_SESSION_DURATION = 10080;
@@ -71,7 +71,10 @@ export const mongoOrgs = model<IOrganization>('organizations', OrganizationSchem
 export const mongoSessionTokens = model<ISessionToken>('sessiontokens', SessionTokenSchema);
 
 export interface IOrganizationStats {
-    countByDate: Array<{day: Date; count: number}>
+    assessments: IAssessment[];
+    users: IUser[];
+    contents: IContent[];
+    organizations: IOrganization[];
 }
 
 export default class Organization extends MongoProto <IOrganization>{
@@ -269,21 +272,52 @@ export default class Organization extends MongoProto <IOrganization>{
     }
     public async stats(): Promise<IOrganizationStats> {
         await this.checkData();
-        const s = await mongoAssessments.aggregate ([
-            {'$lookup': {
-                from: "contents",
-                localField: "cid",
-                foreignField: "_id",
-                pipeline: [{"$match": {"organizationid": this.uid}}],
-                as: "result"}
-            }, {'$match': {"result": {"$ne": []}}
-            }, {'$addFields': {'daydate': {'$dateTrunc': {'date': '$created', 'unit': 'day'}}}
-            }, {'$group': {'_id': '$daydate', 'count': {'$sum': 1}}
-            }, {'$project': {"day": "$_id","count": "$count"}
+        const content = mongoContent.aggregate([
+            {$match: {"organizationid": this.uid}
             }
         ]);
+
+        const assessments = mongoContent.aggregate([
+            {'$match': {'organizationid': this.uid}
+            }, {'$lookup': {
+                'from': 'assessments', 
+                'localField': '_id', 
+                'foreignField': 'cid', 
+                'as': 'assessment'}
+            }, {'$match': {'$expr': {'$ne': ['$assessment', []]}}
+            }, {'$project': {'assessment': 1}
+            }, {'$unwind': {'path': '$assessment', 'preserveNullAndEmptyArrays': false}
+            }, {'$replaceRoot': {'newRoot': '$assessment'}
+            }
+        ]);
+
+        const users = mongoContent.aggregate([
+            {'$match': {'organizationid': this.uid}
+            }, {'$lookup': {
+                'from': 'assessments', 
+                'localField': '_id', 
+                'foreignField': 'cid', 
+                'as': 'assessment'}
+            }, {'$match': {'$expr': {'$ne': ['$assessment', []]}}
+            }, {'$project': {'assessment': 1}
+            }, {'$unwind': {'path': '$assessment', 'preserveNullAndEmptyArrays': false}
+            }, {'$lookup': {
+                'from': 'users', 
+                'localField': 'assessment.uid', 
+                'foreignField': '_id', 
+                'as': 'user'}
+            }, {'$unwind': {'path': '$user', 'preserveNullAndEmptyArrays': false}
+            }, {'$replaceRoot': {'newRoot': '$user'}
+            }
+          ]);
+
+        const stats = await Promise.all([content, assessments, users]);
+        
         return {
-            countByDate: s
+            users: stats[2],
+            contents: stats[0],
+            assessments: stats[1],
+            organizations: [this.json as IOrganization],
         }
     }
 }

@@ -11,7 +11,7 @@
     padding: 5px;
 }
 .user-logo-letters-container {
-    font-size: xx-large;
+    font-size: 45px;
     color: var(--anticipation-color);
     display: block;
     min-width: fit-content;
