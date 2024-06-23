@@ -118,16 +118,23 @@
     border-radius: 5px;
     padding: 2px;
     display: grid;
-    grid-template-areas:    "thumb label"
-                            "thumb user-eval"
-                            "thumb others-eval";
-    --grid-template-columns: auto auto;
+    grid-template-areas:    "flower thumb label"
+                            "flower thumb user-eval"
+                            "flower thumb others-eval";
+    --grid-template-columns: 30px auto auto;
     grid-template-rows: 1em 1em 1em;
     min-height: 60px;
     max-height: 120px;
     overflow: hidden;
     width: fit-content;
     gap: 5px;
+    position: relative;
+}
+
+.user-mng-user-assessments-thumb-flower {
+    grid-area: flower;
+    position: absolute;
+    top: 50%;
 }
 .user-mng-user-assessments-thumb-label {
     grid-area: label;

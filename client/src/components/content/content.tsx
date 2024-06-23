@@ -182,7 +182,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
                 <span>|</span>
                 <button className={this.queueCheck.length===0?"":"checking"} onClick={this.onDeepCheckButtonClick.bind(this)}>{this.queueCheck.length===0?"Deep check set":"Deep checking..."}</button>
                 <span>|</span>
-                {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={new Map(Object.entries(this.state.curItemStat).map((v:any, i:any)=>[v[0], v[1]]))}/></span>:<></>}
+                {this.state.curItemStat?<span>Assessments: {this.state.curItemStat.count}<Flower width="60px" vector={this.state.curItemStat}/></span>:<></>}
             </span>
             <span className="content-area">
                 <span className="content-items">

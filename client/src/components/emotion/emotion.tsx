@@ -1,3 +1,4 @@
+import { IEmotionalVector } from '../../model/common';
 import './emotion.css';
 import React, { RefObject } from 'react';
 export type EmotionType = 'joy' | "trust" | 'fear' | 'surprise' | 'sadness' | 'disgust' | 'anger' | 'anticipation';
@@ -57,7 +58,7 @@ export default class Emotion extends React.Component<IEmotionProps, IEmotionStat
 }
 
 interface IFlowerProps {
-    vector?: Map<EmotionType, number>
+    vector: IEmotionalVector
     width: string;
 }
 
@@ -73,7 +74,7 @@ export class Flower extends React.Component<IFlowerProps, IFlowerState> {
             {emotions.map((v, i)=> {
                 const N = 8;
                 let R;
-                let vi = this.props.vector?.get(emotions[i]);
+                let vi = this.props.vector[emotions[i]];
                 vi = Math.sqrt(Math.sqrt(vi === undefined?0:vi));
                 const axis = vi;
                 if (!axis) R = w/2;
