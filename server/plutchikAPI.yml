@@ -421,25 +421,22 @@ paths:
       responses:
         '200':
           description: OK
-  /informuserbytg:
+  /reminduseraboutinvitation:
     description: Informs user by Telegram, returns time when message scheduled
     post:
-      operationId: informuserbytg
+      operationId: reminduseraboutinvitation
       requestBody:
         content:
           application/json:
             schema:
               type: object
               required:
-                - tguserid
                 - message
-                - organizationid
+                - invitationid
               properties:
-                tguserid:
-                  type: number
-                message:
+                invitationid:
                   type: string
-                organizationid:
+                message:
                   type: string
       responses:
         '200':

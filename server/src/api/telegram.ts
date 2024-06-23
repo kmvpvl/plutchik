@@ -366,6 +366,16 @@ function invitation_declined (lang: string){
     }
 }
 
+export function mainKeyBoardMenu(lang?: string): InlineKeyboardButton[][] {
+    return [[
+        {text: ML('Assess new content', lang), web_app: {url: `${process.env.tg_web_hook_server}/assess.htm`}}, 
+        {text: ML('Insights', lang), web_app: {url: `${process.env.tg_web_hook_server}/insights.htm`}},
+    ],[
+        /*{text: ML('Get matched', lang), web_app: {url: `${process.env.tg_web_hook_server}/match.htm`}},*/
+        {text: ML('My settings', lang), callback_data: 'settings'}
+    ]];
+}
+
 export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {    
     console.log(`${colours.fg.blue}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
@@ -377,13 +387,7 @@ export default async function telegram(c: any, req: Request, res: Response, bot:
         const userDraft = await User.getUserByTgUserId(tgUserId);
         
         tgLanguageCode = userDraft?.json?.nativelanguage?userDraft.json?.nativelanguage:'en';
-        const MainKeyboardMenu: InlineKeyboardButton[][] = [[
-            {text: ML('Assess new content', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/assess.htm`}}, 
-            {text: ML('Insights', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/insights.htm`}},
-        ],[
-            {text: ML('Get matched', tgLanguageCode), web_app: {url: `${process.env.tg_web_hook_server}/match.htm`}},
-            {text: ML('My settings', tgLanguageCode), callback_data: 'settings'}
-        ]];
+        const MainKeyboardMenu = mainKeyBoardMenu(tgLanguageCode);
         if (tgData.callback_query !== undefined) {
             // it's callback
             callback_process(tgData, bot, userDraft as User, tgLanguageCode, MainKeyboardMenu);
