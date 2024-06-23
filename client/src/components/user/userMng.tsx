@@ -4,7 +4,7 @@ import React from 'react';
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from '../../model/common';
 import Insights from '../insights/insights';
 import Pending from '../pending/pending';
-import { EmotionType } from '../emotion/emotion';
+import { EmotionType, Flower } from '../emotion/emotion';
 import MLString from '../../model/mlstring';
 export interface  IUserMngProps {
     serverInfo: IServerInfo;
@@ -149,6 +149,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                     <div className='user-mng-user-assessments-thumbs'>{diffs.decoding.map((v: any, i: any)=>{
                         const mlName = new MLString(v.contentitem.name);
                         return <span key={i} className='user-mng-user-assessments-thumb'>
+                            <span className='user-mng-user-assessments-thumb-flower'><Flower width="30px" vector={v.vector}/></span>
                             <span className='user-mng-user-assessments-thumb-label'>{mlName.toString()}</span>
                             <span className='user-mng-user-assessments-thumb-user'>User discovered: {Math.round(v.vector[diffs.emotion]*100)}%</span>
                             <span className='user-mng-user-assessments-thumb-others'>Others assessed: {Math.round(v.others.emotion*100)}%</span>
