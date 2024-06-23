@@ -2,8 +2,7 @@ import React, { RefObject, createRef } from "react";
 import { IServerInfo, PlutchikError, serverCommand } from "../../model/common";
 import Pending from "../pending/pending";
 import "./organizations.css";
-
-type OrgsModes = "content" | "edit set name";
+import { AppMode } from "../../App";
 
 interface IOrgsProps {
     serverInfo: IServerInfo,
@@ -11,10 +10,10 @@ interface IOrgsProps {
     onSuccess?: (text: string)=>void,
     onCreateNewOrg?: ( org: any)=>void,
     onOrgSelected:(orgid: string)=>void,
-    onModeChanged: (newmode: string)=>void,
+    onModeChanged: (newmode: AppMode)=>void,
     orgs: any[];
     currentOrg?: string;
-    mode: string;
+    mode: AppMode;
     pending?: RefObject<Pending>
 }
 
@@ -26,7 +25,6 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
     newOrgNameRef: RefObject<HTMLInputElement> = createRef();
     orgsSelectorRef: RefObject<HTMLSelectElement> = createRef();
     state = {
-        orgs: [],
         mode: "content"
     }
     createNewOrganization(){
@@ -118,7 +116,9 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
                 {/*<button>Remove set</button>*/}
                 <span>|</span>
                 <button className={this.props.mode === "content"?"selected":""} onClick={e=>this.props.onModeChanged("content")}>Edit content</button>
-                <button className={this.props.mode === "users"?"selected":""} onClick={e=>this.props.onModeChanged("users")}>Manage users</button></>:<>
+                <button className={this.props.mode === "users"?"selected":""} onClick={e=>this.props.onModeChanged("users")}>Manage users</button>
+                <button className={this.props.mode === "stats"?"selected":""} onClick={e=>this.props.onModeChanged("stats")}>View stats</button>
+                </>:<>
                 {this.state.mode === "edit set name"?
                 <>{/*here buttons in rename org mode*/}
                 <button onClick={this.renameCurOrg.bind(this, this.newOrgNameRef.current?.value)}>Save new set name</button>

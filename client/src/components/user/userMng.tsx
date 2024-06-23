@@ -3,7 +3,6 @@ import './userMng.css';
 import React from 'react';
 import { IServerInfo, PlutchikError, relativeDateString, serverCommand } from '../../model/common';
 import Insights from '../insights/insights';
-import Chart from 'react-google-charts';
 import Pending from '../pending/pending';
 import { EmotionType } from '../emotion/emotion';
 import MLString from '../../model/mlstring';
@@ -22,7 +21,6 @@ export interface IUserMngState {
     selectedInvitation?: any;
     answersOnSelectedInvitation?: any;
     invitationStats?: any;
-    setStats?: any;
 }
 
 export default class UserMng extends React.Component<IUserMngProps, IUserMngState> {
@@ -32,9 +30,6 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
     }
 
     componentDidUpdate(): void {
-        if (this.props.org?._id !== this.state.setStats?.orgid) {
-            this.loadSetStats();
-        }
         if (this.state.selectedInvitation !== undefined) {
             const selectedInv = this.props.org.invitations?.filter((v: any)=>v._id === this.state.selectedInvitation?._id);
             if (selectedInv === undefined || selectedInv.length === 0) {
@@ -52,6 +47,17 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         this.setState(nState);
     }
     
+    remindUser () {
+        serverCommand("reminduseraboutinvitation", this.props.serverInfo, JSON.stringify({
+            message: "message",
+            invitationid: this.state.selectedInvitation?._id
+        }), res=> {
+            if (this.props.onSuccess) this.props.onSuccess("Message sent");
+        }, err=> {
+            if (this.props.onError) this.props.onError(err);
+        });
+    }
+
     cancelInvitation () {
         const nState: IUserMngState = this.state;
         nState.mode = "content";
@@ -69,6 +75,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         }), res=>{
             this.props.pending?.current?.decUse();
             if (this.props.onSuccess) this.props.onSuccess("Invitation sent successfully");
+            //!!!need to update organization
             this.setState((prev, props)=>{})
         }, err=>{
             this.props.pending?.current?.decUse();
@@ -91,25 +98,6 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         })
     }
 
-    loadSetStats() {
-        if (this.props.org === undefined) return;
-        this.props.pending?.current?.incUse();
-        serverCommand("getorganizationstats", this.props.serverInfo, JSON.stringify({
-            oid: this.props.org._id}), res=>{
-                this.props.pending?.current?.decUse();
-                for (let i = 0; i < res.countByDate.length; i ++) {
-                    res.countByDate[i].day = new Date(res.countByDate[i].day);
-                }
-                const nState: IUserMngState = this.state;
-                res.orgid = this.props.org._id;
-                nState.setStats = res;
-                this.setState(nState);
-            }, err=>{
-                this.props.pending?.current?.decUse();
-                if (this.props.onError) this.props.onError(err);
-            })
-    }
-
     onInvitationSelect(invitation: any, answers: any[]){
         this.loadInvitationStats(invitation._id);
         const nState: IUserMngState = this.state;
@@ -117,14 +105,6 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         nState.selectedInvitation = invitation;
         nState.answersOnSelectedInvitation = answers;
         this.setState(nState);
-    }
-
-    onSetStatsButtonClick() {
-        const nState: IUserMngState = this.state;
-        nState.selectedInvitation = undefined;
-        nState.answersOnSelectedInvitation = undefined;
-        this.setState(nState);
-        this.loadSetStats();
     }
 
     renderSelectedInvitation(): ReactNode {
@@ -148,12 +128,16 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 <></>}</div>
                 {observe !== undefined && observe.ownVector !== undefined?
                 <><Insights mycount={observe.ownVector.count} myvector={observe.ownVector} otherscount={observe.othersVector.count} othersvector={observe.othersVector} onClick={(emotion: EmotionType)=>{
-                    serverCommand("reviewemotionaboveothers", this.props.serverInfo, JSON.stringify({emotion: emotion, invitationid: this.state.selectedInvitation._id}), res=>{
-                        this.state.selectedInvitation.diffs = {
+                    serverCommand("reviewemotionaboveothers", this.props.serverInfo, JSON.stringify({
+                        emotion: emotion, 
+                        invitationid: this.state.selectedInvitation._id}), res=>{
+                        const nState: IUserMngState = this.state;
+
+                        nState.selectedInvitation.diffs = {
                             emotion: emotion,
                             decoding: res.decoding
                         }
-                        this.setState(this.state);
+                        this.setState(nState);
                     }, err=>{
                         if (this.props.onError) this.props.onError(err);
                     });
@@ -175,29 +159,6 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         } else return <></>;
     }
 
-    renderSetStats(): ReactNode {
-        if (this.state.setStats?.countByDate === undefined) return <></>;
-        const data = [
-            [
-              {
-                type: "date",
-                id: "day",
-              },
-              {
-                type: "number",
-                id: "Count",
-              },
-            ],
-          ];
-        for (let i = 0; i < this.state.setStats?.countByDate.length; i++) {
-            data.push([this.state.setStats?.countByDate[i].day, this.state.setStats?.countByDate[i].count]);
-        }
-
-        return <div className='user-mng-set-stats-container'>
-            <Chart key={this.props.org?._id} chartType="Calendar" width="100%" height="400px" data={data} options={{title: "Stats: assessments count by date"}}/>
-        </div>
-    }
-
     render(): ReactNode {
         return <div className='user-mng-container'>
             <span className="user-mng-label">Users and customers</span>
@@ -205,8 +166,8 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 {this.state.mode === "content"?
                 /** INVITING mode */<>
                 <button onClick={this.inviteUser.bind(this)}>Invite user</button>
-                <span>|</span>
-                <button onClick={this.onSetStatsButtonClick.bind(this)}>Invitation stats</button></>:
+                <button onClick={this.remindUser.bind(this)}>Remind user</button>
+                </>:
                 this.state.mode === "inviting"?
                 /** INVITING mode */<>
                 <input ref={this.newUserRef} placeholder='Type Telegram username or user id'></input>
@@ -226,7 +187,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 })}
                 </span>
                 <span className='user-mng-user-info'>
-                    {this.state.selectedInvitation !== undefined?this.renderSelectedInvitation(): this.renderSetStats()}
+                    {this.state.selectedInvitation !== undefined?this.renderSelectedInvitation(): <></>}
                 </span>
             </span>
         </div>

@@ -290,14 +290,6 @@ const plutchik_strings = new Map([
     ,   [`uk`, `Використовуйте свій ідентифікатор Telegram, щоб створювати власні набори вмісту або отримувати запрошення оцінювати інші набори`]
     ,   [`ru`, `Используйте свой идентификатор Telegram, чтобы создавать собственные наборы контента или получать приглашения для оценки других наборов.`]
         ])
-    ], [`invites you to assess the set`,
-    new Map([
-        [`de`, `lädt Ihr Bewertungsset ein`]
-    ,   [`fr`, `invite votre ensemble d'évaluation`]
-    ,   [`es`, `invita a su grupo de evaluación`]
-    ,   [`uk`, `пропонує вам оцінити набір`]
-    ,   [`ru`, `предлагает вам оценить набор`]
-        ])
     ], [`Now you can assess new content. The assigned sets have priority and be proposed first. When you assess all assigned item we'll text to author of set`,
     new Map([
         [`de`, `Jetzt können Sie neue Inhalte bewerten. Die zugewiesenen Sets haben Priorität und werden zuerst vorgeschlagen. Wenn Sie alle zugewiesenen Elemente bewertet haben, senden wir eine SMS an den Autor des Sets.`]
@@ -314,30 +306,65 @@ const plutchik_strings = new Map([
     ,   [`uk`, `Ви відхилили запрошення`]
     ,   [`ru`, `Вы отклонили приглашение`]
         ])
-    ], [`has accepted your invitation to set`,
+    ], [`has accepted your invitation to assess the set`,
         new Map([
-            [`de`, `hat Ihre Einladung zum Festlegen angenommen`]
-        ,   [`fr`, `a accepté votre invitation à définir`]
-        ,   [`es`, `ha aceptado su invitación a establecer`]
-        ,   [`uk`, `прийняв ваше запрошення до набору`]
-        ,   [`ru`, `принял ваше приглашение установить`]
-            ])
-    ], [`has declined your invitation to set`,
+        [`de`, `hat Ihre Einladung zur Bewertung des Sets angenommen`]
+    ,   [`fr`, `a accepté votre invitation à évaluer l'ensemble`]
+    ,   [`es`, `ha aceptado tu invitación para valorar el conjunto.`]
+    ,   [`uk`, `прийняв ваше запрошення оцінити набір`]
+    ,   [`ru`, `принял ваше приглашение оценить`]
+        ])
+    ], [`has declined your invitation to assess the set`,
         new Map([
-            [`de`, `hat Ihre Einladung zum Festlegen abgelehnt`]
-        ,   [`fr`, `a décliné votre invitation à définir`]
-        ,   [`es`, `ha rechazado su invitación a establecer`]
-        ,   [`uk`, `відхилив ваше запрошення до набору`]
-        ,   [`ru`, `отклонил ваше приглашение установить`]
-            ])
-        ]
+        [`de`, `hat Ihre Einladung zur Bewertung des Sets abgelehnt`]
+    ,   [`fr`, `a décliné votre invitation à évaluer l'ensemble`]
+    ,   [`es`, `ha rechazado su invitación para valorar el conjunto.`]
+    ,   [`uk`, `відхилив ваше запрошення оцінити набір`]
+    ,   [`ru`, `отклонил ваше приглашение оценить`]
+        ])
+    ], [`invites you to assess the set`,
+        new Map([
+        [`de`, `lädt Sie ein, das Set zu bewerten`]
+    ,   [`fr`, `vous invite à évaluer l'ensemble`]
+    ,   [`es`, `te invita a evaluar el conjunto.`]
+    ,   [`uk`, `пропонує вам оцінити набір`]
+    ,   [`ru`, `приглашает вас оценить набор`]
+        ])
+    ], [`reminds you about the set`,
+        new Map([
+        [`de`, `erinnert Sie an das Set`]
+    ,   [`fr`, `vous rappelle l'ensemble`]
+    ,   [`es`, `te recuerda sobre el set.`]
+    ,   [`uk`, `нагадує про набір`]
+    ,   [`ru`, `напоминает о наборе`]
+        ])
+    ], [`User didn't accept your invitation`,
+        new Map([
+        [`de`, `Der Benutzer hat Ihre Einladung nicht angenommen`]
+    ,   [`fr`, `L'utilisateur n'a pas accepté votre invitation`]
+    ,   [`es`, `El usuario no aceptó tu invitación.`]
+    ,   [`uk`, `Користувач не прийняв ваше запрошення`]
+    ,   [`ru`, `Пользователь не принял ваше приглашение`]
+        ])
+    ], [`The assign was closed`,
+        new Map([
+        [`de`, `Die Zuweisung wurde abgeschlossen`]
+    ,   [`fr`, `La mission a été clôturée`]
+    ,   [`es`, `La asignación fue cerrada.`]
+    ,   [`uk`, `Призначення було закрито`]
+    ,   [`ru`, `Назначение было закрыто`]
+        ])
+    ]
 ]);
 
 export default function ML(str?: string, lang?: string): string {
     if (lang === undefined) console.log(`${colours.fg.yellow}ML without lang '${str?.substring(0, 15)}'... ${colours.reset}`);
     if (str === undefined) return `Unknown string`;
     if (lang === undefined) return str;
-    if (!plutchik_strings.has(str)) return str;
+    if (!plutchik_strings.has(str)) {
+        console.log(`${colours.fg.yellow}ML is absent in the list '${str?.substring(0, 15)}'... ${colours.reset}`);
+        return str;
+    }
     const el = plutchik_strings.get(str);
     if (!el?.has(lang)) return str;
     return el.get(lang) as string;

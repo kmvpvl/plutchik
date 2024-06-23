@@ -10,7 +10,7 @@ import checkSettings from './model/settings';
 import fs from 'fs';
 import path from 'path';
 import User from './model/user';
-import userinfo, {getinsights, getmatchlist, informuserbytg, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
+import userinfo, {getinsights, getmatchlist, reminduseraboutinvitation, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
 import {createorganization, getinvitationstats, getorganizationstats, getusersassessedorganizationcontent, renameorganization, requesttoassignorgtouser} from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
@@ -62,9 +62,9 @@ if (process.env.tg_web_hook_server) {
             const langs = [undefined, "de", "fr", "es", "uk", "ru", "it"];
             for (const [i, lang] of Object.entries(langs)) {
                 try {
-                    ret = await bot.setMyCommands([{command: "start", description: ML("Register me", lang)},
-                        {command: "home", description: ML("Main menu", lang)}, 
-                        {command: "help", description: ML("I have an issue, pls help me", lang)}], {language_code: lang});
+                    ret = await bot.setMyCommands([{command: "start", description: lang===undefined?"Register me":ML("Register me", lang)},
+                        {command: "home", description: lang===undefined?"Main menu":ML("Main menu", lang)}, 
+                        {command: "help", description: lang===undefined?"I have an issue, pls help me": ML("I have an issue, pls help me", lang)}], {language_code: lang});
                     console.log(`${colours.fg.green}Setting TG setMyCommand successful for lang(${lang}) = '${JSON.stringify(ret)}'${colours.reset}`);
                 } catch(reason: any){
                     console.log(`${colours.fg.red}Setting TG setMyCommand for lang(${lang}) error '${JSON.stringify(reason)}'${colours.reset}`)
@@ -158,7 +158,7 @@ api.register({
     reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
     getmatchlist: async (c, req, res, user) => getmatchlist(c, req, res, user),
     getusersassessedorganizationcontent: async (c, req, res, user) => getusersassessedorganizationcontent(c, req, res, user),
-    informuserbytg: async (c, req, res, user) => informuserbytg(c, req, res, user, bot),
+    reminduseraboutinvitation: async (c, req, res, user) => reminduseraboutinvitation(c, req, res, user, bot),
     requesttoassignorgtouser: async (c, req, res, user) => requesttoassignorgtouser(c, req, res, user, bot),
     getinvitationstats: async (c, req, res, user) => getinvitationstats(c, req, res, user, bot),
     getorganizationstats: async (c, req, res, user) => getorganizationstats(c, req, res, user),
