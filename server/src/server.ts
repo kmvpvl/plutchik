@@ -10,7 +10,7 @@ import checkSettings from './model/settings';
 import fs from 'fs';
 import path from 'path';
 import User from './model/user';
-import userinfo, {getinsights, getmatchlist, informuserbytg, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
+import userinfo, {getinsights, getmatchlist, reminduseraboutinvitation, ogranizationAttachedToUser, reviewemotionaboveothers} from './api/user';
 import {createorganization, getinvitationstats, getorganizationstats, getusersassessedorganizationcontent, renameorganization, requesttoassignorgtouser} from './api/organization';
 import { Md5 } from 'ts-md5';
 import { Types } from 'mongoose';
@@ -158,7 +158,7 @@ api.register({
     reviewemotionaboveothers: async (c, req, res, user) => reviewemotionaboveothers(c, req, res, user),
     getmatchlist: async (c, req, res, user) => getmatchlist(c, req, res, user),
     getusersassessedorganizationcontent: async (c, req, res, user) => getusersassessedorganizationcontent(c, req, res, user),
-    informuserbytg: async (c, req, res, user) => informuserbytg(c, req, res, user, bot),
+    reminduseraboutinvitation: async (c, req, res, user) => reminduseraboutinvitation(c, req, res, user, bot),
     requesttoassignorgtouser: async (c, req, res, user) => requesttoassignorgtouser(c, req, res, user, bot),
     getinvitationstats: async (c, req, res, user) => getinvitationstats(c, req, res, user, bot),
     getorganizationstats: async (c, req, res, user) => getorganizationstats(c, req, res, user),

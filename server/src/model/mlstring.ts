@@ -330,6 +330,30 @@ const plutchik_strings = new Map([
     ,   [`uk`, `пропонує вам оцінити набір`]
     ,   [`ru`, `приглашает вас оценить набор`]
         ])
+    ], [`reminds you about the set`,
+        new Map([
+        [`de`, `erinnert Sie an das Set`]
+    ,   [`fr`, `vous rappelle l'ensemble`]
+    ,   [`es`, `te recuerda sobre el set.`]
+    ,   [`uk`, `нагадує про набір`]
+    ,   [`ru`, `напоминает о наборе`]
+        ])
+    ], [`User didn't accept your invitation`,
+        new Map([
+        [`de`, `Der Benutzer hat Ihre Einladung nicht angenommen`]
+    ,   [`fr`, `L'utilisateur n'a pas accepté votre invitation`]
+    ,   [`es`, `El usuario no aceptó tu invitación.`]
+    ,   [`uk`, `Користувач не прийняв ваше запрошення`]
+    ,   [`ru`, `Пользователь не принял ваше приглашение`]
+        ])
+    ], [`The assign was closed`,
+        new Map([
+        [`de`, `Die Zuweisung wurde abgeschlossen`]
+    ,   [`fr`, `La mission a été clôturée`]
+    ,   [`es`, `La asignación fue cerrada.`]
+    ,   [`uk`, `Призначення було закрито`]
+    ,   [`ru`, `Назначение было закрыто`]
+        ])
     ]
 ]);
 
@@ -337,7 +361,10 @@ export default function ML(str?: string, lang?: string): string {
     if (lang === undefined) console.log(`${colours.fg.yellow}ML without lang '${str?.substring(0, 15)}'... ${colours.reset}`);
     if (str === undefined) return `Unknown string`;
     if (lang === undefined) return str;
-    if (!plutchik_strings.has(str)) return str;
+    if (!plutchik_strings.has(str)) {
+        console.log(`${colours.fg.yellow}ML is absent in the list '${str?.substring(0, 15)}'... ${colours.reset}`);
+        return str;
+    }
     const el = plutchik_strings.get(str);
     if (!el?.has(lang)) return str;
     return el.get(lang) as string;

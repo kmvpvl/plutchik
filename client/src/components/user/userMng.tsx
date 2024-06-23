@@ -47,6 +47,17 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
         this.setState(nState);
     }
     
+    remindUser () {
+        serverCommand("reminduseraboutinvitation", this.props.serverInfo, JSON.stringify({
+            message: "message",
+            invitationid: this.state.selectedInvitation?._id
+        }), res=> {
+            if (this.props.onSuccess) this.props.onSuccess("Message sent");
+        }, err=> {
+            if (this.props.onError) this.props.onError(err);
+        });
+    }
+
     cancelInvitation () {
         const nState: IUserMngState = this.state;
         nState.mode = "content";
@@ -155,6 +166,7 @@ export default class UserMng extends React.Component<IUserMngProps, IUserMngStat
                 {this.state.mode === "content"?
                 /** INVITING mode */<>
                 <button onClick={this.inviteUser.bind(this)}>Invite user</button>
+                <button onClick={this.remindUser.bind(this)}>Remind user</button>
                 </>:
                 this.state.mode === "inviting"?
                 /** INVITING mode */<>
