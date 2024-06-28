@@ -54,6 +54,7 @@ export interface IUser {
     created: Date;
     changed?: Date;
     awaitcommanddata?: string;
+    ips?: Array<string>;
     history?: Array<any>;
 }
 
@@ -78,6 +79,7 @@ export const UserSchema = new Schema({
     awaitcommanddata: {type: String, require: false},
     auth_code_hash: {type: String, require: false},
     studygroup: {type: String, require: false},
+    ips: {type: Array, require: false},
     blocked: Boolean,
     created: Date,
     changed: Date,
@@ -166,11 +168,21 @@ export default class User extends MongoProto<IUser> {
     public async setLocation(location?: any) {
         await this.checkData();
         if (this.data) {
-          this.data.location = location;
-          if (undefined === location) delete this.data.location;
-      }
-      await this.save();
-  }
+            this.data.location = location;
+            if (undefined === location) delete this.data.location;
+        }
+        await this.save();
+    }
+
+    public async noticeIP(ip?: string | string[]) {
+        if (ip === undefined) return;
+        await this.checkData();
+        if (this.data) {
+            if (this.data.ips === undefined) this.data.ips  = [];
+            if (this.data.ips.findIndex(oldIP=>oldIP === ip) === -1) this.data.ips.push(ip instanceof Array?ip[0]:ip);
+        }
+        await this.save();
+    }
 
     public async setStudyGroup(name?: string) {
         await this.checkData();
