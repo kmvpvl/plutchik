@@ -291,7 +291,8 @@ class EmotionRange {
         this.jQueryElement.html(s);
     }
     calcEmotionRange(ev) {
-        const y = ev.originalEvent.offsetY === undefined?ev.originalEvent.layerY:ev.offsetY;
+//        const y = ev.originalEvent.offsetY === undefined?ev.originalEvent.layerY:ev.offsetY;
+        const y = ev.originalEvent.layerY;
         if (y === undefined) return this.value;
         let v = 1 - (y - this.padding)/(this.h - 2 * this.padding);
         if (v < 0) v = 0;
