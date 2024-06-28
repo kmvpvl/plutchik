@@ -175,10 +175,12 @@ export class Content extends React.Component<IContentProps, IContentState> {
             <img className="content-check-img" alt={"checker"} ref={this.imgCheckerRef} onError={this.checkImageErrorCB.bind(this)} onLoad={this.checkImageSuccessCB.bind(this)}/>
             <span className="content-label">Content of set editing</span>
             <span className="content-toolbar">
+                <button onClick={e=>this.loadContentItems()}>Refresh</button>
+                <span>|</span>
                 <button onClick={this.onNewItem.bind(this)}>New item</button>
+                <button onClick={this.saveItem.bind(this)}>Save item</button>
                 {/*<button onClick={this.onBlockItem.bind(this)}>Hide item</button>*/}
                 {/*<button onClick={this.onRevertItem.bind(this)}>Revert item</button>*/}
-                 <button onClick={this.saveItem.bind(this)}>Save item</button>
                 <span>|</span>
                 <button className={this.queueCheck.length===0?"":"checking"} onClick={this.onDeepCheckButtonClick.bind(this)}>{this.queueCheck.length===0?"Deep check set":"Deep checking..."}</button>
                 <span>|</span>
