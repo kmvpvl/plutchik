@@ -15,6 +15,8 @@ export default async function addassessment(c: any, req: Request, res: Response,
         // creating Assessment object for saving
         const a = new Assessment(undefined, req.body.assessmentinfo);
         await a.save();
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+        await user.noticeIP(ip);
         return res.status(200).json(a.json);
     } catch (e: any) {
         return res.status(400).json(e);
