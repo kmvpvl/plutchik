@@ -7,6 +7,7 @@ import MLString from './components/mlstrings';
 import Manifest from './components/manifest/manifest';
 import QNA from './components/qna/qna';
 import Login from './components/login/login';
+import Theory from './components/theory/theory';
 
 console.log(JSON.stringify(process.env));
 
@@ -95,6 +96,7 @@ export default class App extends React.Component <AppProps, AppState> {
       <Market area='psychologists' emotion='trust' caption={strForPsychologists.toString()} description={strForPsyDesc.toString()}/>
       <Market area='everyone' emotion='surprise' caption={strForEveryone.toString()} description={strForEveryoneDesc.toString()}/>
       <Manifest/>
+      <Theory/>
       <QNA/>
     </div>
   }
