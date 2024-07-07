@@ -354,6 +354,30 @@ const plutchik_strings = new Map([
     ,   [`uk`, `Призначення було закрито`]
     ,   [`ru`, `Назначение было закрыто`]
         ])
+    ], [`Count of the invitations you accepted`,
+        new Map([
+        [`de`, `Anzahl der Einladungen, die Sie angenommen haben`]
+    ,   [`fr`, `Nombre d'invitations que vous avez acceptées`]
+    ,   [`es`, `Conteo de las invitaciones que aceptaste`]
+    ,   [`uk`, `Кількість запрошень, які ви прийняли`]
+    ,   [`ru`, `Количество приглашений, которые вы приняли`]
+        ])
+    ], [`You closed all assignments`,
+        new Map([
+        [`de`, `Sie haben alle Aufgaben abgeschlossen`]
+    ,   [`fr`, `Vous avez clôturé toutes les missions`]
+    ,   [`es`, `Cerraste todas las tareas`]
+    ,   [`uk`, `Ви закрили всі завдання`]
+    ,   [`ru`, `Вы закрыли все задания`]
+        ])    
+    ], [`You have unclosed tasks`,
+        new Map([
+        [`de`, `Sie haben offene Aufgaben`]
+    ,   [`fr`, `Vous avez des tâches non clôturées`]
+    ,   [`es`, `Tienes tareas sin cerrar`]
+    ,   [`uk`, `У вас є незакриті завдання`]
+    ,   [`ru`, `У вас есть незакрытые задачи`]
+        ])    
     ]
 ]);
 
