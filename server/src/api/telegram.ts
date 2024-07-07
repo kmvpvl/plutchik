@@ -376,6 +376,20 @@ export function mainKeyBoardMenu(lang?: string): InlineKeyboardButton[][] {
     ]];
 }
 
+async function enumUnclosedInvitations(user: User, lang: string): Promise<string> {
+    const unclosedInvs = user.json?.assignedorgs?.filter(inv => !inv.closed);
+    const orgs: (string|undefined)[] = [];
+    if (unclosedInvs && unclosedInvs.length) {
+        for (const inv of unclosedInvs) {
+            const org = new Organization(inv.oid);
+            await org.load();
+            orgs.push(org.json?.name.toString());
+        }
+    }
+    const ret = `${ML("Count of the invitations you accepted", lang)}: ${user.json?.assignedorgs?.length}\n${unclosedInvs?.length ? `${ML("You have unclosed tasks", lang)}:\n${orgs.map(str=>str)}` : `${ML("You closed all assignments", lang)}`}`;
+    return ret;
+}
+
 export default async function telegram(c: any, req: Request, res: Response, bot: TelegramBot) {    
     console.log(`${colours.fg.blue}API: telegram function${colours.reset}`);
     const tgData: TelegramBot.Update = req.body;
@@ -412,7 +426,7 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
     const cbcommand = callback.split(':');
     switch(cbcommand[0]) {
         case 'settings':
-            bot.sendMessage(chat_id, ML('Here\'s what we know about you so far', ulang), tg_bot_settings_menu(ulang, user, mainKeyboard));
+            bot.sendMessage(chat_id, `${ML('Here\'s what we know about you so far', ulang)}\n${await enumUnclosedInvitations(user, ulang)}`, tg_bot_settings_menu(ulang, user, mainKeyboard));
             break;
         case 'select_gender':
             bot.sendMessage(chat_id, choose_gender(user.json?.nativelanguage as string), {reply_markup: {inline_keyboard:[[
@@ -485,9 +499,9 @@ async function callback_process(tgData: TelegramBot.Update, bot: TelegramBot, us
                 try {
                     const author = await User.getUserByTgUserId(parseInt(invitation[0].from_tguserid.toString()));
                     if (acceptordecline)
-                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has accepted your invitation to set", author?.json?.nativelanguage)} ${org.json?.name}`);
+                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has accepted your invitation to assess the set", author?.json?.nativelanguage)} ${org.json?.name}`);
                     else
-                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has declined your invitation to set", author?.json?.nativelanguage)} ${org.json?.name}`);
+                        bot.sendMessage(invitation[0].from_tguserid, `${user.json?.name?user.json?.name:''}(${user.json?.tguserid}) ${ML("has declined your invitation to assess the set", author?.json?.nativelanguage)} ${org.json?.name}`);
                 } catch(e: any) {
 
                 }

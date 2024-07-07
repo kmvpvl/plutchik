@@ -129,7 +129,9 @@ export default class Organizations extends React.Component<IOrgsProps, IOrgsStat
                 </>
             }
             {/*<button>Manage assistants</button>*/}        
-            </>:<></>}
+            </>:<>
+                <button onClick={this.createNewOrganization.bind(this)}>Create new set</button>
+            </>}
             </span>
             <span>{/*JSON.stringify(orgs)*/}</span>
         </div>;

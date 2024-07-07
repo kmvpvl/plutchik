@@ -7,7 +7,6 @@ import TelegramBot from "node-telegram-bot-api";
 import { IContent, mongoContent } from "./content";
 import MongoProto from "./mongoproto";
 import { IAssessment, mongoAssessments } from "./assessment";
-import Telegram from "./telegram";
 
 export const DEFAULT_SESSION_DURATION = 10080;
 
