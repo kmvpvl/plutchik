@@ -22,7 +22,12 @@ export default class Theory extends React.Component<ITheoryProps, ITheoryState> 
     render(): React.ReactNode {
         return <div className="theory-container">
             <span className="theory-header">{strTheory.toString()}</span>
-            <span className="theory-content"><iframe width="100%" height="320px" src="https://www.youtube.com/embed/nYmFs9nNlyI" title="The basic emotions" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe></span>
+            <span className="theory-content">
+                <span>Basic emotions</span>
+                <iframe width="100%" height="320px" src="https://www.youtube.com/embed/nYmFs9nNlyI" title="The basic emotions" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
+                <span>Ancient emotions</span>
+                <iframe width="100%" height="320px" src="https://www.youtube.com/embed/qi6stbobnFE" title="The basic emotions" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
+            </span>
         </div>
     }
 }
