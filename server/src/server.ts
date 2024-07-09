@@ -99,7 +99,7 @@ if (process.env.tg_web_hook_server) {
         } catch(reason: any) {
             console.log(`${colours.fg.red}Setting TG SetChatMenuButton error '${JSON.stringify(reason)}'${colours.reset}`);
         }
-    }, 200);
+    }, 5000);
 };
 
 const api = new OpenAPIBackend({ 
