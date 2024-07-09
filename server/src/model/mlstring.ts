@@ -378,6 +378,14 @@ const plutchik_strings = new Map([
     ,   [`uk`, `У вас є незакриті завдання`]
     ,   [`ru`, `У вас есть незакрытые задачи`]
         ])    
+    ], [`There's your authorization code to enter Plutchart tool for researchers`,
+        new Map([
+        [`de`, `Hier ist Ihr Autorisierungscode für den Zugriff auf das Plutchart-Tool für Forscher`]
+    ,   [`fr`, `Voici votre code d'autorisation pour accéder à l'outil Plutchart destiné aux chercheurs`]
+    ,   [`es`, `Ahí está su código de autorización para ingresar a la herramienta Plutchart para investigadores`]
+    ,   [`uk`, `Ось ваш код авторизації для входу в інструмент Plutchart для дослідників`]
+    ,   [`ru`, `Вот ваш код авторизации для входа в инструмент Plutchart для исследователей`]
+        ])    
     ]
 ]);
 
