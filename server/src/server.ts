@@ -48,11 +48,24 @@ if (process.env.tg_web_hook_server) {
             console.log(`${colours.fg.red}Setting TG setMyName error '${JSON.stringify(reason)}'${colours.reset}`);
         }
         */
+        //trying create webhook
         try {
-            ret = await bot.setWebHook(`${process.env.tg_web_hook_server}/telegram`);
-            console.log(`${colours.fg.green}TG web hook created successfully${colours.reset}`);
+            // on render.com got the error if webhook already installed, because getting webhook info first 
+            const newURL = `${process.env.tg_web_hook_server}/telegram`;
+            const webhookInfo = await bot.getWebHookInfo();
+            if (webhookInfo.url === newURL) {
+                console.log(`${colours.fg.green}TG web hook url = '${webhookInfo.url}' already created${colours.reset}`);
+            } else {
+                console.log(`${colours.fg.yellow}Old TG web hook url = '${webhookInfo.url}' found. Trying to change${colours.reset}`);
+                try {
+                    ret = await bot.setWebHook(newURL);
+                    console.log(`${colours.fg.green}TG web hook url = '${newURL}' created successfully${colours.reset}`);
+                } catch (reason: any) {
+                    console.log(`${colours.fg.red}Setting TG webhook error '${JSON.stringify(reason)}'${colours.reset}`);
+                }
+            }
         } catch(reason: any) {
-            console.log(`${colours.fg.red}Setting TG webhook error '${JSON.stringify(reason)}'${colours.reset}`);
+            console.log(`${colours.fg.red}Setting TG getWebhookInfo error '${JSON.stringify(reason)}'${colours.reset}`);
         }
 
         //bot menu, description and short description
