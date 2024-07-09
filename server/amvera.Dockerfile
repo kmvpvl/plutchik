@@ -6,4 +6,5 @@ RUN npm i
 RUN chown -R node /usr/src/plutchart_server
 USER node
 EXPOSE 8000
-CMD npm run build
+RUN npm run build
+CMD npm run start:prod
