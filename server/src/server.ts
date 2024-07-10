@@ -73,20 +73,20 @@ api.registerSecurityHandler('PlutchikTGUserId',  async (context, req, res, user:
     return user !== undefined;
 });
 api.registerSecurityHandler('PlutchikAuthSessionToken', async (context, req: Request, res, user: User)=>{
-    const ssessiontoken = req.headers["plutchik_sessiontoken"];
+    const ssessiontoken = req.headers["plutchik-sessiontoken"];
     if (!ssessiontoken) return false;
     const cur_st = await user.checkSessionToken(new Types.ObjectId(ssessiontoken as string));
     return cur_st.equals(ssessiontoken as string);
 });
 api.registerSecurityHandler('PlutchikAuthCode', async (context, req: Request, res, user: User)=>{
-    const sauthcode = req.headers["plutchik_authcode"];
+    const sauthcode = req.headers["plutchik-authcode"];
     const hash = Md5.hashStr(`${user.uid} ${sauthcode}`);
     return hash === user.json?.auth_code_hash;
 });
 
 api.registerSecurityHandler('TGQueryCheckString', async (context, req: Request, res, user: User)=>{
     try {
-        const plutchik_tgquerycheckstring = decodeURIComponent(req.headers["plutchik_tgquerycheckstring"] as string);
+        const plutchik_tgquerycheckstring = decodeURIComponent(req.headers["plutchik-tgquerycheckstring"] as string);
         const arr = plutchik_tgquerycheckstring.split('&');
         const hashIndex = arr.findIndex(str => str.startsWith('hash='));
         const hash = arr.splice(hashIndex)[0].split('=')[1];
@@ -109,9 +109,9 @@ app.use(cors());
 
 // use as express middleware
 app.use(async (req: Request, res: Response) => {
-    const stguid = req.headers["plutchik_tguid"];
-    const sauthcode = req.headers["plutchik_authcode"];
-    const ssessiontoken = req.headers["plutchik_sessiontoken"];
+    const stguid = req.headers["plutchik-tguid"];
+    const sauthcode = req.headers["plutchik-authcode"];
+    const ssessiontoken = req.headers["plutchik-sessiontoken"];
     console.log(`🔥 tguid='${stguid}'; authcode='${sauthcode}'; sessiontoken='${ssessiontoken}'`);
     console.log(`all_headers = ${JSON.stringify(req.headers)}`);
     
