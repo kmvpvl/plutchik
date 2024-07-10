@@ -15,19 +15,19 @@ components:
     PlutchikTGUserId:
       type: apiKey
       in: header
-      name: plutchik_tguid
+      name: plutchik-tguid
     PlutchikAuthSessionToken:
       type: apiKey
       in: header
-      name: plutchik_sessiontoken
+      name: plutchik-sessiontoken
     PlutchikAuthCode:
       type: apiKey
       in: header
-      name: plutchik_authcode
+      name: plutchik-authcode
     TGQueryCheckString:
       type: apiKey
       in: header
-      name: plutchik_tgquerycheckstring
+      name: plutchik-tgquerycheckstring
   schemas:
     version:
       type: object

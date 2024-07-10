@@ -97,7 +97,7 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
             localStorage.setItem('plutchik_tgUserId', tgUI);
             this.props.pending?.current?.incUse();
             serverFetch(`tgcreateauthcode`,'POST', [
-                ['plutchik_tguid', tgUI]
+                ['plutchik-tguid', tgUI]
             ], undefined,
                 res=>{
                     this.changeState('revealing_auth_code')
@@ -119,8 +119,8 @@ export default class TGLogin extends React.Component<ILoginFormProps, ILoginForm
         localStorage.setItem('plutchik_tgUserId', tgUI);
         this.props.pending?.current?.incUse();
         serverFetch(`tggetsessiontoken`, 'GET', { 
-            plutchik_tguid: tgUI,
-            plutchik_authcode: tgAC
+            "plutchik-tguid": tgUI,
+            "plutchik-authcode": tgAC
             }, undefined,
             res=>{
                 this.serverInfo.tguserid = parseInt(tgUI);

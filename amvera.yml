@@ -1,0 +1,12 @@
+---
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+    version: latest
+build:
+  dockerfile: server/amvera.Dockerfile
+  skip: false
+run:
+  persistenceMount: /data
+  containerPort: 8000

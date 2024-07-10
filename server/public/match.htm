@@ -125,8 +125,8 @@ function init() {
     $.ajaxSetup({
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'plutchik_tgquerycheckstring': tg.initData,
-            'plutchik_tguid': tg.initDataUnsafe.user.id
+            'plutchik-tgquerycheckstring': tg.initData,
+            'plutchik-tguid': tg.initDataUnsafe.user.id
         }
     });
     $.post(`getmatchlist`, (data, status, xhdr)=>{
