@@ -113,7 +113,8 @@ app.use(async (req: Request, res: Response) => {
     const sauthcode = req.headers["plutchik-authcode"];
     const ssessiontoken = req.headers["plutchik-sessiontoken"];
     console.log(`🔥 tguid='${stguid}'; authcode='${sauthcode}'; sessiontoken='${ssessiontoken}'`);
-    console.log(`all_headers = ${JSON.stringify(req.headers)}`);
+    //it was debug log 
+    //console.log(`all_headers = ${JSON.stringify(req.headers)}`);
     
     const user = await User.getUserByTgUserId(parseInt(stguid as string));
 
