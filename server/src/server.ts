@@ -112,8 +112,8 @@ app.use(async (req: Request, res: Response) => {
     const stguid = req.headers["plutchik_tguid"];
     const sauthcode = req.headers["plutchik_authcode"];
     const ssessiontoken = req.headers["plutchik_sessiontoken"];
-
     console.log(`🔥 tguid='${stguid}'; authcode='${sauthcode}'; sessiontoken='${ssessiontoken}'`);
+    console.log(`all_headers = ${JSON.stringify(req.headers)}`);
     
     const user = await User.getUserByTgUserId(parseInt(stguid as string));
 
