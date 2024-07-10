@@ -15,6 +15,14 @@ try {
 }
 
 export default function checkSettings(){
+    process.env.mongouri = process.env.mongouri || process.env.MONGOURI;
+    process.env.tg_bot_authtoken = process.env.tg_bot_authtoken || process.env.TG_BOT_AUTHTOKEN;
+    process.env.tg_web_hook_server = process.env.tg_web_hook_server || process.env.TG_WEB_HOOK_SERVER;
+    process.env.help_support_staff = process.env.help_support_staff || process.env.HELP_SUPPORT_STAFF;
+    process.env.landing_url = process.env.landing_url || process.env.LANDING_URL;
+    process.env.tg_bot_name = process.env.tg_bot_name || process.env.TG_BOT_NAME;
+    process.env.yt_API_KEY = process.env.yt_API_KEY || process.env.YT_API_KEY;
+    
     if (process.env.mongouri === undefined) throw new PlutchikError("mongo:connect", `Environment variable 'mongouri' can't be read`);
     if (process.env.tg_bot_authtoken === undefined) throw new PlutchikError("mongo:connect", `Environment variable 'tg_bot_authtoken' can't be read`);
     console.log(`Settings read successfully: '${JSON.stringify(process.env, null, 2)}'`)

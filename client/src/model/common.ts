@@ -75,8 +75,8 @@ export function serverFetch(command: string, method: string, headers?: HeadersIn
 
 export function serverCommand (command: string, si: IServerInfo, body?: BodyInit, successcb?: (res: any)=>void, failcb?: (err: PlutchikError)=>void){
     serverFetch(command, 'POST', {
-        plutchik_tguid: si.tguserid?si.tguserid.toString():'',
-        plutchik_sessiontoken: si.sessiontoken?si.sessiontoken:''
+        "plutchik-tguid": si.tguserid?si.tguserid.toString():'',
+        "plutchik-sessiontoken": si.sessiontoken?si.sessiontoken:''
     }, body, successcb, failcb);
 }
 
